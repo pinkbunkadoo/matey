@@ -13,3 +13,4 @@ Tool.prototype.onMouseOver = function(event) {}
 Tool.prototype.onMouseDown = function(event) {}
 Tool.prototype.onMouseUp = function(event) {}
 
+module.exports = Tool;

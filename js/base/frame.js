@@ -27,3 +27,5 @@ Frame.prototype.removeStroke = function(stroke) {
   }
 }
 
+
+module.exports = Frame;

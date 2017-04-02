@@ -3,41 +3,31 @@
   <head>
     <meta charset="utf-8">
     <title></title>
-    <script src="./js/lib/simplify.js"></script>
-
-    <script src="./js/loader/loader.js"></script>
-
-    <script src="./js/base/util.js"></script>
-    <script src="./js/base/point.js"></script>
-    <script src="./js/base/stroke.js"></script>
-    <script src="./js/base/frame.js"></script>
-
-    <!-- <script src="./js/base/segment.js"></script>
-    <script src="./js/base/curve.js"></script>
-    <script src="./js/base/path.js"></script> -->
-
-    <script src="./js/tools/tool.js"></script>
-    <script src="./js/tools/pointer.js"></script>
-    <script src="./js/tools/pencil.js"></script>
-
-    <script src="./js/ui/tool_button.js"></script>
-
-    <script src="./js/app.js"></script>
-    <script src="./js/main.js"></script>
     <style>
-    body {
-      padding: 0px;
-      margin: 0px;
-      background-color: white;
-      overflow: hidden;
-      -webkit-user-select: none;
-      -ms-user-select:none;
-      -moz-user-select: none;
-      user-select: none;
-    }
+      body {
+        padding: 0px;
+        margin: 0px;
+        /*background-color: blue;*/
+        overflow: hidden;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+      #surface {
+      }
     </style>
+    <script type="text/javascript" src="app.js"></script>
   </head>
   <body>
-    <div id="container"><canvas id="drawSurface"></canvas></div>
+    <div id="container"><canvas id="surface"></canvas></div>
   </body>
+  <script>
+
+    // window.onload = function() {
+    //   app.init(document.getElementById('surface'));
+    // }
+    // You can also require other files to run in this process
+    // require('./js/app.js')
+  </script>
 </html>

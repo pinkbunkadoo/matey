@@ -5,3 +5,5 @@ function Loader(url, callback) {
   ajax.send();
   ajax.onload = callback;
 }
+
+module.exports = Loader;

@@ -44,3 +44,6 @@ Stroke.smooth = function(points) {
 	return nL;
 }
 
+
+module.exports = Stroke;
+

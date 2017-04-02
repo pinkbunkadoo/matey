@@ -1,3 +1,9 @@
+// var app = require('../app.js');
+var simplify = require('../lib/simplify.js');
+var Tool = require('./tool.js');
+var Stroke = require('../base/stroke.js');
+
+// console.log(tools);
 
 function Pencil() {
   Tool.call(this, 'pencil');
@@ -40,10 +46,13 @@ Pencil.prototype.onMouseUp = function(event) {
   // console.log(this.points);
   if (this.points.length > 2) {
     this.points = Stroke.smooth(this.points);
-    this.points = simplify(this.points, 0.5);
+    this.points = simplify(this.points, 0.5/app.scale);
     var stroke = new Stroke(this.points);
     app.addStroke(stroke);
     // console.log(stroke);
   }
   this.points = [];
 }
+
+
+module.exports = Pencil;

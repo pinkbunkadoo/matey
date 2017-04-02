@@ -9,3 +9,6 @@ Point.prototype.constructor = Point;
 Point.prototype.copy = function() {
   return new Point(this.x, this.y);
 }
+
+
+module.exports = Point;

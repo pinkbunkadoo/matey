@@ -1,4 +1,6 @@
 
+var Loader = require('../loader/loader.js');
+
 function ToolButton(url) {
   this.el = document.createElement('div');
   this.el.style.width = '40px';
@@ -65,3 +67,5 @@ ToolButton.prototype.onLoad = function(event) {
   // this.container.innerHTML = event.target.responseText;
   this.container.appendChild(event.target.responseXML.documentElement);
 }
+
+module.exports = ToolButton;
