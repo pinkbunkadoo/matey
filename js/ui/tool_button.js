@@ -27,7 +27,7 @@ function ToolButton(url) {
 
   this.el.onmouseover = function(event) {
     // if (event.buttons == 0 && self.state == false) {
-    if (self.state == false && event.buttons == 0) {
+    if (self.state == false && !app.downTarget) {
       event.target.style.border = '1px solid gray';
       event.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
     }
@@ -54,7 +54,7 @@ ToolButton.prototype.getElement = function() {
 ToolButton.prototype.setState = function(state) {
   this.state = state;
   if (state) {
-    this.el.style.backgroundColor = 'cyan';
+    this.el.style.backgroundColor = 'white';
     this.el.style.border = 'unset';
   } else {
     this.el.style.backgroundColor = 'unset';

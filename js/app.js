@@ -13,7 +13,7 @@ app.ty = 0;
 app.startX = 0;
 app.startY = 0;
 app.width = 640;
-app.height = 480;
+app.height = 400;
 app.toolButtons = [];
 app.selection = [];
 
@@ -210,7 +210,7 @@ app.draw = function() {
   ctx.save();
 
   var p = app.worldToScreen(0, 0);
-  var p2 = app.worldToScreen(640, 480);
+  var p2 = app.worldToScreen(app.width, app.height);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
   ctx.fillRect(p.x, p.y, p2.x - p.x, p2.y - p.y);
 
@@ -252,7 +252,7 @@ app.draw = function() {
   ctx.textBaseline = 'top';
   ctx.fillStyle = 'blue';
   ctx.font = '24px sans-serif';
-  var text = (app.frameNo + 1) + ':' + app.frames.length;
+  var text = (app.frameNo + 1) + '/' + app.frames.length;
   var tm = ctx.measureText(text);
   ctx.fillText(text, (window.innerWidth / 2) - tm.width / 2, 10);
 
@@ -314,6 +314,8 @@ app.onMouseUp = function(event) {
     }
     app.setMode('tool');
   }
+
+  app.downTarget = null;
 }
 
 
@@ -395,7 +397,10 @@ app.onKeyDown = function(event) {
     }
 
   } else if (event.key == 'ArrowRight') {
+    console.log('right');
+    console.log(event);
     if (event.ctrlKey) {
+      console.log('ctrl');
       if (event.altKey) {
         app.insertFrame(app.frame.copy(), app.frameNo + 1);
       } else {

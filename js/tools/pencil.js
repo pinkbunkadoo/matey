@@ -16,7 +16,8 @@ Pencil.prototype.draw = function(ctx) {
 }
 
 Pencil.prototype.onMouseMove = function(event) {
-  if (event.buttons == 1) {
+  if (this.down) {
+    // console.log('draw');
     var p = app.screenToWorld(app.mouseX, app.mouseY);
     this.points.push(p);
   }
@@ -27,10 +28,16 @@ Pencil.prototype.onMouseOut = function(event) {}
 Pencil.prototype.onMouseOver = function(event) {}
 
 Pencil.prototype.onMouseDown = function(event) {
-  this.points = [ app.screenToWorld(app.startX, app.startY) ];
+  // console.log('pencil down', event.button);
+  if (event.button == 0) {
+    this.down = true;
+    this.points = [ app.screenToWorld(app.startX, app.startY) ];
+  }
 }
 
 Pencil.prototype.onMouseUp = function(event) {
+  this.down = false;
+  // console.log(this.points);
   if (this.points.length > 2) {
     this.points = Stroke.smooth(this.points);
     this.points = simplify(this.points, 0.5);
