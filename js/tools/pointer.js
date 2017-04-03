@@ -9,11 +9,12 @@ Pointer.prototype.constructor = Pointer;
 
 Pointer.prototype.onMouseDown = function(event) {
   if (app.highlighted) {
-    if (event.altKey) {
-      app.removeSelection(app.highlighted);
-    } else {
-      app.addSelection(app.highlighted);
-    }
+    // if (event.altKey) {
+    //   app.removeSelection(app.highlighted);
+    // } else {
+      // app.addSelection(app.highlighted);
+    // }
+    app.toggleSelection(app.highlighted);
   }
 }
 

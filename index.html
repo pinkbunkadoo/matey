@@ -16,12 +16,29 @@
       }
       #surface {
       }
+      #container {
+        cursor: auto;
+      }
+      #overlay {
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        background: #001F3F;
+        color: #7FDBFF;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+      }
+      #cursor {
+        position: absolute;
+      }
     </style>
     <script type="text/javascript" src="app.js"></script>
   </head>
   <body>
     <!-- <input type="text" id="ini" mozactionhint="next"> -->
     <div id="container"><canvas id="surface"></canvas></div>
+    <div id="cursor"></div>
   </body>
   <script>
 

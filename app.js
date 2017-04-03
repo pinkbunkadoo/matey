@@ -3,6 +3,7 @@ var Pencil = require('./js/tools/pencil.js')
 var Point = require('./js/base/point.js')
 var ToolButton = require('./js/ui/tool_button.js')
 var Frame = require('./js/base/frame.js')
+var Loader = require('./js/loader/loader.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
@@ -34,12 +35,19 @@ init: function() {
   this.key = [];
 
   this.container = document.getElementById('container');
+  this.cursor = document.getElementById('cursor');
+
   this.canvas = document.getElementById('surface');
   this.canvas.style.backgroundColor = 'lightgray';
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
   this.tx = this.width / 2;
   this.ty = this.height / 2;
+
+  new Loader('./images/cursor_hand.svg', function(event) {
+    app.cursor_hand = event.target.responseXML.documentElement;
+  });
+
 
   // console.log('edit', this.container.isContentEditable);
   // console.log('edit', this.canvas.isContentEditable);
@@ -76,16 +84,16 @@ init: function() {
   var toolButton = new ToolButton('images/pointer.svg');
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pointer'] = toolButton;
-  toolButton.onMouseDown = function() {
+  toolButton.onMouseDown = (function() {
     this.setTool('pointer');
-  }
+  }).bind(this);
 
   toolButton = new ToolButton('images/pencil.svg');
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pencil'] = toolButton;
-  toolButton.onMouseDown = function() {
+  toolButton.onMouseDown = (function() {
     this.setTool('pencil');
-  }
+  }).bind(this);
 
   document.body.appendChild(toolsEl);
 
@@ -112,12 +120,22 @@ setTool: function(toolName) {
   this.toolButtons[this.tool.name].setState(true);
 
   if (this.tool.name == 'pointer') {
+    // this.container.style.display = 'none';
+    // overlay = document.createElement('div');
+    // overlay.id = 'overlay';
+    // this.container.appendChild(overlay);
     this.container.style.cursor = 'default';
-    document.body.style.cursor = 'default';
+    // this.cursor.style.display = 'block';
+    // this.cursor.appendChild(this.cursor_hand);
+
+    // this.container.style.display = 'block';
+    // document.body.style.cursor = 'default';
 
   } else if (this.tool.name == 'pencil') {
+    // this.container.style.display = 'none';
     this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-    document.body.style.cursor = 'default';
+    // this.container.style.display = 'block';
+    // document.body.style.cursor = 'pointer';
   }
 },
 
@@ -127,12 +145,16 @@ setMode: function(mode) {
 
   if (mode == 'tool') {
     if (this.tool.name == 'pointer') {
+      // this.container.style.display = 'none';
       this.container.style.cursor = 'default';
-      document.body.style.cursor = 'default';
+      // this.container.style.display = 'block';
+      // document.body.style.cursor = 'default';
 
     } else if (this.tool.name == 'pencil') {
+      // this.container.style.display = 'none';
       this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-      document.body.style.cursor = 'default';
+      // this.container.style.display = 'block';
+      // document.body.style.cursor = 'default';
 
     }
   } else if (mode == 'drag') {
@@ -233,6 +255,16 @@ removeSelection: function(stroke) {
   var index = this.selection.indexOf(stroke);
   if (index != -1) {
     this.selection.splice(index, 1);
+  }
+},
+
+
+toggleSelection: function(stroke) {
+  var index = this.selection.indexOf(stroke);
+  if (index != -1) {
+    this.selection.splice(index, 1);
+  } else {
+    this.selection.push(stroke);
   }
 },
 
@@ -381,6 +413,10 @@ onMouseUp: function(event) {
 
 onMouseMove: function(event) {
   var x = event.clientX, y = event.clientY;
+
+  this.cursor.style.left = x + 'px';
+  this.cursor.style.top = y + 'px';
+  this.cursor.style.display = 'none';
 
   this.mouseX = x, this.mouseY = y;
 
