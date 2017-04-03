@@ -5,6 +5,7 @@ var ToolButton = require('./js/ui/tool_button.js')
 var Frame = require('./js/base/frame.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
+var KEY_DRAG = ' ';
 
 var app = {
 
@@ -39,6 +40,17 @@ init: function() {
   this.canvas.height = window.innerHeight;
   this.tx = this.width / 2;
   this.ty = this.height / 2;
+
+  // console.log('edit', this.container.isContentEditable);
+  // console.log('edit', this.canvas.isContentEditable);
+  // console.log('edit', window.isContentEditable);
+
+  // document.body.focus();
+  // var e = document.getElementById('ini');
+  // e.style.position = 'absolute';
+  // e.readOnly = true;
+  // e.focus();
+  // document.body.appendChild(e);
 
   // this.container.style.cursor = 'url(images/cursor_pencil.svg) 1 1, auto';
 
@@ -101,6 +113,7 @@ setTool: function(toolName) {
 
   if (this.tool.name == 'pointer') {
     this.container.style.cursor = 'default';
+
   } else if (this.tool.name == 'pencil') {
     this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
   }
@@ -108,6 +121,8 @@ setTool: function(toolName) {
 
 
 setMode: function(mode) {
+  console.log('setMode', mode);
+
   if (mode == 'tool') {
     if (this.tool.name == 'pointer') {
       this.container.style.cursor = 'pointer';
@@ -117,7 +132,7 @@ setMode: function(mode) {
 
     }
   } else if (mode == 'drag') {
-    this.container.style.cursor = 'url(images/cursor_hand.svg) 1 1, auto';
+    this.container.style.cursor = 'none';
   }
   this.mode = mode;
 },
@@ -320,7 +335,7 @@ onMouseDown: function(event) {
   this.downTarget = event.target;
 
   if (event.target === this.canvas) {
-    if (this.key[' ']) {
+    if (this.key[KEY_DRAG]) {
       this.setMode('drag');
 
     } else if (event.ctrlKey) {
@@ -335,7 +350,7 @@ onMouseDown: function(event) {
 
 onMouseUp: function(event) {
 
-  if (event.button == 0) this.mouseLeft = false;
+  this.mouseLeft = false;
 
   if (this.mode == 'tool') {
     this.tool.onMouseUp(event);
@@ -349,7 +364,7 @@ onMouseUp: function(event) {
       this.setMode('tool');
 
     } else if (this.mode == 'drag') {
-      if (!this.key[' '] && !this.mouseLeft) {
+      if (!this.key[KEY_DRAG] && !this.mouseLeft) {
         this.setMode('tool');
       }
     }
@@ -419,21 +434,27 @@ onFocus: function(event) {
 
 
 onKeyDown: function(event) {
+  // event.preventDefault();
+  // event.stopPropagation();
 
-  if (event.key == ' ' && !event.repeat) {
-    this.key[event.key] = true;
+// event.preventDefault();
+  if (event.key == KEY_DRAG) {
+    event.preventDefault();
 
-    if (!this.mouseLeft) {
-      this.setMode('drag');
+    if (!event.repeat) {
+      this.key[event.key] = true;
+
+      // console.log('space');
+
+      if (!this.mouseLeft) {
+        this.setMode('drag');
+      }
     }
-
-    // this.container.style.cursor = 'url(images/cursor_hand.svg) 1 1, auto';
-    // this.container.style.opacity = '0.5';
 
   } else if (event.key == 'q' && !event.repeat) {
     this.setTool('pointer');
 
-  } else if (event.key == 'p' && !event.repeat) {
+  } else if (event.key == 'd' && !event.repeat) {
     this.setTool('pencil');
 
   } else if (event.key == '+' && !event.repeat) {
@@ -464,12 +485,21 @@ onKeyDown: function(event) {
 
 
 onKeyUp: function(event) {
+  // event.preventDefault();
+  // event.stopPropagation();
+
   delete this.key[event.key];
 
   if (this.mode == 'drag' && !this.mouseLeft) {
     this.setMode('tool');
   }
   // this.container.style.cursor = 'unset';
+},
+
+
+onKeyPress: function(event) {
+  // event.preventDefault();
+  // event.stopPropagation();
 },
 
 
@@ -497,6 +527,8 @@ handleEvent: function(event) {
     this.onKeyDown(event);
   } else if (event.type == 'keyup') {
     this.onKeyUp(event);
+  } else if (event.type == 'keypress') {
+    this.onKeyPress(event);
   } else if (event.type == 'contextmenu') {
     this.onContextMenu(event);
   }
@@ -514,6 +546,7 @@ initEventListeners: function() {
   window.addEventListener('focus', app);
   window.addEventListener('keydown', app);
   window.addEventListener('keyup', app);
+  // window.addEventListener('keypress', app);
   window.addEventListener('contextmenu', app);
 }
 
@@ -523,4 +556,3 @@ initEventListeners: function() {
 document.addEventListener('DOMContentLoaded', function() {
   app.init();
 });
-
