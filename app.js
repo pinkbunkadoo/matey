@@ -8,9 +8,9 @@ var Loader = require('./js/loader/loader.js')
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
 
-var webFrame = require('electron').webFrame;
-webFrame.setVisualZoomLevelLimits(1, 1);
-webFrame.setLayoutZoomLevelLimits(0, 0);
+// var webFrame = require('electron').webFrame;
+// webFrame.setVisualZoomLevelLimits(1, 1);
+// webFrame.setLayoutZoomLevelLimits(0, 0);
 
 var app = {
 
@@ -53,6 +53,9 @@ init: function() {
     app.cursorHand = event.target.responseXML.documentElement;
   });
 
+  this.cursors = [];
+  this.cursors['pointer'] = 'auto';
+  this.cursors['pencil'] = 'url(images/cursor_pencil.svg) 2 2, auto';
 
   // console.log('edit', this.container.isContentEditable);
   // console.log('edit', this.canvas.isContentEditable);
@@ -120,14 +123,21 @@ init: function() {
 },
 
 
+setCursor: function(name) {
+  this.container.style.cursor = this.cursors[name];
+},
+
+
 setTool: function(toolName) {
   // console.log('setTool', this.tools);
   if (this.tool) this.toolButtons[this.tool.name].setState(false);
 
   if (toolName == 'pointer') {
+    this.setCursor('pointer');
     // this.container.style.cursor = 'default';
 
   } else if (toolName == 'pencil') {
+    this.setCursor('pencil');
     // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
   }
 
@@ -138,18 +148,20 @@ setTool: function(toolName) {
 
 
 setMode: function(mode) {
-  console.log('setMode', mode);
-
   if (this.mode != mode) {
+    console.log('setMode', mode);
+
     if (this.mode == 'drag') {
       // this.cursor.innerHTML = '';
     }
     if (mode == 'tool') {
       if (this.tool.name == 'pointer') {
+        this.setCursor('pointer');
         // this.container.style.cursor = 'default';
 
       } else if (this.tool.name == 'pencil') {
         // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+        this.setCursor('pencil');
 
       }
     } else if (mode == 'drag') {
@@ -413,9 +425,9 @@ onMouseDown: function(event) {
 
   if (event.target === this.canvas) {
     if (this.key[KEY_DRAG]) {
-      // this.setMode('drag');
+      this.setMode('drag');
 
-    } else if (event.ctrlKey) {
+    } else if (event.ctrlKey && event.button == 0) {
       this.setMode('zoom');
 
     } else {
@@ -486,13 +498,18 @@ onMouseOut: function(event) {
 
 
 onWheel: function(event) {
+  console.log('wheel');
   // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
   // if (this.scale <= 0.5) this.scale = 0.5;
-  if (event.ctrlKey) {
-    this.zoomCameraBy((event.deltaX*this.scale)* 0.002);
-  } else {
-    this.panCameraBy((event.deltaX/this.scale)*0.5, (event.deltaY/this.scale)*0.5);
-  }
+
+  this.zoomCameraBy((event.deltaY * this.scale) * 0.002);
+
+  // if (event.ctrlKey) {
+  //   this.zoomCameraBy((event.deltaX * this.scale) * 0.002);
+  //
+  // } else {
+  //   this.panCameraBy((event.deltaX / this.scale) * 0.5, (event.deltaY / this.scale) * 0.5);
+  // }
 },
 
 
