@@ -1,5 +1,7 @@
-var Pointer = require('./js/tools/pointer.js')
-var Pencil = require('./js/tools/pencil.js')
+var PointerTool = require('./js/tools/pointer_tool.js')
+var PencilTool = require('./js/tools/pencil_tool.js')
+var ZoomTool = require('./js/tools/zoom_tool.js')
+
 var Point = require('./js/base/point.js')
 var ToolButton = require('./js/ui/tool_button.js')
 var Frame = require('./js/base/frame.js')
@@ -56,21 +58,8 @@ init: function() {
   this.cursors = [];
   this.cursors['pointer'] = 'auto';
   this.cursors['pencil'] = 'url(images/cursor_pencil.svg) 2 2, auto';
-
-  // console.log('edit', this.container.isContentEditable);
-  // console.log('edit', this.canvas.isContentEditable);
-  // console.log('edit', window.isContentEditable);
-
-  // document.body.focus();
-  // var e = document.getElementById('ini');
-  // e.style.position = 'absolute';
-  // e.readOnly = true;
-  // e.focus();
-  // document.body.appendChild(e);
-
-  // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-  // this.container.style.cursor = 'url(images/cursor_pencil.svg), pointer';
-  // this.container.style.cursor = 'pointer';
+  this.cursors['zoomin'] = 'url(images/cursor_zoomin.png) 2 2, auto';
+  this.cursors['zoomout'] = 'url(images/cursor_zoomout.png) 2 2, auto';
 
   this.initEventListeners();
 
@@ -85,9 +74,11 @@ init: function() {
   toolsEl.style.backgroundColor = 'rgba(128, 128, 128, 0.5)';
 
   // this.toolButtons = [];
+
   this.tools = [];
-  this.tools['pointer'] = new Pointer();
-  this.tools['pencil'] = new Pencil();
+  this.tools['pointer'] = new PointerTool();
+  this.tools['pencil'] = new PencilTool();
+  this.tools['zoom'] = new ZoomTool();
 
   // console.log(this.tools);
 
@@ -103,6 +94,13 @@ init: function() {
   this.toolButtons['pencil'] = toolButton;
   toolButton.onMouseDown = (function() {
     this.setTool('pencil');
+  }).bind(this);
+
+  toolButton = new ToolButton('images/zoom.svg');
+  toolsEl.appendChild(toolButton.getElement());
+  this.toolButtons['zoom'] = toolButton;
+  toolButton.onMouseDown = (function() {
+    this.setTool('zoom');
   }).bind(this);
 
   document.body.appendChild(toolsEl);
@@ -134,11 +132,12 @@ setTool: function(toolName) {
 
   if (toolName == 'pointer') {
     this.setCursor('pointer');
-    // this.container.style.cursor = 'default';
 
   } else if (toolName == 'pencil') {
     this.setCursor('pencil');
-    // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+
+  } else if (toolName == 'zoom') {
+    this.setCursor('zoomin');
   }
 
   this.tool = this.tools[toolName];
@@ -157,11 +156,12 @@ setMode: function(mode) {
     if (mode == 'tool') {
       if (this.tool.name == 'pointer') {
         this.setCursor('pointer');
-        // this.container.style.cursor = 'default';
 
       } else if (this.tool.name == 'pencil') {
-        // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
         this.setCursor('pencil');
+
+      } else if (this.tool.name == 'zoom') {
+        this.setCursor('zoomin');
 
       }
     } else if (mode == 'drag') {
@@ -428,7 +428,7 @@ onMouseDown: function(event) {
       this.setMode('drag');
 
     } else if (event.ctrlKey && event.button == 0) {
-      this.setMode('zoom');
+      // this.setMode('zoom');
 
     } else {
       this.tool.onMouseDown(event);
@@ -446,11 +446,11 @@ onMouseUp: function(event) {
 
   } else {
     if (this.mode == 'zoom') {
-      var x = Math.abs(event.clientX - this.startX), y = Math.abs(event.clientY - this.startY);
-      if (x < 2 && y < 2) {
-        this.scale = 1.0;
-      }
-      this.setMode('tool');
+      // var x = Math.abs(event.clientX - this.startX), y = Math.abs(event.clientY - this.startY);
+      // if (x < 2 && y < 2) {
+      //   this.scale = 1.0;
+      // }
+      // this.setMode('tool');
 
     } else if (this.mode == 'drag') {
       if (!this.key[KEY_DRAG] && !this.mouseLeft) {
@@ -482,8 +482,8 @@ onMouseMove: function(event) {
     }
 
   } else if (this.mode == 'zoom') {
-    var dx = x - this.previousMouseX, dy = y - this.previousMouseY;
-    this.zoomCameraBy((dx * this.scale) * 0.002);
+    // var dx = x - this.previousMouseX, dy = y - this.previousMouseY;
+    // this.zoomCameraBy((dx * this.scale) * 0.002);
   }
 
   this.previousMouseX = x, this.previousMouseY = y;
@@ -498,15 +498,9 @@ onMouseOut: function(event) {
 
 
 onWheel: function(event) {
-  console.log('wheel');
-  // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
-  // if (this.scale <= 0.5) this.scale = 0.5;
-
-  this.zoomCameraBy((event.deltaY * this.scale) * 0.002);
-
+  // this.zoomCameraBy((event.deltaY * this.scale) * 0.002);
   // if (event.ctrlKey) {
   //   this.zoomCameraBy((event.deltaX * this.scale) * 0.002);
-  //
   // } else {
   //   this.panCameraBy((event.deltaX / this.scale) * 0.5, (event.deltaY / this.scale) * 0.5);
   // }
@@ -514,12 +508,8 @@ onWheel: function(event) {
 
 
 onScroll: function(event) {
-  // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
-  // if (this.scale <= 0.5) this.scale = 0.5;
   event.preventDefault();
   event.stopPropagation();
-  console.log('scroll');
-  // document.body.style.zoom = 1;
 },
 
 
@@ -549,6 +539,9 @@ onFocus: function(event) {
 
 
 onKeyDown: function(event) {
+  // event.preventDefault();
+  // event.stopPropagation();
+
   if (event.key == KEY_DRAG) {
     event.preventDefault();
 
@@ -568,6 +561,9 @@ onKeyDown: function(event) {
 
   } else if (event.key == 'd' && !event.repeat) {
     this.setTool('pencil');
+
+  } else if (event.key == 'z' && !event.repeat) {
+    this.setTool('zoom');
 
   } else if (event.key == '+' && !event.repeat) {
 
@@ -593,6 +589,8 @@ onKeyDown: function(event) {
       this.goFrame(this.frameNo + 1);
     }
   }
+
+  if (this.mode == 'tool') this.tool.onKeyDown(event);
 },
 
 
@@ -602,6 +600,8 @@ onKeyUp: function(event) {
   if (this.mode == 'drag' && !this.mouseLeft) {
     this.setMode('tool');
   }
+
+  if (this.mode == 'tool') this.tool.onKeyUp(event);
 },
 
 

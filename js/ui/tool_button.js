@@ -17,6 +17,9 @@ function ToolButton(url) {
   // this.image.ondragstart = function() { return false; };
   // this.image.style.pointerEvents = 'none';
   this.container = document.createElement('div');
+  this.container.style.display = 'flex';
+  this.container.style.alignItems = 'center';
+  this.container.style.justifyContent = 'center';
   this.container.style.pointerEvents = 'none';
   Loader.load(url, this.onLoad.bind(this));
 

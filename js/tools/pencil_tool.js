@@ -5,15 +5,15 @@ var Stroke = require('../base/stroke.js');
 
 // console.log(tools);
 
-function Pencil() {
+function PencilTool() {
   Tool.call(this, 'pencil');
   this.points = [];
 }
 
-Pencil.prototype = Object.create(Tool.prototype);
-Pencil.prototype.constructor = Pencil;
+PencilTool.prototype = Object.create(Tool.prototype);
+PencilTool.prototype.constructor = PencilTool;
 
-Pencil.prototype.draw = function(ctx) {
+PencilTool.prototype.draw = function(ctx) {
   if (this.points) {
     app.createPath(ctx, this.points);
     ctx.strokeStyle = 'gray';
@@ -21,7 +21,7 @@ Pencil.prototype.draw = function(ctx) {
   }
 }
 
-Pencil.prototype.onMouseMove = function(event) {
+PencilTool.prototype.onMouseMove = function(event) {
   if (this.down) {
     // console.log('draw');
     var p = app.screenToWorld(app.mouseX, app.mouseY);
@@ -29,11 +29,11 @@ Pencil.prototype.onMouseMove = function(event) {
   }
 }
 
-Pencil.prototype.onMouseOut = function(event) {}
+PencilTool.prototype.onMouseOut = function(event) {}
 
-Pencil.prototype.onMouseOver = function(event) {}
+PencilTool.prototype.onMouseOver = function(event) {}
 
-Pencil.prototype.onMouseDown = function(event) {
+PencilTool.prototype.onMouseDown = function(event) {
   // console.log('pencil down', event.button);
   if (event.button == 0) {
     this.down = true;
@@ -41,7 +41,7 @@ Pencil.prototype.onMouseDown = function(event) {
   }
 }
 
-Pencil.prototype.onMouseUp = function(event) {
+PencilTool.prototype.onMouseUp = function(event) {
   this.down = false;
   // console.log(this.points);
   if (this.points.length > 2) {
@@ -55,4 +55,4 @@ Pencil.prototype.onMouseUp = function(event) {
 }
 
 
-module.exports = Pencil;
+module.exports = PencilTool;

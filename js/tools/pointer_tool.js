@@ -1,13 +1,13 @@
 var Tool = require('./tool.js');
 
-function Pointer() {
+function PointerTool() {
   Tool.call(this, 'pointer');
 }
 
-Pointer.prototype = Object.create(Tool.prototype);
-Pointer.prototype.constructor = Pointer;
+PointerTool.prototype = Object.create(Tool.prototype);
+PointerTool.prototype.constructor = PointerTool;
 
-Pointer.prototype.onMouseDown = function(event) {
+PointerTool.prototype.onMouseDown = function(event) {
   if (app.highlighted) {
     // if (event.altKey) {
     //   app.removeSelection(app.highlighted);
@@ -18,7 +18,7 @@ Pointer.prototype.onMouseDown = function(event) {
   }
 }
 
-Pointer.prototype.onMouseMove = function(event) {
+PointerTool.prototype.onMouseMove = function(event) {
   if (app.highlighted && event.buttons == 1) {
     if (event.altKey) {
       app.removeSelection(app.highlighted);
@@ -29,4 +29,4 @@ Pointer.prototype.onMouseMove = function(event) {
 }
 
 
-module.exports = Pointer;
+module.exports = PointerTool;
