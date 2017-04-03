@@ -113,9 +113,11 @@ setTool: function(toolName) {
 
   if (this.tool.name == 'pointer') {
     this.container.style.cursor = 'default';
+    document.body.style.cursor = 'default';
 
   } else if (this.tool.name == 'pencil') {
     this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+    document.body.style.cursor = 'default';
   }
 },
 
@@ -125,14 +127,17 @@ setMode: function(mode) {
 
   if (mode == 'tool') {
     if (this.tool.name == 'pointer') {
-      this.container.style.cursor = 'pointer';
+      this.container.style.cursor = 'default';
+      document.body.style.cursor = 'default';
 
     } else if (this.tool.name == 'pencil') {
       this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+      document.body.style.cursor = 'default';
 
     }
   } else if (mode == 'drag') {
     this.container.style.cursor = 'none';
+    // document.body.style.cursor = 'default';
   }
   this.mode = mode;
 },
@@ -336,7 +341,7 @@ onMouseDown: function(event) {
 
   if (event.target === this.canvas) {
     if (this.key[KEY_DRAG]) {
-      this.setMode('drag');
+      // this.setMode('drag');
 
     } else if (event.ctrlKey) {
       this.setMode('zoom');
@@ -434,17 +439,11 @@ onFocus: function(event) {
 
 
 onKeyDown: function(event) {
-  // event.preventDefault();
-  // event.stopPropagation();
-
-// event.preventDefault();
   if (event.key == KEY_DRAG) {
     event.preventDefault();
 
     if (!event.repeat) {
-      this.key[event.key] = true;
-
-      // console.log('space');
+      this.key[KEY_DRAG] = true;
 
       if (!this.mouseLeft) {
         this.setMode('drag');
@@ -485,21 +484,15 @@ onKeyDown: function(event) {
 
 
 onKeyUp: function(event) {
-  // event.preventDefault();
-  // event.stopPropagation();
-
   delete this.key[event.key];
 
   if (this.mode == 'drag' && !this.mouseLeft) {
     this.setMode('tool');
   }
-  // this.container.style.cursor = 'unset';
 },
 
 
 onKeyPress: function(event) {
-  // event.preventDefault();
-  // event.stopPropagation();
 },
 
 
