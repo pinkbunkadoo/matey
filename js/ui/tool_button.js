@@ -18,7 +18,7 @@ function ToolButton(url) {
   // this.image.style.pointerEvents = 'none';
   this.container = document.createElement('div');
   this.container.style.pointerEvents = 'none';
-  this.loader = new Loader(url, this.onLoad.bind(this));
+  Loader.load(url, this.onLoad.bind(this));
 
   this.url = url;
   this.state = false;

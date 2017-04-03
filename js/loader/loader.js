@@ -1,5 +1,8 @@
 
-function Loader(url, callback) {
+function Loader() {
+}
+
+Loader.load = function(url, callback) {
   var ajax = new XMLHttpRequest();
   ajax.open("GET", url, true);
   ajax.send();

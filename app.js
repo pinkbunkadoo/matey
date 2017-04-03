@@ -18,15 +18,14 @@ init: function() {
   this.mode = null;
   this.tool = null;
   this.points = null;
-  this.canvas = null;
   this.strokes = [];
   this.scale = 1.0;
-  this.tx = 0;
-  this.ty = 0;
   this.startX = 0;
   this.startY = 0;
   this.width = 640;
   this.height = 320;
+  this.tx = this.width / 2;
+  this.ty = this.height / 2;
   this.toolButtons = [];
   this.selection = [];
   this.frame = null;
@@ -41,11 +40,13 @@ init: function() {
   this.canvas.style.backgroundColor = 'lightgray';
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
-  this.tx = this.width / 2;
-  this.ty = this.height / 2;
 
-  new Loader('./images/cursor_hand.svg', function(event) {
-    app.cursor_hand = event.target.responseXML.documentElement;
+  this.background = document.createElement('canvas');
+  this.background.width = this.width;
+  this.background.height = this.height;
+
+  Loader.load('./images/cursor_hand.svg', function(event) {
+    app.cursorHand = event.target.responseXML.documentElement;
   });
 
 
@@ -143,25 +144,32 @@ setTool: function(toolName) {
 setMode: function(mode) {
   console.log('setMode', mode);
 
-  if (mode == 'tool') {
-    if (this.tool.name == 'pointer') {
-      // this.container.style.display = 'none';
-      this.container.style.cursor = 'default';
-      // this.container.style.display = 'block';
-      // document.body.style.cursor = 'default';
-
-    } else if (this.tool.name == 'pencil') {
-      // this.container.style.display = 'none';
-      this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-      // this.container.style.display = 'block';
-      // document.body.style.cursor = 'default';
-
+  if (this.mode != mode) {
+    if (this.mode == 'drag') {
+      this.cursor.innerHTML = '';
     }
-  } else if (mode == 'drag') {
-    this.container.style.cursor = 'none';
-    // document.body.style.cursor = 'default';
+    if (mode == 'tool') {
+      if (this.tool.name == 'pointer') {
+        // this.container.style.display = 'none';
+        this.container.style.cursor = 'default';
+        // this.container.style.display = 'block';
+        // document.body.style.cursor = 'default';
+
+      } else if (this.tool.name == 'pencil') {
+        // this.container.style.display = 'none';
+        this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+        // this.container.style.display = 'block';
+        // document.body.style.cursor = 'default';
+
+      }
+    } else if (mode == 'drag') {
+      this.container.style.cursor = 'none';
+      this.cursor.appendChild(this.cursorHand);
+      this.cursor.style.marginLeft = '-12px';
+      this.cursor.style.marginTop = '-12px';
+    }
+    this.mode = mode;
   }
-  this.mode = mode;
 },
 
 
@@ -208,6 +216,38 @@ worldToScreen: function(x, y) {
   var heightHalf = (this.canvas.height / 2) >> 0;
 
   return new Point(sx + widthHalf, sy + heightHalf);
+},
+
+
+sendToBackground: function() {
+  var dataURL = this.canvas.toDataURL('image/png');
+  // console.log(dataURL, dataURL.length);
+
+  var ctx = this.background.getContext('2d');
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'blue';
+
+  for (var i = 0; i < this.frame.strokes.length; i++) {
+    ctx.beginPath();
+    var stroke = this.frame.strokes[i];
+    for (var j = 0; j < stroke.points.length; j++) {
+      var p = stroke.points[j];
+      var x = p.x, y = p.y;
+
+      if (j == 0)
+        ctx.moveTo(x, y);
+      else
+        ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  this.frame.strokes = [];
+
+  // for (var i = 0; i < this.frames.strokes.length; i++) {
+  //   this.frames.strokes[i]
+  // }
+  // ctx.drawImage(this.canvas, 0, 0);
 },
 
 
@@ -284,10 +324,21 @@ insertFrame: function(frame, index) {
 },
 
 
+drawBackground: function(ctx) {
+  // var ctx = this.canvas.getContext('2d');
+  var p = this.worldToScreen(0, 0);
+  var p2 = this.worldToScreen(this.width, this.height);
+  // ctx.globalAlpha = 0.5;
+  ctx.drawImage(this.background, p.x, p.y, p2.x - p.x, p2.y - p.y);
+  // ctx.globalAlpha = 1;
+},
+
+
 draw: function() {
   var ctx = this.canvas.getContext('2d');
-  // ctx.scale(3, 3);
   ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+  this.drawBackground(ctx);
 
   ctx.save();
 
@@ -416,7 +467,7 @@ onMouseMove: function(event) {
 
   this.cursor.style.left = x + 'px';
   this.cursor.style.top = y + 'px';
-  this.cursor.style.display = 'none';
+  // this.cursor.style.display = 'none';
 
   this.mouseX = x, this.mouseY = y;
 
@@ -485,6 +536,9 @@ onKeyDown: function(event) {
         this.setMode('drag');
       }
     }
+
+  } else if (event.key == '1' && !event.repeat) {
+    this.sendToBackground();
 
   } else if (event.key == 'q' && !event.repeat) {
     this.setTool('pointer');
