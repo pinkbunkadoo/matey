@@ -22,8 +22,11 @@ function createWindow () {
     slashes: true
   }))
 
+  // mainWindow.webContents.setVisualZoomLevelLimits(0, 0)
+  // mainWindow.webContents.setLayoutZoomLevelLimits(0, 0)
+
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools({ mode: 'bottom' })
+  mainWindow.webContents.openDevTools({ mode: 'bottom' })
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

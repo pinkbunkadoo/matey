@@ -8,6 +8,10 @@ var Loader = require('./js/loader/loader.js')
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
 
+var webFrame = require('electron').webFrame;
+webFrame.setVisualZoomLevelLimits(1, 1);
+webFrame.setLayoutZoomLevelLimits(0, 0);
+
 var app = {
 
 init: function() {
@@ -34,7 +38,7 @@ init: function() {
   this.key = [];
 
   this.container = document.getElementById('container');
-  this.cursor = document.getElementById('cursor');
+  // this.cursor = document.getElementById('cursor');
 
   this.canvas = document.getElementById('surface');
   this.canvas.style.backgroundColor = 'lightgray';
@@ -61,7 +65,9 @@ init: function() {
   // e.focus();
   // document.body.appendChild(e);
 
-  // this.container.style.cursor = 'url(images/cursor_pencil.svg) 1 1, auto';
+  // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
+  // this.container.style.cursor = 'url(images/cursor_pencil.svg), pointer';
+  // this.container.style.cursor = 'pointer';
 
   this.initEventListeners();
 
@@ -117,27 +123,17 @@ init: function() {
 setTool: function(toolName) {
   // console.log('setTool', this.tools);
   if (this.tool) this.toolButtons[this.tool.name].setState(false);
-  this.tool = this.tools[toolName];
-  this.toolButtons[this.tool.name].setState(true);
 
-  if (this.tool.name == 'pointer') {
-    // this.container.style.display = 'none';
-    // overlay = document.createElement('div');
-    // overlay.id = 'overlay';
-    // this.container.appendChild(overlay);
-    this.container.style.cursor = 'default';
-    // this.cursor.style.display = 'block';
-    // this.cursor.appendChild(this.cursor_hand);
+  if (toolName == 'pointer') {
+    // this.container.style.cursor = 'default';
 
-    // this.container.style.display = 'block';
-    // document.body.style.cursor = 'default';
-
-  } else if (this.tool.name == 'pencil') {
-    // this.container.style.display = 'none';
-    this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-    // this.container.style.display = 'block';
-    // document.body.style.cursor = 'pointer';
+  } else if (toolName == 'pencil') {
+    // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
   }
+
+  this.tool = this.tools[toolName];
+  this.toolButtons[toolName].setState(true);
+  console.log(toolName);
 },
 
 
@@ -146,27 +142,20 @@ setMode: function(mode) {
 
   if (this.mode != mode) {
     if (this.mode == 'drag') {
-      this.cursor.innerHTML = '';
+      // this.cursor.innerHTML = '';
     }
     if (mode == 'tool') {
       if (this.tool.name == 'pointer') {
-        // this.container.style.display = 'none';
-        this.container.style.cursor = 'default';
-        // this.container.style.display = 'block';
-        // document.body.style.cursor = 'default';
+        // this.container.style.cursor = 'default';
 
       } else if (this.tool.name == 'pencil') {
-        // this.container.style.display = 'none';
-        this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
-        // this.container.style.display = 'block';
-        // document.body.style.cursor = 'default';
+        // this.container.style.cursor = 'url(images/cursor_pencil.svg) 2 2, auto';
 
       }
     } else if (mode == 'drag') {
-      this.container.style.cursor = 'none';
-      this.cursor.appendChild(this.cursorHand);
-      this.cursor.style.marginLeft = '-12px';
-      this.cursor.style.marginTop = '-12px';
+      // this.cursor.appendChild(this.cursorHand);
+      // this.cursor.style.marginLeft = '-12px';
+      // this.cursor.style.marginTop = '-12px';
     }
     this.mode = mode;
   }
@@ -465,8 +454,8 @@ onMouseUp: function(event) {
 onMouseMove: function(event) {
   var x = event.clientX, y = event.clientY;
 
-  this.cursor.style.left = x + 'px';
-  this.cursor.style.top = y + 'px';
+  // this.cursor.style.left = x + 'px';
+  // this.cursor.style.top = y + 'px';
   // this.cursor.style.display = 'none';
 
   this.mouseX = x, this.mouseY = y;
@@ -496,20 +485,37 @@ onMouseOut: function(event) {
 },
 
 
+onWheel: function(event) {
+  // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
+  // if (this.scale <= 0.5) this.scale = 0.5;
+  if (event.ctrlKey) {
+    this.zoomCameraBy((event.deltaX*this.scale)* 0.002);
+  } else {
+    this.panCameraBy((event.deltaX/this.scale)*0.5, (event.deltaY/this.scale)*0.5);
+  }
+},
+
+
+onScroll: function(event) {
+  // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
+  // if (this.scale <= 0.5) this.scale = 0.5;
+  event.preventDefault();
+  event.stopPropagation();
+  console.log('scroll');
+  // document.body.style.zoom = 1;
+},
+
+
 onResize: function() {
+  // console.log('resize');
   if (!window.resizeTimeoutId) {
     window.resizeTimeoutId = setTimeout(function() {
       app.canvas.width = window.innerWidth;
       app.canvas.height = window.innerHeight;
       window.resizeTimeoutId = 0;
+      // document.body.style.zoom = 1;
     }, 100);
   }
-},
-
-
-onWheel: function(event) {
-  // this.scale = this.scale - (event.deltaY / Math.abs(event.deltaY))*0.5;
-  // if (this.scale <= 0.5) this.scale = 0.5;
 },
 
 
@@ -600,6 +606,8 @@ handleEvent: function(event) {
     this.onMouseMove(event);
   } else if (event.type == 'wheel') {
     this.onWheel(event);
+  } else if (event.type == 'scroll') {
+    this.onScroll(event);
   } else if (event.type == 'resize') {
     this.onResize(event);
   } else if (event.type == 'blur') {
@@ -635,7 +643,13 @@ initEventListeners: function() {
 
 };
 
-
-document.addEventListener('DOMContentLoaded', function() {
+window.onload = function() {
   app.init();
-});
+
+  // document.body.onresize = function(event) {
+  //   console.log('resize');
+  // }
+};
+// document.addEventListener('DOMContentLoaded', function() {
+//   app.init();
+// });
