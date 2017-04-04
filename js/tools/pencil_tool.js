@@ -46,7 +46,8 @@ PencilTool.prototype.onMouseUp = function(event) {
   // console.log(this.points);
   if (this.points.length > 2) {
     this.points = Stroke.smooth(this.points);
-    this.points = simplify(this.points, 0.5/app.scale);
+    // this.points = simplify(this.points, 0.5/app.scale);
+    this.points = simplify(this.points, 0.4 / app.scale);
     var stroke = new Stroke(this.points);
     app.addStroke(stroke);
     // console.log(stroke);

@@ -18,9 +18,11 @@ function ToolButton(url) {
   // this.image.style.pointerEvents = 'none';
   this.container = document.createElement('div');
   this.container.style.display = 'flex';
+  this.container.style.opacity = 0.65;
   this.container.style.alignItems = 'center';
   this.container.style.justifyContent = 'center';
   this.container.style.pointerEvents = 'none';
+
   Loader.load(url, this.onLoad.bind(this));
 
   this.url = url;
