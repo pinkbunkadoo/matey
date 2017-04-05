@@ -1,12 +1,12 @@
 
 function Tool(name) {
   this.name = name;
-  // console.log('Tool', this.name);
 }
 
 Tool.prototype.constructor = Tool;
 
-Tool.prototype.draw = function(ctx) {}
+Tool.prototype.focus = function() {}
+Tool.prototype.blur = function() {}
 Tool.prototype.onMouseMove = function(event) {}
 Tool.prototype.onMouseOut = function(event) {}
 Tool.prototype.onMouseOver = function(event) {}

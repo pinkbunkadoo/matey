@@ -18,7 +18,7 @@ Frame.prototype.copy = function() {
 
 Frame.prototype.addStroke = function(stroke) {
   this.strokes.push(stroke);
-  this.lastStroke = stroke;
+  // this.lastStroke = stroke;
 }
 
 Frame.prototype.removeStroke = function(stroke) {
