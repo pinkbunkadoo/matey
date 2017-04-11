@@ -10,6 +10,7 @@ var simplify = require('../lib/simplify.js');
 function KnifeTool() {
   Tool.call(this, 'knife');
   this.points = [];
+  this.intersections = [];
   // this.snapshot = document.createElement('canvas');
 }
 
@@ -25,7 +26,7 @@ KnifeTool.prototype.blur = function() {
 
 KnifeTool.prototype.beginStroke = function() {
   this.drawing = true;
-  this.points.push(new Point(event.clientX, event.clientY));
+  this.points.push(new Point(app.mouseX, app.mouseY));
   // this.snapshot.width = app.canvas.width;
   // this.snapshot.height = app.canvas.height;
 
@@ -34,6 +35,7 @@ KnifeTool.prototype.beginStroke = function() {
 }
 
 KnifeTool.prototype.endStroke = function() {
+  this.points.push(new Point(app.mouseX, app.mouseY));
   if (this.points.length > 2) {
     this.points = simplify(this.points, 0.5);
 
@@ -44,6 +46,7 @@ KnifeTool.prototype.endStroke = function() {
     // var stroke = new Stroke(this.points);
     // app.addStroke(stroke);
   }
+  this.intersections = [];
   this.points = [];
   this.drawing = false;
   app.clearOverlay();
@@ -58,7 +61,7 @@ KnifeTool.prototype.draw = function() {
   if (this.points.length > 1) {
     ctx.beginPath();
     ctx.moveTo(this.points[0].x, this.points[0].y);
-    
+
     for (var i = 1; i < this.points.length; i++) {
       var p = this.points[i];
       ctx.lineTo(p.x, p.y);
@@ -69,6 +72,24 @@ KnifeTool.prototype.draw = function() {
     ctx.lineWidth = 2;
     ctx.strokeStyle = 'skyblue';
     ctx.stroke();
+
+    ctx.fillStyle = 'red';
+
+    // if (this.intersections.length > 0) {
+    //   for (var i = 0; i < this.intersections.length; i++) {
+    //     var int = this.intersections[i];
+    //     ctx.fillRect(int.x-2, int.y-2, 4, 4);
+    //   }
+    // }
+
+    for (var i = 0; i < this.intersections.length; i++) {
+      var int = this.intersections[i];
+
+      if (int) {
+        var p = app.worldToScreen(int.x, int.y);
+        ctx.fillRect(p.x-2, p.y-2, 4, 4);
+      }
+    }
   }
   app.requestDraw();
 }
@@ -79,6 +100,31 @@ KnifeTool.prototype.onMouseMove = function(event) {
     this.points.push(p);
 
     Smooth.exp(this.points);
+
+    if (this.points.length > 2) {
+      // this.intersections = app.getIntersections(this.points);
+      var p1 = this.points[this.points.length - 2];
+      var p2 = this.points[this.points.length - 1];
+
+      p1 = app.screenToWorld(p1.x, p1.y);
+      p2 = app.screenToWorld(p2.x, p2.y);
+
+      for (var i = 0; i < app.frame.strokes.length; i++) {
+        var stroke = app.frame.strokes[i];
+        for (var j = 1; j < stroke.points.length; j++) {
+          var p3 = stroke.points[j-1];
+          var p4 = stroke.points[j];
+          var int = util.intersect(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y);
+          if (int) {
+            if (int.seg1 && int.seg2) {
+              this.intersections.push(int);
+              break;
+            }
+          }
+        }
+      }
+    }
+
     this.draw();
   }
 }
@@ -90,7 +136,6 @@ KnifeTool.prototype.onMouseDown = function(event) {
 }
 
 KnifeTool.prototype.onMouseUp = function(event) {
-  this.points.push(new Point(event.clientX, event.clientY));
   this.endStroke();
 }
 

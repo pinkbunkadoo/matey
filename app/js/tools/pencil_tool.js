@@ -25,7 +25,7 @@ PencilTool.prototype.blur = function() {
 
 PencilTool.prototype.beginStroke = function() {
   this.drawing = true;
-  // this.points.push(new Point(event.clientX, event.clientY));
+  this.points.push(new Point(app.mouseX, app.mouseY));
 }
 
 PencilTool.prototype.endStroke = function() {
@@ -68,6 +68,7 @@ PencilTool.prototype.draw = function() {
     ctx.strokeStyle = 'gray';
     ctx.stroke();
   }
+
   app.requestDraw();
 }
 
@@ -77,6 +78,8 @@ PencilTool.prototype.onMouseMove = function(event) {
     this.points.push(p);
 
     Smooth.exp(this.points);
+
+
     // Smooth.simple(this.points);
     this.draw();
   }

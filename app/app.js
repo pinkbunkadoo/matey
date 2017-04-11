@@ -437,6 +437,29 @@ getStrokeAt: function(x, y, radius) {
 },
 
 
+getIntersections: function(points) {
+  var intersections = [];
+  for (var i = 0; i < this.frame.strokes.length; i++) {
+    var stroke = this.frame.strokes[i];
+
+    for (var j = 1; j < stroke.points.length; j++) {
+      var p1 = stroke.points[j - 1];
+      var p2 = stroke.points[j];
+
+      for (var k = 1; k < points.length; k++) {
+        var p3 = points[k - 1];
+        var p4 = points[k];
+
+        result = util.intersect(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y);
+        if (result) {
+          intersections.push(result);
+        }
+      }
+    }
+  }
+  return intersections;
+},
+
 // Stroke.prototype.hit = function(x, y, radius) {
 //   var p = new StrokePoint(x, y);
 //   var selection = null;
