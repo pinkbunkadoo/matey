@@ -1,24 +1,28 @@
+var Path = require('./path.js');
+var PathNode = require('./path_node.js');
 
 function Tracer() {}
 
+Tracer.WHITE = 0;
+Tracer.BLACK = 1;
+
+// Tracer.UP = 1;
+// Tracer.DOWN = 2;
+// Tracer.LEFT = 3;
+// Tracer.RIGHT = 4;
+
 Tracer.trace = function(pixels, width, height) {
+  // console.log('trace', pixels.length/4, width, height);
+
   var bitmap = new Array(width * height);
   var graph = [];
   var paths = [];
-
-  var WHITE = 0;
-  var BLACK = 1;
-
-  var UP = 1;
-  var DOWN = 2;
-  var LEFT = 3;
-  var RIGHT = 4;
 
   function at(x, y) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
       return bitmap[y * width + x];
     }
-    return WHITE;
+    return Tracer.WHITE;
   }
 
   function getSquareCode(x, y) {
@@ -54,9 +58,10 @@ Tracer.trace = function(pixels, width, height) {
     var nodes = [];
     for (var scanx = 0; scanx < width; scanx++) {
       var pixel = bitmap[scany * width + scanx];
-      if (pixel === BLACK) {
+      if (pixel === Tracer.BLACK) {
+        // console.log(scany, 'strip');
         nodes[scanx] = new PathNode(new Point(scanx, scany));
-        while(bitmap[scany * width + scanx] === BLACK && scanx < width) {
+        while(bitmap[scany * width + scanx] === Tracer.BLACK && scanx < width) {
           scanx++;
         }
         nodes[scanx] = new PathNode(new Point(scanx, scany));
@@ -67,7 +72,7 @@ Tracer.trace = function(pixels, width, height) {
       var a = at(scanx - 1, scany - 1);
       var b = at(scanx, scany - 1);
       if (!nodes[scanx]) {
-        if ((a == WHITE && b == BLACK) || (a == BLACK && b == WHITE)) {
+        if ((a == Tracer.WHITE && b == Tracer.BLACK) || (a == Tracer.BLACK && b == Tracer.WHITE)) {
           var node = new PathNode(new Point(scanx, scany));
           node.color = 'blue';
           nodes[scanx] = node;
@@ -84,19 +89,29 @@ Tracer.trace = function(pixels, width, height) {
 
   // Initialise bitmap with imageData
 
-  for (var i = 0; i < pixels.length; i++) {
-    var value = pixels[i];
-    if (value != 0) {
-      bitmap[i] = BLACK;
+  // console.log(pixels[3 * 32]);
+
+  for (var i = 0, offset = 0; i < pixels.length; i = i + 4, offset++) {
+    var value = pixels[i + 3];
+    if (value !== 0) {
+      bitmap[offset] = Tracer.BLACK;
+      // console.log('black', Tracer.BLACK);
     } else {
-      bitmap[i] = WHITE;
+      bitmap[offset] = Tracer.WHITE;
     }
+    // offset++;
   }
+  // bitmap[0] = Tracer.BLACK;
+  // console.log(bitmap[0]);
+
+  // Scan for runs of black pixels and return a point node graph
 
   for (var scany = 0; scany < height; scany++) {
     var nodes = getNodes(scany);
     graph[scany] = nodes;
   }
+
+  // Traverse the node graph establishing directional relationships between nodes
 
   for (var i = 0; i < graph.length; i++) {
     var nodes = graph[i];
@@ -160,6 +175,9 @@ Tracer.trace = function(pixels, width, height) {
 
   for (var scany = 0; scany < height; scany++) {
     var nodes = graph[scany];
+
+    // console.log(scany, nodes.length);
+
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
       if (!node.visited) {
@@ -176,9 +194,11 @@ Tracer.trace = function(pixels, width, height) {
     }
   }
 
-  graph = graph.filter(function(element) {
-    return element.length > 0;
-  });
+  // graph = graph.filter(function(element) {
+  //   return element.length > 0;
+  // });
+
+  return paths;
 }
 
 module.exports = Tracer;

@@ -1,10 +1,32 @@
 
 var util = {};
 
-util.distance = function(p1, p2) {
-  var x = p1.x - p2.x;
-  var y = p1.y - p2.y;
+util.distance = function(x1, y1, x2, y2) {
+  var x = x1 - x2;
+  var y = y1 - y2;
   return Math.sqrt(x * x + y * y);
+}
+
+// util.midPoint = function(x1, y1, x2, y2) {
+//   var x = x1 - x2;
+//   var y = y1 - y2;
+//   return new Point(x1 + x2 / 2);
+// }
+
+util.intersect = function(x1, y1, x2, y2, x3, y3, x4, y4)
+{
+  var ua, ub, denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+  if (denom == 0) {
+    return null;
+  }
+  ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+  ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+  return {
+    x: x1 + ua * (x2 - x1),
+    y: y1 + ua * (y2 - y1),
+    seg1: ua >= 0 && ua <= 1,
+    seg2: ub >= 0 && ub <= 1
+  };
 }
 
 

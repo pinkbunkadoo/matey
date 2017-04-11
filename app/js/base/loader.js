@@ -17,6 +17,8 @@ Loader.load = function(url, callback) {
 
   ajax.send();
   ajax.onload = callback.bind({ filename: url, ext: ext });
+
+  // console.log(__dirname);
 }
 
 module.exports = Loader;

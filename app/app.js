@@ -1,33 +1,39 @@
 
-var Point = require('./js/base/point.js')
-var Vector = require('./js/base/vector.js')
+var Point = require('./app/js/base/point.js')
+var Vector = require('./app/js/base/vector.js')
 
-var PointerTool = require('./js/tools/pointer_tool.js')
-var PencilTool = require('./js/tools/pencil_tool.js')
-var EraserTool = require('./js/tools/eraser_tool.js')
-var ZoomTool = require('./js/tools/zoom_tool.js')
+var PointerTool = require('./app/js/tools/pointer_tool.js')
+var PencilTool = require('./app/js/tools/pencil_tool.js')
+var EraserTool = require('./app/js/tools/eraser_tool.js')
+var KnifeTool = require('./app/js/tools/knife_tool.js')
+var ZoomTool = require('./app/js/tools/zoom_tool.js')
 
-var ToolButton = require('./js/ui/tool_button.js')
-var Frame = require('./js/base/frame.js')
-var Loader = require('./js/base/loader.js')
+var ToolButton = require('./app/js/ui/tool_button.js')
+var Frame = require('./app/js/base/frame.js')
+var Loader = require('./app/js/base/loader.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
+var LINE_WIDTH = 1.3;
 
 // var ZOOM_VALUES = [ 0.05, 0.20, 0.35, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00, 4.00, 5.00, 10.00 ];
+
+var prefix = './app/';
 
 var imagesToLoad = [
   'images/brush_8x8.png',
   'images/brush_16x16.png',
-  'images/pointer.svg',
-  'images/pencil.svg',
-  'images/zoom.svg'
+  'images/icon_pointer.svg',
+  'images/icon_pencil.svg',
+  'images/icon_zoom.svg',
+  'images/icon_knife.svg'
 ];
 
 var app = {
 
 init: function() {
   console.log('init');
+  console.log(__dirname);
 
   this.initialised = true;
 
@@ -69,6 +75,10 @@ loadUI: function() {
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
 
+  this.overlay = document.createElement('canvas');
+  this.overlay.width = window.innerWidth;
+  this.overlay.height = window.innerHeight;
+
   this.background = document.createElement('canvas');
   this.background.width = this.width;
   this.background.height = this.height;
@@ -78,11 +88,11 @@ loadUI: function() {
   // });
 
   this.cursors = [];
-  this.cursors['pointer'] = 'url(images/cursor_pointer.png) 1 1, auto';
-  this.cursors['pencil'] = 'url(images/cursor_pencil.png) 1 1, auto';
-  this.cursors['hand'] = 'url(images/cursor_hand.png) 12 12, auto';
-  this.cursors['zoomin'] = 'url(images/cursor_zoomin.png) 7 7, auto';
-  this.cursors['zoomout'] = 'url(images/cursor_zoomout.png) 7 7, auto';
+  this.cursors['pointer'] = 'url(' + prefix + '/images/cursor_pointer.png) 1 1, auto';
+  this.cursors['pencil'] = 'url(' + prefix + '/images/cursor_pencil.png) 2 2, auto';
+  this.cursors['hand'] = 'url(' + prefix + '/images/cursor_hand.png) 12 12, auto';
+  this.cursors['zoomin'] = 'url(' + prefix + '/images/cursor_zoomin.png) 7 7, auto';
+  this.cursors['zoomout'] = 'url(' + prefix + '/images/cursor_zoomout.png) 7 7, auto';
 
   this.initEventListeners();
 
@@ -101,33 +111,33 @@ loadUI: function() {
   this.tools = [];
   this.tools['pointer'] = new PointerTool();
   this.tools['pencil'] = new PencilTool();
-  this.tools['eraser'] = new EraserTool();
+  this.tools['knife'] = new KnifeTool();
   this.tools['zoom'] = new ZoomTool();
 
   // console.log(app.images);
 
-  var toolButton = new ToolButton(app.images['images/pointer.svg']);
+  var toolButton = new ToolButton(app.images['images/icon_pointer.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pointer'] = toolButton;
   toolButton.onMouseDown = (function() {
     app.setTool('pointer');
   });
 
-  toolButton = new ToolButton(app.images['images/pencil.svg']);
+  toolButton = new ToolButton(app.images['images/icon_pencil.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pencil'] = toolButton;
   toolButton.onMouseDown = (function() {
     app.setTool('pencil');
   });
 
-  toolButton = new ToolButton(null);
+  toolButton = new ToolButton(app.images['images/icon_knife.svg']);
   toolsEl.appendChild(toolButton.getElement());
-  this.toolButtons['eraser'] = toolButton;
+  this.toolButtons['knife'] = toolButton;
   toolButton.onMouseDown = (function() {
-    app.setTool('eraser');
+    app.setTool('knife');
   });
 
-  toolButton = new ToolButton(app.images['images/zoom.svg']);
+  toolButton = new ToolButton(app.images['images/icon_zoom.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['zoom'] = toolButton;
   toolButton.onMouseDown = (function() {
@@ -173,7 +183,7 @@ loadImages: function() {
   imageCount = imagesToLoad.length;
 
   function onImageLoad(event) {
-    var filename = this.filename;
+    var filename = this.filename.substring(prefix.length);
     var ext = this.ext;
     var contentType = event.target.contentType;
 
@@ -193,8 +203,7 @@ loadImages: function() {
   }
 
   for (var i = 0; i < imagesToLoad.length; i++) {
-    var filename = imagesToLoad[i];
-    Loader.load(filename, onImageLoad);
+    Loader.load(prefix + imagesToLoad[i], onImageLoad);
   }
 
 },
@@ -521,11 +530,13 @@ createPath: function(ctx, points) {
   }
 },
 
-
 getContext: function() {
   return this.canvas.getContext('2d');
 },
 
+getOverlayContext: function() {
+  return this.overlay.getContext('2d');
+},
 
 drawBackground: function(ctx) {
   // var ctx = this.canvas.getContext('2d');
@@ -538,11 +549,22 @@ drawBackground: function(ctx) {
 
 },
 
+clearOverlay: function() {
+  var ctx = this.overlay.getContext('2d');
+  ctx.clearRect(0, 0, this.overlay.width, this.overlay.height);
+  this.requestDraw();
+},
+
+drawOverlay: function(ctx) {
+  ctx.drawImage(this.overlay, 0, 0);
+},
 
 draw: function() {
   var ctx = this.canvas.getContext('2d');
 
   if (this.dirty) {
+    ctx.save();
+
     ctx.fillStyle = '#c0c0c0';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -554,7 +576,7 @@ draw: function() {
 
     this.drawBackground(ctx);
 
-    ctx.save();
+    this.drawOverlay(ctx);
 
     this.highlighted = null;
 
@@ -562,11 +584,6 @@ draw: function() {
       var stroke = this.frame.strokes[i];
 
       this.createPath(ctx, stroke.points);
-      // ctx.lineWidth = 8;
-      //
-      // if (ctx.isPointInStroke(this.mouseX, this.mouseY)) {
-      //   this.highlighted = stroke;
-      // }
 
       if (this.selection.includes(stroke)) {
         ctx.strokeStyle = 'red';
@@ -574,8 +591,7 @@ draw: function() {
         ctx.strokeStyle = COLOR_STROKE;
       }
 
-      ctx.lineWidth = 1.2 * (this.scale > 1 ? this.scale : 1);
-      // ctx.lineWidth = 8 * this.scale;
+      ctx.lineWidth = LINE_WIDTH * (this.scale > 1 ? this.scale : 1);
       ctx.stroke();
 
       // Draw bounding boxes
@@ -597,35 +613,6 @@ draw: function() {
 
     }
 
-    // if (this.frame.lastStroke) {
-    //   stroke = this.frame.lastStroke;
-    //   console.log('last', stroke.points.length);
-    //   ctx.fillStyle = 'blue';
-    //   for (var j = 0; j < stroke.points.length; j++) {
-    //     var p = stroke.points[j];
-    //     var p = this.worldToScreen(p.x, p.y);
-    //     // var x = (p.x >> 0), y = (p.y >> 0);
-    //     // ctx.fillRect(x - 1, y - 1, 2, 2);
-    //     ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
-    //   }
-    // }
-
-    // if (this.highlighted) {
-    //   this.createPath(ctx, this.highlighted);
-    //   ctx.globalAlpha = 1;
-    //   ctx.strokeStyle = 'red';
-    //   ctx.lineWidth = 2;
-    //   ctx.stroke();
-    //   ctx.globalAlpha = 1;
-    // }
-
-    // ctx.textBaseline = 'top';
-    // ctx.fillStyle = 'blue';
-    // ctx.font = '24px sans-serif';
-    // var text = (this.frameNo + 1) + '/' + this.frames.length;
-    // var tm = ctx.measureText(text);
-    // ctx.fillText(text, (window.innerWidth / 2) - tm.width / 2, 10);
-
     if (this.showZoom) {
       ctx.fillText(this.scale * 100, 10, window.innerHeight - 32);
     }
@@ -633,7 +620,6 @@ draw: function() {
     ctx.restore();
     this.dirty = false;
   }
-  // if (this.tool) this.tool.draw(ctx);
 },
 
 
@@ -764,6 +750,10 @@ onResize: function() {
     window.resizeTimeoutId = setTimeout(function() {
       app.canvas.width = window.innerWidth;
       app.canvas.height = window.innerHeight;
+
+      app.overlay.width = window.innerWidth;
+      app.overlay.height = window.innerHeight;
+
       window.resizeTimeoutId = 0;
       app.requestDraw();
       // document.body.style.zoom = 1;
@@ -806,8 +796,10 @@ onKeyDown: function(event) {
     this.showDots = !this.showDots;
     this.requestDraw();
 
-  } else if (event.key == 'e' && !event.repeat) {
-    this.setTool('eraser');
+  // } else if (event.key == 'e' && !event.repeat) {
+  //   this.setTool('eraser');
+  } else if (event.key == 'k' && !event.repeat) {
+    this.setTool('knife');
 
   } else if (event.key == 'q' && !event.repeat) {
     this.setTool('pointer');
@@ -915,6 +907,8 @@ initEventListeners: function() {
 
 };
 
+// module.exports = app;
+
 // window.onload = function() {
 //   app.init();
 
@@ -922,6 +916,7 @@ initEventListeners: function() {
   //   console.log('resize');
   // }
 // };
+
 document.addEventListener('DOMContentLoaded', function() {
   app.init();
 
