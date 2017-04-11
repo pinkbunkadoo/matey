@@ -4,16 +4,25 @@ var Vector = require('./js/base/vector.js')
 
 var PointerTool = require('./js/tools/pointer_tool.js')
 var PencilTool = require('./js/tools/pencil_tool.js')
+var EraserTool = require('./js/tools/eraser_tool.js')
 var ZoomTool = require('./js/tools/zoom_tool.js')
 
 var ToolButton = require('./js/ui/tool_button.js')
 var Frame = require('./js/base/frame.js')
-var Loader = require('./js/loader/loader.js')
+var Loader = require('./js/base/loader.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
 
 // var ZOOM_VALUES = [ 0.05, 0.20, 0.35, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00, 4.00, 5.00, 10.00 ];
+
+var imagesToLoad = [
+  'images/brush_8x8.png',
+  'images/brush_16x16.png',
+  'images/pointer.svg',
+  'images/pencil.svg',
+  'images/zoom.svg'
+];
 
 var app = {
 
@@ -21,6 +30,9 @@ init: function() {
   console.log('init');
 
   this.initialised = true;
+
+  this.imageCount = imagesToLoad.length;
+  this.images = {};
 
   this.mode = null;
   this.tool = null;
@@ -44,6 +56,10 @@ init: function() {
   this.showZoom = false;
   this.dirty = true;
 
+  this.loadImages();
+},
+
+loadUI: function() {
   this.container = document.getElementById('container');
   // this.cursor = document.getElementById('cursor');
 
@@ -56,10 +72,6 @@ init: function() {
   this.background = document.createElement('canvas');
   this.background.width = this.width;
   this.background.height = this.height;
-
-  // var context = this.background.getContext('2d');
-  // context.fillStyle = 'green';
-  // context.fillRect(0, 0, 100, 100 );
 
   // Loader.load('./images/cursor_hand.svg', function(event) {
   //   app.cursorHand = event.target.responseXML.documentElement;
@@ -89,25 +101,33 @@ init: function() {
   this.tools = [];
   this.tools['pointer'] = new PointerTool();
   this.tools['pencil'] = new PencilTool();
+  this.tools['eraser'] = new EraserTool();
   this.tools['zoom'] = new ZoomTool();
 
-  // console.log(this.tools);
+  // console.log(app.images);
 
-  var toolButton = new ToolButton('images/pointer.svg');
+  var toolButton = new ToolButton(app.images['images/pointer.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pointer'] = toolButton;
   toolButton.onMouseDown = (function() {
     app.setTool('pointer');
   });
 
-  toolButton = new ToolButton('images/pencil.svg');
+  toolButton = new ToolButton(app.images['images/pencil.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['pencil'] = toolButton;
   toolButton.onMouseDown = (function() {
     app.setTool('pencil');
   });
 
-  toolButton = new ToolButton('images/zoom.svg');
+  toolButton = new ToolButton(null);
+  toolsEl.appendChild(toolButton.getElement());
+  this.toolButtons['eraser'] = toolButton;
+  toolButton.onMouseDown = (function() {
+    app.setTool('eraser');
+  });
+
+  toolButton = new ToolButton(app.images['images/zoom.svg']);
   toolsEl.appendChild(toolButton.getElement());
   this.toolButtons['zoom'] = toolButton;
   toolButton.onMouseDown = (function() {
@@ -149,6 +169,35 @@ init: function() {
   // this.draw();
 },
 
+loadImages: function() {
+  imageCount = imagesToLoad.length;
+
+  function onImageLoad(event) {
+    var filename = this.filename;
+    var ext = this.ext;
+    var contentType = event.target.contentType;
+
+    if (contentType === 'image/png') {
+      var image = new Image();
+      image.src = URL.createObjectURL(event.target.response);
+      app.images[filename] = image;
+
+    } else if (contentType === 'image/svg+xml') {
+      app.images[filename] = event.target.responseXML.documentElement;
+    }
+
+    app.imageCount--;
+    if (app.imageCount === 0) {
+      app.loadUI();
+    }
+  }
+
+  for (var i = 0; i < imagesToLoad.length; i++) {
+    var filename = imagesToLoad[i];
+    Loader.load(filename, onImageLoad);
+  }
+
+},
 
 requestDraw: function() {
   this.dirty = true;
@@ -725,13 +774,13 @@ onResize: function() {
 
 onBlur: function(event) {
   this.suspend();
-  console.log('blur');
+  // console.log('blur');
 },
 
 
 onFocus: function(event) {
   this.resume();
-  console.log('resume');
+  // console.log('resume');
 },
 
 
@@ -756,6 +805,9 @@ onKeyDown: function(event) {
   } else if (event.key == 'd' && !event.repeat) {
     this.showDots = !this.showDots;
     this.requestDraw();
+
+  } else if (event.key == 'e' && !event.repeat) {
+    this.setTool('eraser');
 
   } else if (event.key == 'q' && !event.repeat) {
     this.setTool('pointer');
@@ -872,4 +924,5 @@ initEventListeners: function() {
 // };
 document.addEventListener('DOMContentLoaded', function() {
   app.init();
+
 });

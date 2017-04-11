@@ -1,21 +1,16 @@
 
-var Loader = require('../loader/loader.js');
+// var Loader = require('../loader/loader.js');
 
-function ToolButton(url) {
+function ToolButton(image) {
   this.el = document.createElement('div');
   this.el.style.width = '40px';
   this.el.style.height = '32px';
   this.el.style.borderRadius = '4px';
   this.el.style.boxSizing = 'border-box';
-  // this.el.style.border = '1px solid black';
   this.el.style.display = 'flex';
   this.el.style.alignItems = 'center';
   this.el.style.justifyContent = 'center';
 
-  // this.image = new Image();
-  // this.image.src = url;
-  // this.image.ondragstart = function() { return false; };
-  // this.image.style.pointerEvents = 'none';
   this.container = document.createElement('div');
   this.container.style.display = 'flex';
   this.container.style.opacity = 0.65;
@@ -23,9 +18,11 @@ function ToolButton(url) {
   this.container.style.justifyContent = 'center';
   this.container.style.pointerEvents = 'none';
 
-  Loader.load(url, this.onLoad.bind(this));
+  if (image) {
+    this.container.appendChild(image);
+    this.image = image;
+  }
 
-  this.url = url;
   this.state = false;
 
   this.el.appendChild(this.container);
