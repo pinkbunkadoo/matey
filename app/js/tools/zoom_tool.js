@@ -31,7 +31,7 @@ ZoomTool.prototype.onMouseOut = function(event) {}
 ZoomTool.prototype.onMouseOver = function(event) {}
 
 ZoomTool.prototype.onMouseDown = function(event) {
-  if (event.altKey) {
+  if (event.altKey || event.button === 2) {
     app.zoomOut();
     // app.zoomCameraBy(-0.25);
   } else {

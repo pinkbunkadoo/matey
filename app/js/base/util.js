@@ -7,12 +7,6 @@ util.distance = function(x1, y1, x2, y2) {
   return Math.sqrt(x * x + y * y);
 }
 
-// util.midPoint = function(x1, y1, x2, y2) {
-//   var x = x1 - x2;
-//   var y = y1 - y2;
-//   return new Point(x1 + x2 / 2);
-// }
-
 util.intersect = function(x1, y1, x2, y2, x3, y3, x4, y4)
 {
   var ua, ub, denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
@@ -29,11 +23,9 @@ util.intersect = function(x1, y1, x2, y2, x3, y3, x4, y4)
   };
 }
 
-
 util.pointInRect = function(x, y, xmin, ymin, xmax, ymax) {
   return (x > xmin && x < xmax && y > ymin && y < ymax);
 }
-
 
 util.areaOfTriangle = function(p1, p2, p3) {
   // return Math.abs((t[0][0] - t[2][0]) * (t[1][1] - t[0][1]) - (t[0][0] - t[1][0]) * (t[2][1] - t[0][1]));

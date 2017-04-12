@@ -14,7 +14,7 @@ var Loader = require('./app/js/base/loader.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
-var LINE_WIDTH = 1.3;
+var LINE_WIDTH = 1.2;
 
 // var ZOOM_VALUES = [ 0.05, 0.20, 0.35, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00, 4.00, 5.00, 10.00 ];
 

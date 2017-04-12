@@ -53,7 +53,7 @@ PencilTool.prototype.draw = function() {
   var ctx = app.overlay.getContext('2d');
   // ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
 
-  if (this.points.length > 1) {
+  if (this.points.length >= 1) {
     ctx.beginPath();
     ctx.moveTo(this.points[0].x, this.points[0].y);
 
@@ -77,10 +77,8 @@ PencilTool.prototype.onMouseMove = function(event) {
     var p = new Point(event.clientX, event.clientY)
     this.points.push(p);
 
-    Smooth.exp(this.points);
+    Smooth.simple(this.points);
 
-
-    // Smooth.simple(this.points);
     this.draw();
   }
 }
@@ -98,6 +96,14 @@ PencilTool.prototype.onMouseDown = function(event) {
 PencilTool.prototype.onMouseUp = function(event) {
   this.points.push(new Point(event.clientX, event.clientY));
   this.endStroke();
+}
+
+
+PencilTool.prototype.onKeyDown = function(event) {
+  if (event.key === 'u') {
+    // app.requestDraw();
+    this.draw();
+  }
 }
 
 

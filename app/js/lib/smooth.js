@@ -3,7 +3,7 @@ var Point = require('../base/point.js');
 function Smooth() {
 }
 
-var AVERAGE = 5;
+Smooth.AVERAGE = 5;
 
 // McMaster Smoothing Algorithm
 
@@ -11,7 +11,7 @@ Smooth.mcmaster = function(points) {
 	var nL = [];
 	var len = points.length;
   // var avg = 5;
-	if (len < AVERAGE) { return points };
+	if (len < Smooth.AVERAGE) { return points };
 	var j, avX, avY;
 	var i = len;
 	while (i--) {
@@ -19,14 +19,14 @@ Smooth.mcmaster = function(points) {
 			// nL[i] = { x: points[i].x, y: points[i].y };
       nL[i] = new Point(points[i].x, points[i].y);
 		} else {
-			j = AVERAGE;
+			j = Smooth.AVERAGE;
 			avX = 0; avY = 0;
 			while (j--) {
 				avX += points[i + 2 - j].x;
         avY += points[i + 2 - j].y;
 			}
-			avX = avX / AVERAGE;
-      avY = avY / AVERAGE;
+			avX = avX / Smooth.AVERAGE;
+      avY = avY / Smooth.AVERAGE;
 			// nL[i] = nL[i] = { x: (points[i].x + avX) / 2, y: (points[i].y + avY) / 2 };
       nL[i] = nL[i] = new Point((points[i].x + avX) / 2, (points[i].y + avY) / 2);
 		}
@@ -36,12 +36,12 @@ Smooth.mcmaster = function(points) {
 
 //http://jsfiddle.net/xup4T/
 
-Smooth.LIMIT = 4; // original value 4
+Smooth.LIMIT = 3; // original value 4
 
 Smooth.exp = function (ps) {
 	if (ps.length > Smooth.LIMIT) {
 
-		var a = 0.3; // original value 0.2
+		var a = 0.5; // original value 0.2
 
 	  var p = ps[ps.length - 1];
 	  var p1 = ps[ps.length - 2];
