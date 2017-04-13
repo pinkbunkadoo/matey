@@ -26,7 +26,8 @@ KnifeTool.prototype.blur = function() {
 
 KnifeTool.prototype.beginStroke = function() {
   this.drawing = true;
-  this.points.push(new Point(app.mouseX, app.mouseY));
+  this.points = [];
+  // this.points.push(new Point(app.mouseX, app.mouseY));
   // this.snapshot.width = app.canvas.width;
   // this.snapshot.height = app.canvas.height;
 

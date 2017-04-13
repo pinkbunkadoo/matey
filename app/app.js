@@ -4,6 +4,7 @@ var Vector = require('./app/js/base/vector.js')
 
 var PointerTool = require('./app/js/tools/pointer_tool.js')
 var PencilTool = require('./app/js/tools/pencil_tool.js')
+var LineTool = require('./app/js/tools/line_tool.js')
 var EraserTool = require('./app/js/tools/eraser_tool.js')
 var KnifeTool = require('./app/js/tools/knife_tool.js')
 var ZoomTool = require('./app/js/tools/zoom_tool.js')
@@ -14,7 +15,8 @@ var Loader = require('./app/js/base/loader.js')
 
 var COLOR_STROKE = 'rgb(128, 128, 128)';
 var KEY_DRAG = ' ';
-var LINE_WIDTH = 1.2;
+var LINE_WIDTH = 1.5;
+// var LINE_WIDTH = 1;
 
 // var ZOOM_VALUES = [ 0.05, 0.20, 0.35, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00, 4.00, 5.00, 10.00 ];
 
@@ -25,6 +27,7 @@ var imagesToLoad = [
   'images/brush_16x16.png',
   'images/icon_pointer.svg',
   'images/icon_pencil.svg',
+  'images/icon_line.svg',
   'images/icon_zoom.svg',
   'images/icon_knife.svg'
 ];
@@ -49,8 +52,8 @@ init: function() {
   this.startY = 0;
   this.width = 640;
   this.height = 360;
-  this.tx = this.width / 2;
-  this.ty = this.height / 2;
+  this.tx = (this.width / 2) >> 0;
+  this.ty = (this.height / 2) >> 0;
   this.toolButtons = [];
   this.selection = [];
   this.frame = null;
@@ -75,9 +78,15 @@ loadUI: function() {
   this.canvas.width = window.innerWidth;
   this.canvas.height = window.innerHeight;
 
+  // ctx = this.canvas.getContext('2d');
+  // ctx.translate(0.5, 0.5);
+
   this.overlay = document.createElement('canvas');
   this.overlay.width = window.innerWidth;
   this.overlay.height = window.innerHeight;
+
+  // ctx = this.overlay.getContext('2d');
+  // ctx.translate(0.5, 0.5);
 
   this.background = document.createElement('canvas');
   this.background.width = this.width;
@@ -89,7 +98,8 @@ loadUI: function() {
 
   this.cursors = [];
   this.cursors['pointer'] = 'url(' + prefix + '/images/cursor_pointer.png) 1 1, auto';
-  this.cursors['pencil'] = 'url(' + prefix + '/images/cursor_pencil.png) 2 2, auto';
+  this.cursors['pencil'] = 'url(' + prefix + '/images/cursor_pencil.png) 1 1, auto';
+  this.cursors['line'] = 'url(' + prefix + '/images/cursor_line.png) 3 3, auto';
   this.cursors['hand'] = 'url(' + prefix + '/images/cursor_hand.png) 12 12, auto';
   this.cursors['zoomin'] = 'url(' + prefix + '/images/cursor_zoomin.png) 7 7, auto';
   this.cursors['zoomout'] = 'url(' + prefix + '/images/cursor_zoomout.png) 7 7, auto';
@@ -111,6 +121,7 @@ loadUI: function() {
   this.tools = [];
   this.tools['pointer'] = new PointerTool();
   this.tools['pencil'] = new PencilTool();
+  this.tools['line'] = new LineTool();
   this.tools['knife'] = new KnifeTool();
   this.tools['zoom'] = new ZoomTool();
 
@@ -128,6 +139,13 @@ loadUI: function() {
   this.toolButtons['pencil'] = toolButton;
   toolButton.onMouseDown = (function() {
     app.setTool('pencil');
+  });
+
+  toolButton = new ToolButton(app.images['images/icon_line.svg']);
+  toolsEl.appendChild(toolButton.getElement());
+  this.toolButtons['line'] = toolButton;
+  toolButton.onMouseDown = (function() {
+    app.setTool('line');
   });
 
   toolButton = new ToolButton(app.images['images/icon_knife.svg']);
@@ -233,6 +251,9 @@ setTool: function(toolName) {
     } else if (toolName == 'pencil') {
       this.setCursor('pencil');
 
+    } else if (toolName == 'line') {
+      this.setCursor('line');
+
     } else if (toolName == 'zoom') {
       this.setCursor('zoomin');
     }
@@ -329,6 +350,8 @@ zoomCameraBy: function(x) {
 screenToWorld: function(x, y) {
   var widthHalf = (this.canvas.width / 2) >> 0;
   var heightHalf = (this.canvas.height / 2) >> 0;
+  // var widthHalf = (this.canvas.width / 2);
+  // var heightHalf = (this.canvas.height / 2);
 
   var px = x - widthHalf;
   var py = y - heightHalf;
@@ -352,6 +375,8 @@ worldToScreen: function(x, y) {
 
   var widthHalf = (this.canvas.width / 2) >> 0;
   var heightHalf = (this.canvas.height / 2) >> 0;
+  // var widthHalf = (this.canvas.width / 2);
+  // var heightHalf = (this.canvas.height / 2);
 
   return new Point(sx + widthHalf, sy + heightHalf);
 },
@@ -534,23 +559,22 @@ insertFrame: function(frame, index) {
 
 
 createPath: function(ctx, points) {
-  ctx.beginPath();
-
   var x, y;
-  // var m = (this.scale % (this.scale >> 0)) == 0;
+  ctx.beginPath();
 
   for (var i = 0; i < points.length; i++) {
     var point = points[i];
     var p = this.worldToScreen(point.x, point.y);
-
-    // x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
+    // console.log(point.toString(), p.toString());
     x = p.x, y = p.y;
+    this.scale < 1 ? (x = p.x >> 0, y = p.y >> 0) : (x = p.x, y = p.y);
 
     if (i == 0)
       ctx.moveTo(x, y);
     else
       ctx.lineTo(x, y);
   }
+  // ctx.closePath();
 },
 
 getContext: function() {
@@ -598,15 +622,28 @@ draw: function() {
     ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
 
     this.drawBackground(ctx);
-
     this.drawOverlay(ctx);
 
-    this.highlighted = null;
+
+    ctx.translate(0.5, 0.5);
+
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.strokeStyle = COLOR_STROKE;
+    ctx.beginPath();
+    ctx.moveTo(377, 150);
+    ctx.lineTo(451, 150);
+    // ctx.lineTo(451, 175);
+    ctx.stroke();
+
+    // this.highlighted = null;
+
+    // console.log('frame', this.frame.strokes.length);
 
     for (var i = 0; i < this.frame.strokes.length; i++) {
+      // console.log(i);
       var stroke = this.frame.strokes[i];
 
-      this.createPath(ctx, stroke.points);
+      ctx.lineWidth = this.scale < 1 ? 1 :  LINE_WIDTH * this.scale; //(this.scale > 1 ? this.scale : 1);
 
       if (this.selection.includes(stroke)) {
         ctx.strokeStyle = 'red';
@@ -614,8 +651,9 @@ draw: function() {
         ctx.strokeStyle = COLOR_STROKE;
       }
 
-      ctx.lineWidth = LINE_WIDTH * (this.scale > 1 ? this.scale : 1);
+      this.createPath(ctx, stroke.points);
       ctx.stroke();
+      // ctx.stroke();
 
       // Draw bounding boxes
       // p1 = app.worldToScreen(stroke.bounds.x, stroke.bounds.y);
@@ -635,6 +673,8 @@ draw: function() {
       }
 
     }
+
+    // ctx.restore();
 
     if (this.showZoom) {
       ctx.fillText(this.scale * 100, 10, window.innerHeight - 32);
@@ -829,6 +869,9 @@ onKeyDown: function(event) {
 
   } else if (event.key == 'b' && !event.repeat) {
     this.setTool('pencil');
+
+  } else if (event.key == 'l' && !event.repeat) {
+    this.setTool('line');
 
   } else if (event.key == 'z' && !event.repeat) {
     this.setTool('zoom');

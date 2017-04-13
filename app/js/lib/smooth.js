@@ -36,7 +36,7 @@ Smooth.mcmaster = function(points) {
 
 //http://jsfiddle.net/xup4T/
 
-Smooth.LIMIT = 3; // original value 4
+Smooth.LIMIT = 4; // original value 4
 
 Smooth.exp = function (ps) {
 	if (ps.length > Smooth.LIMIT) {
@@ -54,11 +54,13 @@ Smooth.exp = function (ps) {
 
 Smooth.simple = function (ps) {
 	if (ps.length > Smooth.LIMIT) {
+
+		var a = 0.2; // original value 0.2
+
 	  for (var i = 0; i < Smooth.LIMIT; ++i) {
 	    var j = ps.length - i - 2;
 	    var p0 = ps[j];
 	    var p1 = ps[j + 1];
-	    var a = 0.2;
 	    var p = new Point(
 	        p0.x * (1 - a) + p1.x * a,
 	        p0.y * (1 - a) + p1.y * a
