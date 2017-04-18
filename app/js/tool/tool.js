@@ -7,6 +7,8 @@ Tool.prototype.constructor = Tool;
 
 Tool.prototype.focus = function() {}
 Tool.prototype.blur = function() {}
+Tool.prototype.draw = function() {}
+Tool.prototype.undo = function() {}
 Tool.prototype.onMouseMove = function(event) {}
 Tool.prototype.onMouseOut = function(event) {}
 Tool.prototype.onMouseOver = function(event) {}

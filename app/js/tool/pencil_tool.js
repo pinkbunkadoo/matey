@@ -1,16 +1,13 @@
-// var app = require('../../app.js');
-var simplify = require('../lib/simplify.js');
-var Tool = require('./tool.js');
-var Stroke = require('../base/stroke.js');
-var Point = require('../base/point.js');
-var Smooth = require('../lib/smooth.js');
 
-// console.log(app);
+const Point = require('../geom/point.js');
+const Stroke = require('../stroke.js');
+const PencilAction = require('../action/pencil_action.js');
+const Smooth = require('../lib/smooth.js');
+const Tool = require('./tool.js');
 
 function PencilTool() {
   Tool.call(this, 'pencil');
   this.points = [];
-  // this.snapshot = document.createElement('canvas');
 }
 
 PencilTool.prototype = Object.create(Tool.prototype);
@@ -23,40 +20,48 @@ PencilTool.prototype.blur = function() {
   this.endStroke();
 }
 
+// PencilTool.prototype.undo = function(action) {
+//   if (action instanceof PencilAction) {
+//   console.log(action.stroke);
+// }
+
 PencilTool.prototype.addPoint = function(x, y) {
-  // this.points.push(new Point(x + 0.5, y + 0.5));
   this.points.push(new Point(x, y));
 }
 
 PencilTool.prototype.beginStroke = function() {
   this.drawing = true;
-  // this.points.push(new Point(app.mouseX + 0.5, app.mouseY + 0.5));
   this.addPoint(app.mouseX, app.mouseY);
 }
 
 PencilTool.prototype.endStroke = function() {
   if (this.points.length > 2) {
 
-    // console.log(this.points.length, this.points[0].toString(), this.points[this.points.length-1].toString());
-
     // this.points = Smooth.mcmaster(this.points);
-    this.points = simplify(this.points, 0.5, true);
+    this.points = simplify(this.points, 0.5);
 
     for (var i = 0; i < this.points.length; i++) {
-      this.points[i] = app.screenToWorld(this.points[i].x, this.points[i].y);
+      var p = this.points[i];
+      var x = p.x, y = p.y;
+      this.points[i] = app.screenToWorld(x, y);
     }
 
     var stroke = new Stroke(this.points);
     app.addStroke(stroke);
+
+    var action = new PencilAction(app.frame.strokes);
+    app.createUndo(action);
   }
+
   this.points = [];
   this.drawing = false;
-  app.clearOverlay();
+
+  app.requestDraw();
 }
 
-PencilTool.prototype.draw = function() {
-  app.clearOverlay();
-  var ctx = app.overlay.getContext('2d');
+PencilTool.prototype.draw = function(ctx) {
+  // app.clearOverlay();
+  // var ctx = app.overlay.getContext('2d');
   // ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
   // ctx.save();
 
@@ -66,63 +71,43 @@ PencilTool.prototype.draw = function() {
     ctx.beginPath();
     var p = this.points[0];
     var x = p.x, y = p.y;
-    // var x = (p.x >> 0), y = (p.y >> 0);
-
-    // var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
-    // var x = p.x + 0.5, y = p.y + 0.5;
-    // var x = (p.x >> 0), y = (p.y >> 0);
-    // x = Math.round(p.x)+0.5, y = Math.round(p.y)+0.5;
+    // x = Math.round(x), y = Math.round(y);
 
     ctx.moveTo(x, y);
-    // var y = this.points[0].y;
 
     for (var i = 1; i < this.points.length; i++) {
       var p = this.points[i];
       var x = p.x, y = p.y;
-      // var x = (p.x >> 0), y = (p.y >> 0);
-
-      // var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
-      // var x = p.x + 0.5, y = p.y + 0.5;
-      // x = Math.round(p.x)+0.5, y = Math.round(p.y)+0.5;
-
 
       ctx.lineTo(x, y);
     }
 
-    // ctx.closePath();
-    // ctx.lineTo(app.mouseX, app.mouseY);
-
-    ctx.lineWidth = LINE_WIDTH;
-    ctx.strokeStyle = 'gray';
+    ctx.lineWidth = app.scale < 1 ? 1 : LINE_WIDTH * app.scale;
+    ctx.strokeStyle = COLOR_STROKE;
     ctx.stroke();
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-    ctx.font = '12px sans-serif';
-    ctx.fillStyle = 'blue';
-    var text = '' + y;
-    text = text.substring(0, text.indexOf('.') + 2);
-    text = text + ' ' + this.points.length;
-    ctx.fillText(text, 100, 100);
+    // ctx.font = '12px sans-serif';
+    // ctx.fillStyle = 'blue';
+    // var text = '' + y;
+    // text = text.substring(0, text.indexOf('.') + 2);
+    // text = text + ' ' + this.points.length;
+    // ctx.fillText(text, 100, 100);
   }
 
-  app.requestDraw();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+
+  // app.requestDraw();
 }
 
 PencilTool.prototype.onMouseMove = function(event) {
   if (this.drawing) {
-    // var y = event.clientY;
-    // if (event.shiftKey) {
-    //   y = this.points[0].y;
-    // }
-    // var p = new Point(event.clientX, y);
-    // this.points.push(p);
     this.addPoint(app.mouseX, app.mouseY);
 
+    // Smooth.exp(this.points);
     Smooth.simple(this.points);
-    // this.points = simplify(this.points, 0.5);
 
-    this.draw();
+    app.requestDraw();
   }
 }
 

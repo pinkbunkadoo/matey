@@ -1,4 +1,4 @@
-var Tool = require('./tool.js');
+const Tool = require('./tool.js');
 
 function PointerTool() {
   Tool.call(this, 'pointer');

@@ -1,10 +1,8 @@
 
-// var Loader = require('../loader/loader.js');
-
-function ToolButton(image) {
+function ToolButton(image, width, height) {
   this.el = document.createElement('div');
-  this.el.style.width = '40px';
-  this.el.style.height = '32px';
+  this.el.style.width = (width ? width : 40) + 'px';
+  this.el.style.height = (height ? height : 32) + 'px';
   this.el.style.borderRadius = '4px';
   this.el.style.boxSizing = 'border-box';
   this.el.style.display = 'flex';
@@ -63,11 +61,6 @@ ToolButton.prototype.setState = function(state) {
   } else {
     this.el.style.backgroundColor = 'unset';
   }
-}
-
-ToolButton.prototype.onLoad = function(event) {
-  // this.container.innerHTML = event.target.responseText;
-  this.container.appendChild(event.target.responseXML.documentElement);
 }
 
 module.exports = ToolButton;

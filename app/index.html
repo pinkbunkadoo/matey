@@ -6,26 +6,18 @@
     <title></title>
     <style>
       html body {
-        font: 10px sans-serif;
+        font: 9px sans-serif;
         padding: 0px;
         margin: 0px;
-        /*background-color: blue;*/
         overflow: hidden;
         -webkit-user-select: none;
         -ms-user-select:none;
         -moz-user-select: none;
         user-select: none;
-        /*cursor: auto;*/
-        /*max-zoom: 100%;*/
-        /*user-zoom: fixed;*/
       }
-      #surface {
-        /*cursor: none;*/
-      }
-      #container {
-        /*cursor: grab;*/
-        /*cursor: auto;*/
-        /*cursor: none;*/
+      .toolsEl {
+        /*transition: all 1s;*/
+        /*-webkit-transition: all 1s;*/
       }
       #cursor {
         /*cursor: none;*/
@@ -33,19 +25,14 @@
         /*position: absolute;*/
       }
     </style>
-    <script type="text/javascript" src="./app/js/base/util.js"></script>
-    <script type="text/javascript" src="./app/app.js"></script>
+    <script type="text/javascript" src="./app.js"></script>
   </head>
   <body>
-    <!-- <input type="text" id="ini" mozactionhint="next"> -->
     <div id="container"><canvas id="surface"></canvas></div>
     <!-- <div id="cursor"></div> -->
   </body>
   <script>
-
-    // window.onload = function() {
-    //   app.init(document.getElementById('surface'));
-    // }
+    app = new App();
     // You can also require other files to run in this process
     // require('./app/app.js')
   </script>

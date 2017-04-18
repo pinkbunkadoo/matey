@@ -1,4 +1,4 @@
-var Tool = require('./tool.js');
+const Tool = require('./tool.js');
 
 function ZoomTool() {
   Tool.call(this, 'zoom');
@@ -35,7 +35,7 @@ ZoomTool.prototype.onMouseDown = function(event) {
     app.zoomOut();
     // app.zoomCameraBy(-0.25);
   } else {
-    app.zoomIn();
+    if (event.button == 0) app.zoomIn();
     // app.zoomCameraBy(0.25);
   }
 }

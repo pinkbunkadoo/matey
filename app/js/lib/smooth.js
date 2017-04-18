@@ -1,4 +1,4 @@
-var Point = require('../base/point.js');
+const Point = require('../geom/point.js');
 
 function Smooth() {
 }
@@ -38,11 +38,9 @@ Smooth.mcmaster = function(points) {
 
 Smooth.LIMIT = 4; // original value 4
 
-Smooth.exp = function (ps) {
+Smooth.exp = function (ps, f) {
 	if (ps.length > Smooth.LIMIT) {
-
-		var a = 0.5; // original value 0.2
-
+		var a = (f == undefined ? 0.2 : f); // original value 0.2
 	  var p = ps[ps.length - 1];
 	  var p1 = ps[ps.length - 2];
 	  ps[ps.length - 1] = new Point(
@@ -54,9 +52,7 @@ Smooth.exp = function (ps) {
 
 Smooth.simple = function (ps) {
 	if (ps.length > Smooth.LIMIT) {
-
-		var a = 0.2; // original value 0.2
-
+		var a = 0.4; // original value 0.2
 	  for (var i = 0; i < Smooth.LIMIT; ++i) {
 	    var j = ps.length - i - 2;
 	    var p0 = ps[j];
