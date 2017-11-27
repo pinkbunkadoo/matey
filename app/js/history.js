@@ -1,42 +1,61 @@
+// const Notifier = require('./notifier');
 
 function History() {
-  this.actions = [];
+  // Notifier.call(this);
+  this.states = [];
+  this.default = null;
   this.marker = -1;
 }
 
+// History.prototype = Object.create(Notifier.prototype);
 History.prototype.constructor = History;
 
-History.prototype = {
-  add: function(action) {
-    // console.log('histoty add');
-    this.actions.push(action);
-    this.marker = this.actions.length - 1;
-  },
-  get: function() {
-    // console.log('get', this.marker, this.actions);
-    return this.actions[this.marker];
-  },
-  back: function() {
-    var action;
-    if (this.marker > -1) {
-      this.marker--;
-      // action = this.actions[this.marker];
-    }
-    // action.undo();
-    // console.log('back marker', this.marker);
-    return this.marker;
-  },
-  forward: function() {
-    var action;
-    if (this.marker < this.actions.length - 1) {
-      this.marker++;
-      // console.log(this.marker);
-      // action = this.actions[this.marker - 1];
-    }
-    // action.redo();
-    // console.log('forward marker', this.marker);
-    return this.marker;
+History.prototype.notifyChange = function(params) {
+  // console.log('frameChange', what);
+  // console.log(params);
+  // this.message('historyChange', params);
+}
+
+History.prototype.add = function(state) {
+  if (this.marker < this.states.length - 1) {
+    this.states = this.states.slice(0, this.marker + 1);
   }
+  this.states.push(state);
+  if (this.states.length > 20) this.states.shift();
+  this.marker = this.states.length - 1;
+  // this.notifyChange({ action: 'insert', index: this.marker, title: state.action.name });
+}
+
+History.prototype.isEmpty = function() {
+  return this.states.length == 0;
+}
+
+History.prototype.get = function() {
+  return this.states[this.marker];
+}
+
+History.prototype.go = function(index) {
+  this.marker = index;
+  // this.notifyChange('go');
+}
+
+History.prototype.back = function() {
+  var action;
+  if (this.marker > -1) {
+    this.marker--;
+  }
+  // this.notifyChange('back');
+  return this.marker;
+}
+
+History.prototype.forward = function() {
+  var action;
+  if (this.marker < this.states.length - 1) {
+    this.marker++;
+  }
+  // this.notifyChange('forward');
+  return this.marker;
 }
 
 module.exports = History;
+

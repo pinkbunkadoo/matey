@@ -1,65 +1,61 @@
+const Container = require('./container');
+const Icon = require('./icon');
 
-function ToolButton(image, width, height) {
-  this.el = document.createElement('div');
-  this.el.style.width = (width ? width : 40) + 'px';
-  this.el.style.height = (height ? height : 32) + 'px';
-  this.el.style.borderRadius = '4px';
-  this.el.style.boxSizing = 'border-box';
-  this.el.style.display = 'flex';
-  this.el.style.alignItems = 'center';
-  this.el.style.justifyContent = 'center';
+function ToolButton(params) {
+  Container.call(this, params);
 
-  this.container = document.createElement('div');
-  this.container.style.display = 'flex';
-  this.container.style.opacity = 0.65;
-  this.container.style.alignItems = 'center';
-  this.container.style.justifyContent = 'center';
-  this.container.style.pointerEvents = 'none';
-
-  if (image) {
-    this.container.appendChild(image);
-    this.image = image;
-  }
-
+  this.image = params.image;
+  this.width = params.width;
+  this.height = params.height;
   this.state = false;
 
-  this.el.appendChild(this.container);
+  this.addClass('tool-button');
 
-  var self = this;
+  this.el.style.width = this.width + 'px';
+  this.el.style.height = this.height + 'px';
 
-  this.el.onmouseover = function(event) {
-    // if (event.buttons == 0 && self.state == false) {
-    if (self.state == false && !app.downTarget) {
-      event.target.style.border = '1px solid gray';
-      event.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    }
+  if (this.image) {
+    this.icon = new Icon({ resource: this.image, width: app.icons[this.image].width, height: app.icons[this.image].height });
+    this.add(this.icon);
   }
 
-  this.el.onmouseout = function(event) {
-    event.target.style.border = 'unset';
-    if (self.state == false) {
-      event.target.style.backgroundColor = 'unset';
-    }
-  }
+  this.onPress = params.onPress;
 
-  this.el.onmousedown = function(event) {
-    self.onMouseDown ? self.onMouseDown() : null;
-  }
+  this.el.addEventListener('mousedown', this);
 }
 
+ToolButton.prototype = Object.create(Container.prototype);
 ToolButton.prototype.constructor = ToolButton;
 
-ToolButton.prototype.getElement = function() {
-  return this.el;
+ToolButton.prototype.setState = function(state) {
+  if (state) {
+    if (!this.state) this.addClass('selected');
+    // this.icon.setInvert(true);
+  } else {
+    if (this.state) this.removeClass('selected');
+    // this.icon.setInvert(false);
+  }
+  this.state = state;
 }
 
-ToolButton.prototype.setState = function(state) {
-  this.state = state;
-  if (state) {
-    this.el.style.backgroundColor = 'white';
-    this.el.style.border = 'unset';
-  } else {
-    this.el.style.backgroundColor = 'unset';
+ToolButton.prototype.onMouseDown = function(event) {
+  // event.preventDefault();
+  // event.stopPropagation();
+  // this.onPress ? this.onPress() : null;
+  if (this.onPress) {
+    this.onPress(this);
+  }
+}
+
+ToolButton.prototype.handleEvent = function(event) {
+  if (event.type == 'mousedown') {
+    this.onMouseDown(event);
+  }
+  else if (event.type === 'mouseover') {
+    this.onMouseOver(event);
+  }
+  else if (event.type === 'mouseout') {
+    this.onMouseOut(event);
   }
 }
 

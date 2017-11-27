@@ -1,9 +1,9 @@
-const electron = require('electron')
+// const electron = require('electron')
 // Module to control application life.
-const app = electron.app
+const {app, globalShortcut, BrowserWindow, Menu} = require('electron')
 // Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
-const Menu = electron.Menu
+// const BrowserWindow = electron.BrowserWindow
+// const Menu = electron.Menu
 
 const path = require('path')
 const url = require('url')
@@ -13,21 +13,46 @@ const url = require('url')
 let mainWindow
 
 function createWindow () {
+
+  const template = [
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Reload',
+          role: 'reload',
+          accelerator: 'CommandOrControl+R',
+          click: () => {
+            mainWindow.reload()
+          }
+        }
+      ]
+    }
+  ];
+  // globalShortcut.register('CommandOrControl+R', () => {
+  //   mainWindow.reload()
+  // })
+
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1024, height: 768})
+  mainWindow = new BrowserWindow({width: 1024, height: 768 })
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'app/index.html'),
+    pathname: path.join(__dirname, './app/index.html'),
     protocol: 'file:',
     slashes: true
   }))
 
+  // menu = Menu.buildFromTemplate(template)
+
   // mainWindow.menu = null;
+  // Menu.setApplicationMenu(menu)
   // Menu.setApplicationMenu(null)
 
   // mainWindow.webContents.setVisualZoomLevelLimits(0, 0)
   // mainWindow.webContents.setLayoutZoomLevelLimits(0, 0)
+
+  mainWindow.setMenuBarVisibility(false)
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools({ mode: 'bottom' })
