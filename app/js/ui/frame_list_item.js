@@ -14,6 +14,7 @@ function FrameListItem(params) {
 
   // this.height = this.height + 16;
   // this.add(new Spacer({ width: this.width, height: 6 }));
+  // console.log(this.height);
 
   this.canvas = document.createElement('canvas');
   this.canvas.width = this.width;
@@ -24,8 +25,8 @@ function FrameListItem(params) {
   this.graphic.el.style.pointerEvents = 'none';
   this.add(this.graphic);
 
-  // this.number = new Label({ title: 0, style: {  position: 'absolute', paddingTop: '2px', paddingLeft: '2px' } });
-  this.number = new Label({ title: 0, style: { position: 'absolute', paddingTop: '2px', paddingLeft: '2px' } });
+  this.number = new Label({ title: 0, style: {  position: 'absolute', paddingTop: '2px', paddingLeft: '2px' } });
+  // this.number = new Label({ title: 0, style: { top: '-14px', position: 'relative', paddingTop: '2px', paddingLeft: '2px' } });
   this.add(this.number);
 
   // this.highlight = new Container({ style: { position: 'absolute', boxSizing: 'border-box', border: '1px solid red', width: this.width + 'px', height: this.height + 'px' } });

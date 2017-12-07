@@ -4,49 +4,43 @@ const Point = require('../geom/point');
 const Vector = require('../geom/vector');
 const Stroke = require('../display/stroke');
 const Tool = require('./tool');
-const Smooth = require('../lib/smooth');
-const LineAction = require('../actions/line_action');
 
-function LineTool() {
-  Tool.call(this, 'line');
+function PolygonTool() {
+  Tool.call(this, 'polygon');
+
   this.cursor = 'line';
   this.points = [];
-  // console.log('linetool');
+
   this.mx = app.mouseX;
   this.my = app.mouseY;
 
   this.drawing = false;
 }
 
-LineTool.prototype = Object.create(Tool.prototype);
-LineTool.prototype.constructor = LineTool;
+PolygonTool.prototype = Object.create(Tool.prototype);
+PolygonTool.prototype.constructor = PolygonTool;
 
-LineTool.prototype.focus = function() {
+PolygonTool.prototype.focus = function() {
 }
 
-LineTool.prototype.blur = function() {
+PolygonTool.prototype.blur = function() {
   this.endStroke();
 }
 
-LineTool.prototype.addPoint = function(x, y) {
+PolygonTool.prototype.addPoint = function(x, y) {
   x = Math.round(x), y = Math.round(y);
   this.points.push(new Point(x, y));
-  // console.log(x, y);
 }
 
-LineTool.prototype.beginStroke = function(x, y) {
+PolygonTool.prototype.beginStroke = function(x, y) {
   this.drawing = true;
-  // var mx = event.clientX - app.paper.el.offsetLeft;
-  // var my = event.clientY - app.paper.el.offsetTop;
   this.addPoint(x, y);
-  this.addPoint(x, y);
+  this.mx = x;
+  this.my = y;
 }
 
-LineTool.prototype.endStroke = function() {
-  // this.addPoint(app.mouseX, app.mouseY);
+PolygonTool.prototype.endStroke = function() {
   if (this.points.length > 1) {
-    // app.updateFrameListIcon(app.sequence.position);
-    // app.sequence.addAction(new LineAction());
     this.emit('stroke', { points: this.points });
   }
 
@@ -56,11 +50,13 @@ LineTool.prototype.endStroke = function() {
   this.emit('change');
 }
 
-LineTool.prototype.render = function() {
+PolygonTool.prototype.render = function() {
 
   if (this.drawing) {
     app.paper.renderPath(this.points, { screen: true });
-    // console.log('render');
+    var last = this.points[this.points.length - 1];
+    var mp = new Point(this.mx, this.my);
+    app.paper.renderPath([ last, mp ], { screen: true });
   }
 //   var ctx = app.getOverlayContext();
 //   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -115,18 +111,18 @@ LineTool.prototype.render = function() {
 //   // ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
-LineTool.prototype.onMouseMove = function(event) {
-  // console.log('mousemove_line');
-
+PolygonTool.prototype.onMouseMove = function(event) {
   var mx = event.clientX - app.paper.el.offsetLeft;
   var my = event.clientY - app.paper.el.offsetTop;
 
   if (this.drawing) {
-    // console.log('drawing');
-    this.points[1].x = mx;
-    this.points[1].y = my;
+    // this.points[1].x = mx;
+    // this.points[1].y = my;
 
     this.emit('change');
+
+    this.mx = mx;
+    this.my = my;
 
     // // console.log(app.mouseX);
     //
@@ -184,16 +180,20 @@ LineTool.prototype.onMouseMove = function(event) {
   }
 }
 
-LineTool.prototype.onMouseDown = function(event) {
-  // console.log('mousedown_line');
-
+PolygonTool.prototype.onMouseDown = function(event) {
   var mx = event.clientX - app.paper.el.offsetLeft;
   var my = event.clientY - app.paper.el.offsetTop;
 
   if (event.button == 0) {
-    this.beginStroke(mx, my);
-    this.drawing = true;
-
+    if (this.drawing) {
+      // console.log('addpoint');
+      this.addPoint(mx, my);
+      this.emit('change');
+    } else {
+      // console.log('begindrawing');
+      this.beginStroke(mx, my);
+      this.emit('change');
+    }
   //   if (this.points.length == 0) {
   //     this.beginStroke();
   //   } else {
@@ -204,20 +204,22 @@ LineTool.prototype.onMouseDown = function(event) {
   }
 }
 
-LineTool.prototype.onMouseUp = function(event) {
+PolygonTool.prototype.onMouseUp = function(event) {
   // this.points.push(new Point(app.mouseX, app.mouseY));
   // this.endStroke();
-  this.endStroke();
+  if (event.button == 2) {
+    this.endStroke();
+  }
   // this.drawing = false;
 }
 
-LineTool.prototype.onKeyDown = function(event) {
+PolygonTool.prototype.onKeyDown = function(event) {
   if (event.key === 'Escape' && !event.repeat) {
     this.endStroke();
   }
 }
 
-LineTool.prototype.handleEvent = function(event) {
+PolygonTool.prototype.handleEvent = function(event) {
   // console.log(event.type);
   if (event.type === 'mousedown') {
     this.onMouseDown(event);
@@ -233,4 +235,4 @@ LineTool.prototype.handleEvent = function(event) {
   }
 }
 
-module.exports = LineTool;
+module.exports = PolygonTool;

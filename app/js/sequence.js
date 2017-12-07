@@ -38,6 +38,10 @@ Sequence.prototype = {
 
   },
 
+  size: function() {
+    return this.frames.length;
+  },
+
   remove: function(frame) {
     frame = frame || this.frame;
     var index = this.frames.indexOf(frame);

@@ -1,55 +1,38 @@
 const Container = require('./container');
+const Button = require('./button');
 const Icon = require('./icon');
+const Label = require('./label');
 
 function ToolButton(params) {
-  Container.call(this, params);
-
-  this.image = params.image;
-  this.width = params.width;
-  this.height = params.height;
-  this.state = false;
-
-  this.addClass('tool-button');
-
-  this.el.style.width = this.width + 'px';
-  this.el.style.height = this.height + 'px';
-
-  if (this.image) {
-    this.icon = new Icon({ resource: this.image, width: app.icons[this.image].width, height: app.icons[this.image].height });
-    this.add(this.icon);
-  }
-
-  this.onPress = params.onPress;
-
-  this.el.addEventListener('mousedown', this);
+  Button.call(this, params);
 }
 
-ToolButton.prototype = Object.create(Container.prototype);
+ToolButton.prototype = Object.create(Button.prototype);
 ToolButton.prototype.constructor = ToolButton;
 
-ToolButton.prototype.setState = function(state) {
-  if (state) {
-    if (!this.state) this.addClass('selected');
-    // this.icon.setInvert(true);
-  } else {
-    if (this.state) this.removeClass('selected');
-    // this.icon.setInvert(false);
-  }
-  this.state = state;
-}
-
 ToolButton.prototype.onMouseDown = function(event) {
-  // event.preventDefault();
-  // event.stopPropagation();
-  // this.onPress ? this.onPress() : null;
   if (this.onPress) {
     this.onPress(this);
   }
 }
 
+ToolButton.prototype.onMouseUp = function(event) {
+}
+
+ToolButton.prototype.onMouseOver = function(event) {
+  this.addClass('hover');
+}
+
+ToolButton.prototype.onMouseOut = function(event) {
+  this.removeClass('hover');
+}
+
 ToolButton.prototype.handleEvent = function(event) {
   if (event.type == 'mousedown') {
     this.onMouseDown(event);
+  }
+  else if (event.type == 'mouseup') {
+    this.onMouseUp(event);
   }
   else if (event.type === 'mouseover') {
     this.onMouseOver(event);

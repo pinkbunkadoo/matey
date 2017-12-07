@@ -27,7 +27,9 @@ PenTool.prototype.addPoint = function(x, y) {
 
 PenTool.prototype.beginStroke = function() {
   this.drawing = true;
-  this.addPoint(app.mouseX, app.mouseY);
+  var mx = event.clientX - app.paper.el.offsetLeft;
+  var my = event.clientY - app.paper.el.offsetTop;
+  this.addPoint(mx, my);
 }
 
 PenTool.prototype.endStroke = function() {
@@ -101,8 +103,16 @@ PenTool.prototype.render = function() {
 }
 
 PenTool.prototype.onMouseMove = function(event) {
+
+  var mx = event.clientX - app.paper.el.offsetLeft;
+  var my = event.clientY - app.paper.el.offsetTop;
+
+  // console.log(mx, my);
+
   if (this.drawing) {
-    this.addPoint(app.mouseX, app.mouseY);
+
+    // this.addPoint(app.mouseX, app.mouseY);
+    this.addPoint(mx, my);
 
     // Smooth.exp(this.points);
     Smooth.simple(this.points);
@@ -118,11 +128,14 @@ PenTool.prototype.onMouseMove = function(event) {
 PenTool.prototype.onMouseDown = function(event) {
   if (event.button == 0) {
     this.beginStroke();
+    // console.log('beginstroke');
   }
 }
 
 PenTool.prototype.onMouseUp = function(event) {
-  this.addPoint(app.mouseX, app.mouseY);
+  var mx = event.clientX - app.paper.el.offsetLeft;
+  var my = event.clientY - app.paper.el.offsetTop;
+  this.addPoint(mx, my);
   this.endStroke();
 }
 

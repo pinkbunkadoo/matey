@@ -5,9 +5,10 @@ const ToolsPalette = require('./ui/tools');
 const Stroke = require('./display/stroke');
 const Sequence = require('./sequence');
 const Geom = require('./geom/');
-const Panels = require('./ui/panels/');
-const Container = require('./ui/container');
+const HistoryPanel = require('./ui/panels/history_panel');
+const PropertiesPanel = require('./ui/panels/properties_panel');
 const StrokeProperties = require('./ui/panels/properties/stroke_properties');
+const Container = require('./ui/container');
 const Options = require('./ui/options');
 const Paper = require('./ui/paper');
 const Status = require('./ui/status');
@@ -24,14 +25,23 @@ app.preload = function() {
   app.loadImages();
 }
 
+app.registerTag = function(params) {
+  if (params.tag && params.control) {
+    app.tags[params.tag] = params.control;
+  }
+}
+
 app.startup = function() {
   console.log('startup');
+
+  app.tags = {};
 
   app.width = window.innerWidth;
   app.height = window.innerHeight;
 
   app.settings = {};
 
+  // bitmap cursors
   app.cursors = {};
   app.cursors['pointer'] = 'url(./images/cursor_pointer.png) 1 1, auto';
   app.cursors['pencil'] = 'url(./images/cursor_pencil.png) 1 1, auto';
@@ -40,70 +50,56 @@ app.startup = function() {
   app.cursors['zoomin'] = 'url(./images/cursor_zoomin.png) 7 7, auto';
   app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
-  app.regions = {};
-  app.regions['outer'] = new Container({ classes: [ 'outer' ] });
+  app.ui = {};
+  app.ui.outer = new Container({ classes: [ 'outer' ] });
+  app.ui.header = new Container({ classes: [ 'header' ] });
+  app.ui.content = new Container({ classes: [ 'content' ] });
+  app.ui.footer = new Container({ classes: [ 'footer' ] });
 
-  app.regions['header'] = new Container({ classes: [ 'header' ] });
-  app.regions['content'] = new Container({ classes: [ 'content' ] });
-  app.regions['footer'] = new Container({ classes: [ 'footer' ] });
+  app.ui.outer.add(app.ui.header);
+  app.ui.outer.add(app.ui.content);
+  app.ui.outer.add(app.ui.footer);
 
-  app.regions['outer'].add(app.regions['header']);
-  app.regions['outer'].add(app.regions['content']);
-  app.regions['outer'].add(app.regions['footer']);
+  app.ui.left = new Container({ classes: [ 'tools' ] });
+  app.ui.content.add(app.ui.left);
 
-  app.regions['tools'] = new Container({ classes: [ 'tools' ] });
-  app.regions['content'].add(app.regions['tools']);
+  app.ui.workspace = new Container({ classes: [ 'workspace' ] });
+  app.ui.content.add(app.ui.workspace);
 
-  app.regions['workspace'] = new Container({ classes: [ 'workspace' ] });
-  app.regions['content'].add(app.regions['workspace']);
+  app.ui.right = new Container({ classes: [ 'properties' ] });
+  // app.regions['content'].add(app.regions['properties']);
 
-  app.regions['properties'] = new Container({ classes: [ 'properties' ] });
-  app.regions['content'].add(app.regions['properties']);
+  document.body.appendChild(app.ui.outer.el);
 
-  document.body.appendChild(app.regions['outer'].el);
-
-  // var w = window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth;
-  // var h = window.innerHeight - app.regions['header'].el.offsetHeight - app.regions['footer'].el.offsetHeight - 128;
-
-  app.paper = new Paper();
+  app.paper = new Paper({ tag: 'paper' });
   app.paper.bind('zoom', function(params) {
     app.status.setZoom(params.scale)
   });
   app.paper.bind('pick', function(params) {
   });
+  // app.tags['paper'] = app.paper;
 
-  app.regions['workspace'].add(app.paper);
-
-  // document.body.appendChild(app.paper.el);
-
-
-  app.ui = {};
+  app.ui.workspace.add(app.paper);
 
   app.ui.options = new Options();
-  app.regions['header'].add(app.ui.options);
+  app.ui.header.add(app.ui.options);
 
-
-  app.ui.tools = new ToolsPalette();
-  app.ui.tools.bind('tool-change', function(params) {
+  app.ui.toolsPalette = new ToolsPalette();
+  app.ui.toolsPalette.bind('tool-change', function(params) {
     app.setTool(params.tool);
   });
-  app.regions['tools'].add(app.ui.tools);
-  // document.body.appendChild(app.ui.tools.el);
+  app.ui.left.add(app.ui.toolsPalette);
 
-  // app.ui.properties = new Panels.Properties({ left: window.innerWidth - 192 - 16, top: 16, width: 192, height: 192 });
-  app.ui.properties = new Panels.Properties();
+  app.ui.properties = new PropertiesPanel();
   app.ui.properties.bind('stroke-fill-change', function(params) {
     app.sequence.selection.elements[0].fill = params.fill;
   });
-  app.regions['properties'].add(app.ui.properties);
-  // document.body.appendChild(app.ui.properties.el);
+  app.ui.right.add(app.ui.properties);
 
   app.ui.strokeProperties = new StrokeProperties();
   app.ui.strokeProperties.bind('fill-change', function(params) {
-    // console.log('fill-change', params.fill);
     app.setStrokeFill(params.fill);
     app.render();
-    // self.emit('stroke-fill-change', params);
   });
 
   // app.ui.history = new Panels.History();
@@ -113,52 +109,40 @@ app.startup = function() {
   // });
   // app.regions['properties'].add(app.ui.history);
 
-  app.ui.status = new Status();
-  app.regions['footer'].add(app.ui.status);
-  // document.body.appendChild(app.ui.status.el);
+  app.ui.status = new Status({ style: { height: '31px' } });
+  app.ui.status.bind('center', function(params) {
+    app.paper.center();
+    app.render();
+    app.ui.status.setZoom(app.paper.scale);
+  });
+  app.ui.footer.add(app.ui.status);
 
-  // app.ui.frameList = new FrameList({ width: Const.WIDTH / 8, height: Const.HEIGHT / 8 });
-  app.ui.frameList = new FrameList({ width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
+  app.ui.frameList = new FrameList({ tag: 'frameList', width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
   app.ui.frameList.bind('create', function(params) {
     app.newFrame();
   });
   app.ui.frameList.bind('select', function(params) {
     app.go(params.index);
   });
-  app.regions['workspace'].add(app.ui.frameList);
+  app.ui.workspace.add(app.ui.frameList);
+  // app.tags['frameList'] = app.ui.frameList;
 
-  app.ui.frameListBar = new FrameListBar();
+  app.ui.frameListBar = new FrameListBar({ style: { height: '32px' } });
   app.ui.frameListBar.bind('new-frame', function(params) {
     app.newFrame();
   });
-  app.ui.frameListBar.bind('onion', function(params) {
-    // app.paper.setOnion(params.value);
-    app.settings['onion'] = true;
-    app.render();
+  app.ui.frameListBar.bind('remove-frame', function(params) {
+    app.removeFrame();
   });
-  // app.ui.frameListBar.bind('select', function(params) {
-  //   app.go(params.index);
-  // });
-  app.regions['workspace'].add(app.ui.frameListBar);
-
-  // app.ui.frameListScroller = new Scroller();
-  // this.add(app.ui.frameListScroller);
-  // document.body.appendChild(app.ui.frameList.el);
-  // console.log(app.ui.frameList.el.offsetWidth);
-
-  app.overlayContainer = document.createElement('div');
-  app.overlayContainer.style.position = 'absolute';
-  app.overlayContainer.style.left = '0px';
-  app.overlayContainer.style.top = '0px';
-  app.overlayContainer.style.pointerEvents = 'none';
-
-  app.overlay = document.createElement('canvas');
-  app.overlay.width = 500;
-  app.overlay.height = 500;
-  // app.overlay.style.background = 'rgba(0, 0, 255, 0.2)';
-  app.overlayContainer.appendChild(app.overlay);
-  document.body.appendChild(app.overlayContainer);
-
+  app.ui.frameListBar.bind('onion', function(params) {
+    app.settings['onion'] = params.value;
+    app.render();
+    // console.log('onion');
+  });
+  app.ui.frameListBar.bind('loop', function(params) {
+    app.settings['loop'] = params.value;
+  });
+  app.ui.workspace.add(app.ui.frameListBar);
 
   app.sequence = new Sequence();
   app.newFrame();
@@ -198,7 +182,8 @@ app.startup = function() {
   });
   app.tools.pointer.bind('delete', function(params) {
     sequence.deleteSelected();
-    app.addAction(new Actions.Delete());
+    // app.addAction(new Actions.Delete());
+    app.updateFrameListIcon(app.sequence.frame);
     app.render();
   });
   app.tools.pointer.bind('change', function(params) {
@@ -230,13 +215,28 @@ app.startup = function() {
   app.tools.line = new Tools.Line();
   app.tools.line.bind('stroke', function(params) {
     app.createStroke(params.points);
-    app.addAction(new Actions.Line());
+    // app.addAction(new Actions.Line());
   });
   app.tools.line.bind('change', function(params) {
     app.render();
   });
 
+  app.tools.polygon = new Tools.Polygon();
+  app.tools.polygon.bind('change', function(params) {
+    app.render();
+  });
+  app.tools.polygon.bind('stroke', function(params) {
+    app.createStroke(params.points);
+  });
+
   app.tools.knife = new Tools.Knife();
+
+  app.tools.hand = new Tools.Hand();
+  app.tools.hand.bind('change', function(params) {
+    var dx = params.dx, dy = params.dy;
+    app.paper.panCameraBy(dx, dy);
+    app.render();
+  });
 
   app.tools.zoom = new Tools.Zoom();
   app.tools.zoom.bind('zoom-in', function(params) {
@@ -257,7 +257,7 @@ app.startup = function() {
   app.setMode('tool');
 
   app.ui.status.setZoom(1);
-  app.ui.frameListBar.setFrame(1, 1);
+  app.updateFrameLabel();
 
   app.key = [];
 
@@ -279,18 +279,20 @@ app.loadImages = function() {
 }
 
 app.clearOverlay = function() {
-    var ctx = app.getOverlayContext();
-    ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
+    // var ctx = app.getOverlayContext();
+    // ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
+    // app.paper.clearOverlay();
 }
 
 app.getOverlayContext = function() {
   // return app.paper.overlay.getContext('2d');
-  return app.overlay.getContext('2d');
+  return app.paper.overlayCanvas.getContext('2d');
 }
 
 app.render = function() {
 
   app.paper.clear();
+  app.paper.clearOverlay();
 
   // render previous frame
 
@@ -333,9 +335,11 @@ app.render = function() {
     }
   }
 
-  app.paper.renderBitmap();
+  // app.paper.renderBitmap();
 
   if (app.tool) app.tool.render();
+
+  app.paper.render();
 }
 
 app.setMode = function(mode) {
@@ -351,11 +355,14 @@ app.setMode = function(mode) {
 
 app.setTool = function(name) {
   if (app.tool !== app.tools[name]) {
-    if (app.tool) app.tool.blur();
+    if (app.tool) {
+      app.tool.blur();
+      app.previousTool = app.tool;
+    }
     app.tool = app.tools[name];
     app.tool.focus();
     app.setCursor(app.tool.cursor);
-    app.ui.tools.setTool(name);
+    app.ui.toolsPalette.setTool(name);
   }
 }
 
@@ -364,12 +371,12 @@ app.setCursor = function(name) {
 }
 
 app.undo = function() {
-  app.sequence.undo();
+  // app.sequence.undo();
   // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
 }
 
 app.redo = function() {
-  app.sequence.redo();
+  // app.sequence.redo();
 }
 
 app.hitTest = function(x, y) {
@@ -439,25 +446,7 @@ app.marqueeSelect = function(xmin, ymin, xmax, ymax) {
 };
 
 app.createPath = function(ctx, points, dx, dy) {
-  // ctx.beginPath();
-  //
-  // dx = dx || 0;
-  // dy = dy || 0;
-  //
-  // for (var i = 0; i < points.length; i++) {
-  //   var point = points[i];
-  //   var p = app.paper.worldToScreen(point.x, point.y);
-  //   var x = p.x + dx, y = p.y + dy;
-  //   if (i == 0)
-  //     ctx.moveTo(x, y);
-  //   else
-  //     ctx.lineTo(x, y);
-  // }
-  // if (points.length == 2) ctx.closePath();
 }
-
-// app.translateSelected = function(dx, dy) {
-// }
 
 app.strokeFromPoints = function(sourcePoints, convertToWorld) {
   var points = [];
@@ -471,6 +460,10 @@ app.strokeFromPoints = function(sourcePoints, convertToWorld) {
     }
   }
   return new Stroke(points);
+}
+
+app.updateFrameLabel = function() {
+  app.ui.frameListBar.setFrame(app.sequence.position + 1, app.sequence.size());
 }
 
 app.updateFrameListIcon = function(frame) {
@@ -509,14 +502,16 @@ app.updateFrameListIcon = function(frame) {
 app.go = function(index) {
   app.sequence.go(index);
   app.ui.frameList.render({ cmd: 'select', index: index });
+  app.updateFrameLabel();
 
-  var items = [];
-  for (var i = 0; i < app.sequence.frame.history.states.length; i++) {
-    var state = app.sequence.frame.history.states[i];
-    items.push({ id: i, title: state.action.name });
-  }
+  // var items = [];
+  // for (var i = 0; i < app.sequence.frame.history.states.length; i++) {
+  //   var state = app.sequence.frame.history.states[i];
+  //   items.push({ id: i, title: state.action.name });
+  // }
   // app.ui.history.render({ cmd: 'populate', items: items });
   // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
+
   app.render();
 }
 
@@ -539,12 +534,30 @@ app.newFrame = function() {
   app.ui.frameList.render({ cmd: 'frameAdd' });
   app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
   app.updateFrameListIcon(app.sequence.frame);
+  app.updateFrameLabel();
 
-  app.sequence.frame.history.add(new HistoryState(new Actions.New(), app.sequence.frame.copy()));
+  // app.sequence.frame.history.add(new HistoryState(new Actions.New(), app.sequence.frame.copy()));
+
   // app.ui.history.render({ cmd: 'populate', items: [{ id: app.sequence.frame.history.marker, title: 'New' }] });
   // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
 
   app.render();
+}
+
+app.removeFrame = function() {
+  if (app.sequence.size() > 1) {
+    app.sequence.remove();
+    // app.sequence.go(app.sequence.position - 1);
+
+    app.ui.frameList.render({ cmd: 'frameRemove', index: app.sequence.position });
+    // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
+
+    // app.updateFrameListIcon(app.sequence.frame);
+    // app.updateFrameLabel();
+    // console.log('remove');
+    // app.render();
+    app.go(app.sequence.position);
+  }
 }
 
 app.addAction = function(action) {
@@ -570,64 +583,79 @@ app.setStrokeFill = function(fill) {
   }
 }
 
-app.onMouseDown = function(event) {
-  // app.mouseX = event.clientX;
-  // app.mouseY = event.clientY;
+app.repositionPanels = function() {
+  // app.ui.history.reposition();
+  // app.ui.properties.reposition();
+  // app.ui.tools.reposition();
+}
 
-  app.mouseX = event.clientX - event.target.offsetLeft;
-  app.mouseY = event.clientY - event.target.offsetTop;
+app.reposition = function() {
+  // var width = window.innerWidth - 64 - 256, height = window.innerHeight - 48 - 32;
+  app.width = window.innerWidth;
+  app.height = window.innerHeight;
+
+  // var width = window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth;
+  var width = window.innerWidth - app.ui.left.el.offsetWidth;
+  var height = window.innerHeight - app.ui.header.el.offsetHeight - app.ui.footer.el.offsetHeight
+    - app.ui.frameList.el.offsetHeight - app.ui.frameListBar.el.offsetHeight;
+
+  app.paper.resize(width, height);
+
+  // app.ui.frameList.el.style.width = (window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth) + 'px';
+  app.ui.frameList.adjust();
+  // app.ui.frameListScroller.adjust({ page: app.ui.frameList.el.offsetWidth, total: this.container.el.offsetWidth });
+}
+
+app.onMouseDown = function(event) {
+  app.mouseX = event.clientX;
+  app.mouseY = event.clientY;
+
+  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
+  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
 
   app.mouseDownX = app.mouseX;
   app.mouseDownY = app.mouseY;
 
+  app.paper.mouseDownX = app.mouseDownX - app.paper.el.offsetLeft;
+  app.paper.mouseDownY = app.mouseDownY - app.paper.el.offsetTop;
+
   app.mouseLeft = (event.button === 0);
+
   app.mouseTarget = event.target;
-  app.downTarget = event.target;
+  app.mouseTargetTag = event.target.dataset.tag;
+
+  app.mouseDownTarget = event.target;
+  app.mouseDownTargetTag = event.target.dataset.tag;
 
   if (event.buttons === 4) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  if (event.target === app.paper.el) {
-    // console.log('paper');
+  if (app.mouseDownTargetTag === 'paper') {
     if (app.mode === 'pan') {
     } else {
       app.tool.handleEvent(event);
-    }
-    // app.paper.handleEvent(event);
-  }
-}
-
-app.onMouseMove = function(event) {
-  var previousX = app.mouseX;
-  var previousY = app.mouseY;
-
-  app.mouseX = event.clientX - event.target.offsetLeft;
-  app.mouseY = event.clientY - event.target.offsetTop;
-
-  // console.log(app.mouseX);
-  // app.mouseX = event.clientX;
-  // app.mouseY = event.clientY;
-
-  app.mouseDeltaX = app.mouseX - previousX;
-  app.mouseDeltaY = app.mouseY - previousY;
-
-  if (app.mode === 'pan') {
-    if (event.buttons === 1) {
-      app.paper.panCameraBy(-app.mouseDeltaX / app.paper.scale, -app.mouseDeltaY / app.paper.scale);
-      app.render();
+      // event.preventDefault();
+      // event.stopPropagation();
     }
   } else {
-    app.tool.handleEvent(event);
+    var target = app.tags[app.mouseTargetTag];
+    if (target) {
+      target.handleEvent(event);
+    }
   }
-
-  // app.paper.handleEvent(event);
 }
 
 app.onMouseUp = function(event) {
-  app.mouseX = event.clientX - event.target.offsetLeft;
-  app.mouseY = event.clientY - event.target.offsetTop;
+  app.mouseX = event.clientX;
+  app.mouseY = event.clientY;
+
+  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
+  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
+
+  app.mouseTarget = event.target;
+  app.mouseTargetTag = event.target.dataset.tag;
 
   app.mouseLeft = (event.button === 0) ? false : app.mouseLeft;
 
@@ -636,7 +664,104 @@ app.onMouseUp = function(event) {
       app.setMode('tool');
     }
   } else {
-    if (app.tool && app.mouseTarget == app.paper.el) app.tool.handleEvent(event);
+    if (app.mouseDownTargetTag === 'paper') {
+      app.tool.handleEvent(event);
+      // event.preventDefault();
+      // event.stopPropagation();
+    } else {
+      var target = app.tags[app.mouseTargetTag];
+      if (target) {
+        target.handleEvent(event);
+      }
+    }
+  }
+
+  app.mouseDownTargetTag = null;
+  app.mouseDownTarget = null;
+}
+
+app.onMouseMove = function(event) {
+  var previousX = app.mouseX;
+  var previousY = app.mouseY;
+
+  app.mouseX = event.clientX;
+  app.mouseY = event.clientY;
+
+  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
+  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
+
+  app.mouseDeltaX = app.mouseX - previousX;
+  app.mouseDeltaY = app.mouseY - previousY;
+
+  app.mouseTarget = event.target;
+  app.mouseTargetTag = event.target.dataset.tag;
+
+  if (app.mode === 'pan') {
+    if (event.buttons === 1) {
+
+      var dx = -app.mouseDeltaX / app.paper.scale;
+      var dy = -app.mouseDeltaY / app.paper.scale;
+
+      app.paper.panCameraBy(dx, dy);
+      app.render();
+    }
+  } else {
+    if (app.mouseDownTargetTag) {
+      if (app.mouseDownTargetTag === 'paper') {
+        app.tool.handleEvent(event);
+        event.preventDefault();
+        event.stopPropagation();
+      } else {
+        var target = app.tags[app.mouseDownTargetTag];
+        if (target) {
+          target.handleEvent(event);
+        }
+      }
+    } else {
+      if (app.mouseTargetTag === 'paper') {
+        app.tool.handleEvent(event);
+      }
+    }
+  }
+}
+
+app.onMouseOut = function(event) {
+  app.mouseTarget = event.target;
+  app.mouseTargetTag = event.target.dataset.tag;
+
+  if (app.mouseDownTargetTag) {
+    if (app.mouseDownTargetTag === app.mouseTargetTag) {
+      var target = app.tags[app.mouseTargetTag];
+      if (target) {
+        // console.log('out', app.mouseDownTargetTag, app.mouseTargetTag);
+        target.handleEvent(event);
+      }
+    }
+  } else {
+    var target = app.tags[app.mouseTargetTag];
+    if (target) {
+      target.handleEvent(event);
+    }
+  }
+}
+
+app.onMouseOver = function(event) {
+  app.mouseTarget = event.target;
+  app.mouseTargetTag = event.target.dataset.tag;
+
+  if (app.mouseDownTargetTag) {
+    if (app.mouseDownTargetTag === app.mouseTargetTag) {
+      var target = app.tags[app.mouseTargetTag];
+      if (target) {
+        // console.log('over', app.mouseDownTargetTag, app.mouseTargetTag);
+        target.handleEvent(event);
+      }
+    }
+  } else {
+    var target = app.tags[app.mouseTargetTag];
+    if (target) {
+      target.handleEvent(event);
+    }
   }
 }
 
@@ -652,7 +777,7 @@ app.onKeyDown = function(event) {
     }
   }
   else if (event.key == 'b' && !event.repeat) {
-    app.setTool('pencil');
+    app.setTool('pen');
   }
   else if (event.key == 'q' && !event.repeat) {
     app.setTool('pointer');
@@ -664,7 +789,6 @@ app.onKeyDown = function(event) {
       app.setTool('zoom');
   }
   else if (event.key === 'd' && !event.repeat) {
-    // app.paper.showDots = !app.paper.showDots;
     app.settings['dots'] = !app.settings['dots'];
     app.render();
   }
@@ -684,9 +808,6 @@ app.onKeyDown = function(event) {
   }
   else if (event.key === 'n' && !event.repeat) {
     app.newFrame();
-    // app.sequence.next();
-    // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
-    // app.render();
   }
   else {
     if (app.tool) app.tool.handleEvent(event);
@@ -705,38 +826,6 @@ app.onKeyUp = function(event) {
   }
 }
 
-app.repositionPanels = function() {
-  // app.ui.history.reposition();
-  // app.ui.properties.reposition();
-  // app.ui.tools.reposition();r
-}
-
-app.reposition = function() {
-  // var width = window.innerWidth - 64 - 256, height = window.innerHeight - 48 - 32;
-  app.width = window.innerWidth;
-  app.height = window.innerHeight;
-
-  var width = window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth;
-  var height = window.innerHeight - app.regions['header'].el.offsetHeight - app.regions['footer'].el.offsetHeight
-    - app.ui.frameList.el.offsetHeight - app.ui.frameListBar.el.offsetHeight;
-
-  app.paper.resize(width, height);
-
-  app.overlay.width = width;
-  app.overlay.height = height;
-  app.overlayContainer.style.width = width + 'px';
-  app.overlayContainer.style.height = height + 'px';
-  app.overlayContainer.style.left = app.paper.el.offsetLeft + 'px';
-  app.overlayContainer.style.top = app.paper.el.offsetTop + 'px';
-
-  // console.log(window.innerHeight - app.regions['header'].el.offsetHeight - app.regions['footer'].el.offsetHeight - app.ui.frameList.el.offsetHeight);
-  // console.log(app.ui.frameList.el.offsetHeight);
-
-  // app.ui.frameList.el.style.width = (window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth) + 'px';
-  app.ui.frameList.adjust();
-  // app.ui.frameListScroller.adjust({ page: app.ui.frameList.el.offsetWidth, total: this.container.el.offsetWidth });
-}
-
 app.onResize = function() {
   if (!window.resizeTimeoutId) {
     window.resizeTimeoutId = setTimeout(function() {
@@ -752,11 +841,17 @@ app.handleEvent = function(event) {
   if (event.type === 'mousedown') {
     app.onMouseDown(event);
   }
+  else if (event.type === 'mouseup') {
+    app.onMouseUp(event);
+  }
   else if (event.type === 'mousemove') {
     app.onMouseMove(event);
   }
-  else if (event.type === 'mouseup') {
-    app.onMouseUp(event);
+  else if (event.type === 'mouseover') {
+    app.onMouseOver(event);
+  }
+  else if (event.type === 'mouseout') {
+    app.onMouseOut(event);
   }
   else if (event.type === 'keydown') {
     app.onKeyDown(event);
@@ -773,6 +868,8 @@ app.initEventListeners = function() {
   window.addEventListener('mousedown', this);
   window.addEventListener('mousemove', this);
   window.addEventListener('mouseup', this);
+  window.addEventListener('mouseover', this);
+  window.addEventListener('mouseout', this);
   window.addEventListener('keydown', this);
   window.addEventListener('keyup', this);
   window.addEventListener('resize', this);

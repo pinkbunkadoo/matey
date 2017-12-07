@@ -101,37 +101,15 @@ PointerTool.prototype.endSelection = function() {
 }
 
 PointerTool.prototype.render = function() {
-  app.clearOverlay();
+  // app.clearOverlay();
   var ctx = app.getOverlayContext();
 
-  ctx.save();
+  // ctx.save();
 
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
   ctx.lineWidth = Const.LINE_WIDTH * 2;
-
-  // ctx.strokeStyle = 'dodgerblue';
-  // ctx.fillStyle = 'dodgerblue';
-
-  // ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
-  // for (var i = 0; i < sequence.selection.elements.length; i++) {
-  //   var element = sequence.selection.elements[i];
-  //   var points = element.points;
-    // app.createPath(ctx, points, this.dx, this.dy);
-    // ctx.stroke();
-
-    // if (element.selected) {
-    //   app.createPath(ctx, points, this.dx, this.dy);
-    //   if (element.fill) {
-    //     ctx.globalAlpha = 0.5;
-    //     ctx.fill();
-    //     ctx.globalAlpha = 1;
-    //   }
-    //   ctx.stroke();
-    // }
-  // }
-  // ctx.setTransform(1, 0, 0, 1, 0, 0);
 
   if (this.mode === 'select') {
     ctx.save();
@@ -147,7 +125,7 @@ PointerTool.prototype.render = function() {
 
   }
 
-  ctx.restore();
+  // ctx.restore();
   // this.emit('change');
 }
 
@@ -173,38 +151,40 @@ PointerTool.prototype.render = function() {
 // }
 
 PointerTool.prototype.onMouseMove = function(event) {
+
   if (this.mode == 'select') {
-    if (app.mouseX < app.mouseDownX) {
-      this.xmin = app.mouseX;
-      this.xmax = app.mouseDownX;
+    if (app.paper.mouseX < app.paper.mouseDownX) {
+      this.xmin = app.paper.mouseX;
+      this.xmax = app.paper.mouseDownX;
     } else {
-      this.xmin = app.mouseDownX;
-      this.xmax = app.mouseX;
+      this.xmin = app.paper.mouseDownX;
+      this.xmax = app.paper.mouseX;
     }
 
-    if (app.mouseY < app.mouseDownY) {
-      this.ymin = app.mouseY;
-      this.ymax = app.mouseDownY;
+    if (app.paper.mouseY < app.paper.mouseDownY) {
+      this.ymin = app.paper.mouseY;
+      this.ymax = app.paper.mouseDownY;
     } else {
-      this.ymin = app.mouseDownY;
-      this.ymax = app.mouseY;
+      this.ymin = app.paper.mouseDownY;
+      this.ymax = app.paper.mouseY;
     }
-    // this.emit('change');
-    this.render();
+    this.emit('change');
+    // this.render();
     // app.requestDraw();
 
   } else if (this.mode == 'drag') {
-    var dx = app.mouseDeltaX, dy = app.mouseDeltaY;
+    // var dx = app.mouseDeltaX, dy = app.mouseDeltaY;
+    var dx = event.movementX, dy = event.movementY;
+    // console.log(dx, dy);
 
-    // this.dx = this.dx + dx;
-    // this.dy = this.dy + dy;
-    // this.emit('change');
+    // event.clientX - event.target.offsetLeft, event.clientY - event.target.offsetTop
+
     this.moveSelected(dx, dy);
     this.emit('drag');
 
   } else {
     // console.log(app.downTarget);
-    if (event.buttons & 1 && app.downTarget === app.paper.el) {
+    if (event.buttons & 1 && app.mouseTarget === app.paper.el) {
       var dx = app.mouseX - app.mouseDownX, dy = app.mouseY - app.mouseDownY;
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
         if (this.picked) {
@@ -220,8 +200,9 @@ PointerTool.prototype.onMouseMove = function(event) {
 }
 
 PointerTool.prototype.onMouseDown = function(event) {
-  var stroke = app.hitTest(app.mouseX, app.mouseY);
-
+  // var stroke = app.hitTest(app.mouseX - app.paper.el.offsetLeft, app.mouseY - app.paper.el.offsetTop);
+  // var stroke = app.hitTest(event.clientX - event.target.offsetLeft, event.clientY - event.target.offsetTop);
+  var stroke = app.hitTest(app.paper.mouseX, app.paper.mouseY);
 
   if (stroke) {
     if (stroke.selected) {

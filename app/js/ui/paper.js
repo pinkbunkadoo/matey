@@ -8,7 +8,7 @@ const Stroke = require('../display/stroke');
 
 function Paper(params) {
   params = params || {};
-  Base.call(this);
+  Base.call(this, params);
 
   this.addClass('paper');
 
@@ -22,6 +22,9 @@ function Paper(params) {
   // this.canvas.style.zIndex = -100;
   this.el.appendChild(this.canvas);
 
+  this.overlayCanvas = document.createElement('canvas');
+  this.overlayCanvas.width = this.canvasWidth;
+  this.overlayCanvas.height = this.canvasHeight;
 
   this.scale = 1.0;
   this.width = Const.WIDTH;
@@ -37,17 +40,7 @@ function Paper(params) {
   this.tx = (this.width / 2) >> 0;
   this.ty = (this.height / 2) >> 0;
 
-  // this.showDots = false;
-  // this.showOnion = false;
-
   this.globalAlpha = 1.0;
-  // this.stroke
-
-  // this.renderList = [];
-
-  // var self = this;
-
-  // this.render();
 }
 
 Paper.prototype = Object.create(Base.prototype);
@@ -63,6 +56,10 @@ Paper.prototype.resize = function(width, height) {
   this.canvasHeight = height;
   this.canvas.width = this.canvasWidth;
   this.canvas.height = this.canvasHeight;
+
+  this.overlayCanvas.width = this.canvasWidth;
+  this.overlayCanvas.height = this.canvasHeight;
+
   // this.bitmap.width = this.canvasWidth;
   // this.bitmap.height = this.canvasHeight;
   // this.render();
@@ -82,6 +79,7 @@ Paper.prototype.center = function() {
 
 Paper.prototype.panCameraBy = function(x, y) {
   this.setCameraPosition(this.tx + x, this.ty + y);
+  // console.log(x, y);
 }
 
 Paper.prototype.setZoom = function(value) {
@@ -272,16 +270,16 @@ Paper.prototype.renderPath = function(points, options) {
 
 
 Paper.prototype.getBitmapContext = function() {
-  return this.bitmap.getContext('2d');
+  // return this.bitmap.getContext('2d');
 }
 
 
 Paper.prototype.renderBitmap = function() {
-  var p1 = this.worldToScreen(0, 0);
-  var ctx = this.canvas.getContext('2d');
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.drawImage(this.bitmap, p1.x, p1.y, this.width * this.scale, this.height * this.scale);
-  ctx.globalCompositeOperation = 'source-over';
+  // var p1 = this.worldToScreen(0, 0);
+  // var ctx = this.canvas.getContext('2d');
+  // ctx.globalCompositeOperation = 'multiply';
+  // ctx.drawImage(this.bitmap, p1.x, p1.y, this.width * this.scale, this.height * this.scale);
+  // ctx.globalCompositeOperation = 'source-over';
 }
 
 
@@ -295,6 +293,8 @@ Paper.prototype.clear = function() {
   var p1 = this.worldToScreen(0, 0);
   ctx.fillStyle = Const.color.PAPER;
   ctx.fillRect(p1.x >> 0, p1.y >> 0, this.width * this.scale, this.height * this.scale);
+
+  // this.clearOverlay();
 
   // if (objects) {
   //   for (var i = 0; i < objects.length; i++) {
@@ -369,6 +369,16 @@ Paper.prototype.clear = function() {
 
 
 // }
+
+Paper.prototype.clearOverlay = function() {
+  var ctx = this.overlayCanvas.getContext('2d');
+  ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+}
+
+Paper.prototype.render = function() {
+  var ctx = this.canvas.getContext('2d');
+  ctx.drawImage(this.overlayCanvas, 0, 0);
+}
 
 Paper.prototype.onMouseDown = function(event) {
   // if (event.target === this.el) {

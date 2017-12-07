@@ -9,6 +9,12 @@ function Base(params) {
 
   this.el = document.createElement('div');
 
+  if (params.tag) {
+    this.el.dataset.tag = params.tag;
+    this.tag = params.tag;
+    app.registerTag({ tag: params.tag, control: this });
+  }
+
   this.addClass('ui');
 
   if (params.style) {
@@ -33,6 +39,9 @@ Base.prototype.addClass = function(className) {
 
 Base.prototype.removeClass = function(className) {
   this.el.classList.remove(className);
+}
+
+Base.prototype.handleEvent = function(event) {
 }
 
 module.exports = Base;

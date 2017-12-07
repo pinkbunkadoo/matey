@@ -8,10 +8,7 @@ function Scroller(params) {
 
   this.addClass('scroller');
 
-  this.el.style.height = '10px';
-
-  this.grabber = new Base({ style: { position: 'absolute', height: '10px' } });
-  // this.grabber.el.innerHTML = '|||';
+  this.grabber = new Base({ style: { position: 'absolute', height: '3px' } });
   this.grabber.addClass('grabber');
   this.add(this.grabber);
 
