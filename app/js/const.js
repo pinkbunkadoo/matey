@@ -8,8 +8,9 @@ var Const = {
     STROKE: 'rgb(32, 32, 32)',
     strokeSelected: 'red',
     // WORKSPACE: 'rgb(180, 180, 180)',
-    WORKSPACE: 'rgb(160, 160, 160)',
-    PAPER: 'rgb(255, 255, 255)'
+    // WORKSPACE: 'rgb(160, 160, 160)',
+    WORKSPACE: 'rgb(228, 226, 224)',
+    PAPER: 'rgb(228, 226, 224)'
   },
 
   KEY_DRAG: ' ',

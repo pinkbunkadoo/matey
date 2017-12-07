@@ -290,9 +290,22 @@ Paper.prototype.clear = function() {
   ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+  ctx.save();
+
   var p1 = this.worldToScreen(0, 0);
   ctx.fillStyle = Const.color.PAPER;
-  ctx.fillRect(p1.x >> 0, p1.y >> 0, this.width * this.scale, this.height * this.scale);
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  ctx.lineDashOffset = 5;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.rect((p1.x >> 0) + 0.5, (p1.y >> 0) + 0.5, this.width * this.scale, this.height * this.scale);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+
+  // ctx.fillRect(p1.x >> 0, p1.y >> 0, this.width * this.scale, this.height * this.scale);
 
   // this.clearOverlay();
 

@@ -119,9 +119,15 @@ FrameList.prototype.get = function(index) {
 
 FrameList.prototype.select = function(index) {
   // console.log('select', index);
-  if (this.selection) this.selection.removeClass('selected');
+  if (this.selection) {
+    this.selection.removeClass('selected');
+    this.selection.deselect();
+  }
+
   this.selection = this.items[index];
   this.selection.addClass('selected');
+
+  this.selection.select();
 
   // this.marker.el.style.top = (this.selection.el.offsetTop - this.marker.el.offsetHeight) + 'px';
   // this.marker.el.style.left = (this.selection.el.offsetLeft) + 'px';

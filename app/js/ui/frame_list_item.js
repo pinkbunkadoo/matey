@@ -25,14 +25,13 @@ function FrameListItem(params) {
   this.graphic.el.style.pointerEvents = 'none';
   this.add(this.graphic);
 
-  this.number = new Label({ title: 0, style: {  position: 'absolute', paddingTop: '2px', paddingLeft: '2px' } });
+  // this.number = new Label({ title: 0, style: {  position: 'absolute', paddingTop: '2px', paddingLeft: '2px' } });
   // this.number = new Label({ title: 0, style: { top: '-14px', position: 'relative', paddingTop: '2px', paddingLeft: '2px' } });
-  this.add(this.number);
 
-  // this.highlight = new Container({ style: { position: 'absolute', boxSizing: 'border-box', border: '1px solid red', width: this.width + 'px', height: this.height + 'px' } });
-  // this.highlight.el.style.opacity = 0;
-  // this.add(this.highlight);
-
+  this.numberContainer = new Container({ style: { position: 'absolute', boxSizing: 'border-box', width: this.width + 'px', height: this.height + 'px' }});
+  this.number = new Label({ title: 0, style: { position: 'absolute', padding: '4px' } });
+  this.numberContainer.add(this.number)
+  this.add(this.numberContainer);
 }
 
 FrameListItem.prototype = Object.create(Container.prototype);
@@ -46,6 +45,17 @@ FrameListItem.prototype.setNumber = function(data) {
 }
 
 FrameListItem.prototype.select = function() {
+  this.number.el.style.background = 'dodgerblue';
+  this.number.el.style.color = 'white';
+  this.numberContainer.el.style.border = '3px solid dodgerblue'
+  // this.highlight.el.style.opacity = 1;
+}
+
+
+FrameListItem.prototype.deselect = function() {
+  this.number.el.style.background = 'rgba(0,0,0,0)';
+  this.number.el.style.color = 'gray';
+  this.numberContainer.el.style.border = '3px solid rgba(0,0,0,0)'
   // this.highlight.el.style.opacity = 1;
 }
 

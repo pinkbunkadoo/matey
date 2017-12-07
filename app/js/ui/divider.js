@@ -2,6 +2,7 @@ const Base = require('./base');
 
 function Divider(params = {}) {
   Base.call(this, params);
+  
   this.addClass('divider');
 
   if (params.orientation === 'horizontal') {

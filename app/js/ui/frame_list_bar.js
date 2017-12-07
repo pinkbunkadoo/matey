@@ -22,14 +22,14 @@ function FrameListBar(params) {
     // app.sequence.go(app.sequence.position);
     self.emit('new-frame');
   });
-  this.add(button);
+  // this.add(button);
 
   var button = new Button({ tag: 'frames_copy', image: 'copy', width: buttonWidth, height: buttonHeight });
   button.onPress = (function() {
     // self.emit(' ');
     // app.sequence.insert(app.sequence.frame.copy(), app.sequence.position + 1);
   });
-  this.add(button);
+  // this.add(button);
 
   var button = new Button({ tag: 'frames_delete', image: 'trash', width: buttonWidth, height: buttonHeight });
   button.onPress = (function() {
@@ -42,21 +42,15 @@ function FrameListBar(params) {
     //   app.sequence.go(position);
     // app.updateFrameList({ action: 'remove', index: position });
   });
-  // this.frameButtons.add(button);
-  this.add(button);
+  // this.add(button);
 
-  // this.add(new Spacer({ width: 8 }));
+  // this.add(new Divider({ orientation: 'vertical' }));
 
-  // this.add(this.frameButtons);
-
-  this.add(new Divider({ orientation: 'vertical' }));
-
-  // this.add(new Spacer({ width: 20 }));
   this.add(new Button({ tag: 'frames_first', image: 'first', width: buttonWidth, height: buttonHeight }));
   this.add(new Button({ tag: 'frames_play', image: 'play', width: buttonWidth, height: buttonHeight }));
   this.add(new Button({ tag: 'frames_last', image: 'last', width: buttonWidth, height: buttonHeight }));
 
-  this.add(new Divider({ orientation: 'vertical' }));
+  this.add(new Divider({ orientation: 'vertical', style: { height: '10px' } }));
 
   button = new Button({ tag: 'frames_loop', image: 'loop', width: buttonWidth, height: buttonHeight })
   this.add(button);
@@ -65,7 +59,7 @@ function FrameListBar(params) {
     self.emit('loop', { value: button.state });
   };
 
-  this.add(new Divider({ orientation: 'vertical' }));
+  this.add(new Divider({ orientation: 'vertical', style: { height: '10px' } }));
 
   button = new Button({ tag: 'frames_onion', image: 'onion', width: buttonWidth, height: buttonHeight });
   button.onPress = function(button) {
@@ -74,12 +68,12 @@ function FrameListBar(params) {
   };
   this.add(button);
 
-  this.add(new Divider({ orientation: 'vertical' }));
+  this.add(new Divider({ orientation: 'vertical', style: { height: '10px' } }));
 
   this.frame = new Label({ title: 'frame', style: { flex: 'auto' } });
   this.add(this.frame);
 
-  this.add(new Spacer({width: 20}));
+  // this.add(new Spacer({width: 20}));
 
 }
 

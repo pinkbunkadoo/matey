@@ -18,7 +18,7 @@ html, body {
   -webkit-user-select: none;
   cursor: default;
   /*background-color: rgb(240, 240, 240);*/
-  background-color: #f5f6f7;
+  /*background-color: #f5f6f7;*/
 }
 
 .icon {
@@ -177,60 +177,96 @@ html, body {
   color: white;
 }
 
-.outer {
+.main {
   display: flex;
   flex-direction: column;
   height: 100%;
-  /*background: blue;*/
 }
 
-.header {
-  height: 32px;
-  min-height: 32px;
+.top {
+  display: flex;
+  position: fixed;
+  /*flex-direction: column;*/
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  width: 100%;
+  left: 0px;
+  top: 0px;
+  box-sizing: border-box;
+  /*border: 1px solid lightgray;*/
 }
 
 .content {
-  display: flex;
+  /*display: flex;
   flex: auto;
-  height: 100%;
+  height: 100%;*/
 }
 
-.footer {
-  height: 32px;
-  min-height: 32px;
+.bottom {
+  display: flex;
+  position: fixed;
+  /*flex-direction: column;*/
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  width: 100%;
+  left: 0px;
+  bottom: 0px;
+  box-sizing: border-box;
+  padding-left: 64px;
+  padding-right: 64px;
+  /*border: 1px solid lightgray;*/
+}
+
+.left {
+  display: flex;
+  position: fixed;
+  flex-direction: column;
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  height: 100%;
+  left: 0px;
+  top: 0px;
+  box-sizing: border-box;
+  /*border: 1px solid lightgray;*/
+}
+
+.right {
+  display: flex;
+  position: fixed;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  right: 0px;
+  top: 0px;
+  box-sizing: border-box;
 }
 
 .tools {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4px;
-  left: 0px;
-  top: 0px;
-  width: 64px;
-  min-width: 64px;
-  box-sizing: border-box;
-  border-right: 1px solid lightgray;
+  position: fixed;
+  border-radius: 0px 3px 3px 0px;
+  padding: 8px;
+  background-color: #f5f6f7;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);
 }
 
 .workspace {
-  flex-direction: column;
+  /*flex-direction: column;
   flex: auto;
   box-sizing: border-box;
-  overflow: hidden;
-  /*background: red;*/
+  overflow: hidden;*/
 }
 
 .properties {
-  display: flex;
+  /*display: flex;
   flex-direction: column;
   width: 256px;
   min-width: 256px;
-  border-left: 1px solid lightgray;
+  border-left: 1px solid lightgray;*/
 }
 
 .status {
-  flex-direction: row;
+  /*flex-direction: row;
   position: absolute;
   align-items: center;
   bottom: 0px;
@@ -239,18 +275,22 @@ html, body {
   padding-right: 8px;
   box-sizing: border-box;
   cursor: default;
-  border-top: 1px solid lightgray;
+  border-top: 1px solid lightgray;*/
 }
 
 .frame-list-bar {
+  position: fixed;
   flex-direction: row;
-  /*min-height: 32px;*/
-  /*height: 32px;*/
-  box-sizing: border-box;
-  padding-left: 8px;
-  padding-right: 8px;
+  /*box-sizing: border-box;*/
   cursor: default;
   align-items: center;
+  justify-content: center;
+  border-radius: 0px 0px 3px 3px;
+  /*background: lightgray;*/
+  padding: 8px;
+  background-color: #f5f6f7;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);
+  /*width: 400px;*/
 }
 
 .options {
@@ -264,13 +304,20 @@ html, body {
 }
 
 .frame-list {
-  background: gray;
+  /*position: fixed;*/
+  /*background: gray;*/
   overflow: hidden;
   flex-direction: column;
+  /*padding: 8px;*/
+  border-radius: 3px 0px 0px 0px;
+  background-color: #f5f6f7;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);
+  width: 100%;
 }
 
 .frame-list-main-container {
-  background: gray;
+  /*background: gray;*/
+  border-radius: 3px 0px 0px 0px;
   pointer-events: none;
   overflow: hidden;
   position: relative;
@@ -280,21 +327,33 @@ html, body {
   font-size: 9px;
   flex-direction: column;
   pointer-events: none;
-  border-top: 8px solid lightgray;
+  /*border: 3px solid rgba(0,0,0,0);*/
+  /*border-radius: 3px;*/
+  /*box-sizing: border-box;*/
+  /*border-top: 8px solid lightgray;*/
   /*overflow: hidden;*/
   /*border-right: 1px solid lightgray;*/
-  background: green;
+  /*background: green;*/
 }
 
 .frame-list-item.selected {
-  border-top: 8px solid dodgerblue;
+  /*border-top: 8px solid dodgerblue;*/
+  /*box-sizing: border-box;*/
+  /*border: 3px solid dodgerblue;*/
 }
 
 .frame-list-item-create {
-  background: rgba(192, 192, 192, 1);
-  transition: background-color 0.25s;
+  /*background: rgba(192, 192, 192, 1);*/
+  /*transition: background-color 0.25s;*/
 }
 
 .frame-list-item-create:hover {
-  background: rgba(224, 224, 224, 1);
+  /*background: rgba(224, 224, 224, 1);*/
+}
+
+.frame-list-add {
+  border-radius: 0px 4px 0px 0px;
+  background: #666666;
+  width: 36px;
+  /*height: 100%;*/
 }

@@ -51,25 +51,31 @@ app.startup = function() {
   app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
   app.ui = {};
-  app.ui.outer = new Container({ classes: [ 'outer' ] });
-  app.ui.header = new Container({ classes: [ 'header' ] });
-  app.ui.content = new Container({ classes: [ 'content' ] });
-  app.ui.footer = new Container({ classes: [ 'footer' ] });
+  app.ui.main = new Container({ classes: [ 'main' ] });
+  // app.ui.outer = new Container({ classes: [ 'outer' ] });
+  // app.ui.header = new Container({ classes: [ 'header' ] });
+  // app.ui.content = new Container({ classes: [ 'content' ] });
+  // app.ui.footer = new Container({ classes: [ 'footer' ] });
 
-  app.ui.outer.add(app.ui.header);
-  app.ui.outer.add(app.ui.content);
-  app.ui.outer.add(app.ui.footer);
+  // app.ui.outer.add(app.ui.header);
+  // app.ui.main.add(app.ui.content);
+  // app.ui.outer.add(app.ui.footer);
 
-  app.ui.left = new Container({ classes: [ 'tools' ] });
-  app.ui.content.add(app.ui.left);
+  app.ui.left = new Container({ classes: [ 'left' ] });
+  app.ui.main.add(app.ui.left);
 
-  app.ui.workspace = new Container({ classes: [ 'workspace' ] });
-  app.ui.content.add(app.ui.workspace);
+  app.ui.top = new Container({ classes: [ 'top' ] });
+  app.ui.main.add(app.ui.top);
 
-  app.ui.right = new Container({ classes: [ 'properties' ] });
-  // app.regions['content'].add(app.regions['properties']);
+  app.ui.bottom = new Container({ classes: [ 'bottom' ] });
+  app.ui.main.add(app.ui.bottom);
 
-  document.body.appendChild(app.ui.outer.el);
+  // app.ui.workspace = new Container({ classes: [ 'workspace' ] });
+  // app.ui.content.add(app.ui.workspace);
+
+  // app.ui.right = new Container({ classes: [ 'properties' ] });
+
+  document.body.appendChild(app.ui.main.el);
 
   app.paper = new Paper({ tag: 'paper' });
   app.paper.bind('zoom', function(params) {
@@ -77,24 +83,23 @@ app.startup = function() {
   });
   app.paper.bind('pick', function(params) {
   });
-  // app.tags['paper'] = app.paper;
-
-  app.ui.workspace.add(app.paper);
+  app.ui.main.add(app.paper);
 
   app.ui.options = new Options();
-  app.ui.header.add(app.ui.options);
+  // app.ui.header.add(app.ui.options);
 
   app.ui.toolsPalette = new ToolsPalette();
   app.ui.toolsPalette.bind('tool-change', function(params) {
     app.setTool(params.tool);
   });
   app.ui.left.add(app.ui.toolsPalette);
+  // app.ui.left.add(app.ui.toolsPalette);
 
   app.ui.properties = new PropertiesPanel();
   app.ui.properties.bind('stroke-fill-change', function(params) {
     app.sequence.selection.elements[0].fill = params.fill;
   });
-  app.ui.right.add(app.ui.properties);
+  // app.ui.right.add(app.ui.properties);
 
   app.ui.strokeProperties = new StrokeProperties();
   app.ui.strokeProperties.bind('fill-change', function(params) {
@@ -115,7 +120,7 @@ app.startup = function() {
     app.render();
     app.ui.status.setZoom(app.paper.scale);
   });
-  app.ui.footer.add(app.ui.status);
+  // app.ui.footer.add(app.ui.status);
 
   app.ui.frameList = new FrameList({ tag: 'frameList', width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
   app.ui.frameList.bind('create', function(params) {
@@ -124,10 +129,15 @@ app.startup = function() {
   app.ui.frameList.bind('select', function(params) {
     app.go(params.index);
   });
-  app.ui.workspace.add(app.ui.frameList);
-  // app.tags['frameList'] = app.ui.frameList;
+  app.ui.bottom.add(app.ui.frameList);
 
-  app.ui.frameListBar = new FrameListBar({ style: { height: '32px' } });
+  app.ui.frameListAdd = new Container({ tag: 'frameListAdd', classes: [ 'frame-list-add' ] });
+  app.ui.bottom.add(app.ui.frameListAdd);
+  app.ui.frameListAdd.el.onclick = function() {
+    app.newFrame();
+  }
+
+  app.ui.frameListBar = new FrameListBar();
   app.ui.frameListBar.bind('new-frame', function(params) {
     app.newFrame();
   });
@@ -142,7 +152,7 @@ app.startup = function() {
   app.ui.frameListBar.bind('loop', function(params) {
     app.settings['loop'] = params.value;
   });
-  app.ui.workspace.add(app.ui.frameListBar);
+  app.ui.top.add(app.ui.frameListBar);
 
   app.sequence = new Sequence();
   app.newFrame();
@@ -590,20 +600,28 @@ app.repositionPanels = function() {
 }
 
 app.reposition = function() {
-  // var width = window.innerWidth - 64 - 256, height = window.innerHeight - 48 - 32;
   app.width = window.innerWidth;
   app.height = window.innerHeight;
 
-  // var width = window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth;
-  var width = window.innerWidth - app.ui.left.el.offsetWidth;
-  var height = window.innerHeight - app.ui.header.el.offsetHeight - app.ui.footer.el.offsetHeight
-    - app.ui.frameList.el.offsetHeight - app.ui.frameListBar.el.offsetHeight;
+  // var width = window.innerWidth - app.ui.left.el.offsetWidth;
+  // var height = window.innerHeight - app.ui.header.el.offsetHeight - app.ui.footer.el.offsetHeight
+    // - app.ui.frameList.el.offsetHeight - app.ui.frameListBar.el.offsetHeight;
+
+  var width = window.innerWidth;
+  var height = window.innerHeight;
 
   app.paper.resize(width, height);
 
-  // app.ui.frameList.el.style.width = (window.innerWidth - app.regions['tools'].el.offsetWidth - app.regions['properties'].el.offsetWidth) + 'px';
+  var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
+  app.ui.frameListBar.el.style.left = b + 'px';
+
+  b = ((height / 2) - (app.ui.toolsPalette.el.offsetHeight/2)) >> 0;
+  app.ui.toolsPalette.el.style.top = b + 'px';
+
+  // b = ((width / 2) - (app.ui.frameList.el.offsetWidth/2)) >> 0;
+  // app.ui.frameList.el.style.left = b + 'px';
+
   app.ui.frameList.adjust();
-  // app.ui.frameListScroller.adjust({ page: app.ui.frameList.el.offsetWidth, total: this.container.el.offsetWidth });
 }
 
 app.onMouseDown = function(event) {
@@ -833,7 +851,7 @@ app.onResize = function() {
       window.resizeTimeoutId = 0;
       // app.repositionPanels();
       app.render();
-    }, 50);
+    }, 66);
   }
 }
 
