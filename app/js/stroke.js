@@ -1,31 +1,38 @@
-const Util = require('../util');
-const Color = require('../color');
-const Point = require('../geom/point');
-const Vector = require('../geom/vector');
-const Rectangle = require('../geom/rectangle');
+const Util = require('./util');
+const Color = require('./color');
+const Point = require('./geom/point');
+const Vector = require('./geom/vector');
+const Rectangle = require('./geom/rectangle');
 const Fragment = require('./fragment');
 
-function Stroke(points, fill) {
+function Stroke(params) {
   Fragment.call(this);
-  this.points = (points ? points : []);
+  this.points = (params.points ? params.points : []);
   this.style = null;
-  this.color = null;
-  this.fill = fill ? fill : null;
-  this.selected = false;
+  this.color = params.color ? params.color : null;
+  this.fill = params.fill ? params.fill : null;
+  this.alpha = 1.0;
+  this.selected = params.selected ? params.selected : false;
 }
 
 Stroke.prototype = Object.create(Fragment.prototype);
 Stroke.prototype.constructor = Stroke;
 
 Stroke.prototype.copy = function() {
-  var stroke = new Stroke();
+  var stroke = new Stroke({ color: this.color, fill: this.fill, selected: false });
   for (var i = 0; i < this.points.length; i++) {
     var point = this.points[i];
     stroke.points.push(point.copy());
   }
-  stroke.selected = this.selected;
-  stroke.fill = this.fill;
   return stroke;
+}
+
+Stroke.prototype.setColor = function(color) {
+  this.color = color;
+}
+
+Stroke.prototype.setFill = function(color) {
+  this.fill = color;
 }
 
 Stroke.prototype.getBounds = function() {

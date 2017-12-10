@@ -1,19 +1,23 @@
 const Const = require('./const');
 const Util = require('./util');
+const Color = require('./color');
 const Tools = require('./tools/');
 const ToolsPalette = require('./ui/tools');
-const Stroke = require('./display/stroke');
+const Stroke = require('./stroke');
 const Sequence = require('./sequence');
 const Geom = require('./geom/');
 const HistoryPanel = require('./ui/panels/history_panel');
 const PropertiesPanel = require('./ui/panels/properties_panel');
 const StrokeProperties = require('./ui/panels/properties/stroke_properties');
+const Panels = require('./ui/panels/');
 const Container = require('./ui/container');
 const Options = require('./ui/options');
 const Paper = require('./ui/paper');
 const Status = require('./ui/status');
+// const Frames = require('./ui/frames');
 const FrameList = require('./ui/frame_list');
-const FrameListBar = require('./ui/frame_list_bar');
+// const FrameListBar = require('./ui/frame_list_bar');
+// const FrameListNew = require('./ui/frame_list_new');
 const Actions = require('./actions/');
 const HistoryState = require('./history_state');
 const Loader = require('./loader');
@@ -51,7 +55,10 @@ app.startup = function() {
   app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
   app.ui = {};
-  app.ui.main = new Container({ classes: [ 'main' ] });
+  // app.ui.main = document.createElement('div');
+  // app.ui.main.id = 'main';
+  app.ui.main = new Container({ id: 'main' });
+
   // app.ui.outer = new Container({ classes: [ 'outer' ] });
   // app.ui.header = new Container({ classes: [ 'header' ] });
   // app.ui.content = new Container({ classes: [ 'content' ] });
@@ -62,28 +69,30 @@ app.startup = function() {
   // app.ui.outer.add(app.ui.footer);
 
   app.ui.left = new Container({ classes: [ 'left' ] });
-  app.ui.main.add(app.ui.left);
+  // app.ui.main.add(app.ui.left);
 
   app.ui.top = new Container({ classes: [ 'top' ] });
-  app.ui.main.add(app.ui.top);
+  // app.ui.main.add(app.ui.top);
+
+  app.ui.right = new Container({ classes: [ 'right' ] });
+  // app.ui.main.add(app.ui.right);
 
   app.ui.bottom = new Container({ classes: [ 'bottom' ] });
-  app.ui.main.add(app.ui.bottom);
+  // app.ui.main.add(app.ui.bottom);
 
   // app.ui.workspace = new Container({ classes: [ 'workspace' ] });
   // app.ui.content.add(app.ui.workspace);
-
   // app.ui.right = new Container({ classes: [ 'properties' ] });
 
   document.body.appendChild(app.ui.main.el);
 
-  app.paper = new Paper({ tag: 'paper' });
-  app.paper.bind('zoom', function(params) {
+  app.ui.paper = new Paper({ id: 'paper' });
+  app.ui.paper.bind('zoom', function(params) {
     app.status.setZoom(params.scale)
   });
-  app.paper.bind('pick', function(params) {
+  app.ui.paper.bind('pick', function(params) {
   });
-  app.ui.main.add(app.paper);
+  // app.ui.main.add(app.ui.paper);
 
   app.ui.options = new Options();
   // app.ui.header.add(app.ui.options);
@@ -92,8 +101,18 @@ app.startup = function() {
   app.ui.toolsPalette.bind('tool-change', function(params) {
     app.setTool(params.tool);
   });
-  app.ui.left.add(app.ui.toolsPalette);
   // app.ui.left.add(app.ui.toolsPalette);
+
+  app.ui.pencilOptions = new Panels.PencilOptions({
+    style: {
+      position: 'absolute',
+      width: '120px',
+      height: app.ui.toolsPalette.el.offsetHeight + 'px',
+      left: (app.ui.toolsPalette.el.offsetWidth + 8) + 'px',
+      top: app.ui.toolsPalette.el.clientTop + 'px'
+    }
+  });
+  // app.ui.toolsPalette.add(app.ui.pencilOptions);
 
   app.ui.properties = new PropertiesPanel();
   app.ui.properties.bind('stroke-fill-change', function(params) {
@@ -107,6 +126,8 @@ app.startup = function() {
     app.render();
   });
 
+  app.ui.properties.add(app.ui.strokeProperties);
+
   // app.ui.history = new Panels.History();
   // app.ui.history.bind('select', function(params) {
   //   app.ui.history.render({ cmd: 'select', index: params.id });
@@ -116,43 +137,61 @@ app.startup = function() {
 
   app.ui.status = new Status({ style: { height: '31px' } });
   app.ui.status.bind('center', function(params) {
-    app.paper.center();
+    app.ui.paper.center();
     app.render();
-    app.ui.status.setZoom(app.paper.scale);
+    app.ui.status.setZoom(app.ui.paper.scale);
   });
   // app.ui.footer.add(app.ui.status);
 
-  app.ui.frameList = new FrameList({ tag: 'frameList', width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
-  app.ui.frameList.bind('create', function(params) {
-    app.newFrame();
-  });
-  app.ui.frameList.bind('select', function(params) {
-    app.go(params.index);
-  });
-  app.ui.bottom.add(app.ui.frameList);
+  // app.ui.frames = new Frames({ id: 'frames', width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
+  // app.ui.frames.bind('new', function(params) {
+  //   app.newFrame();
+  // });
+  // app.ui.frames.bind('select', function(params) {
+  //   app.go(params.index);
+  // });
+  // app.ui.bottom.add(app.ui.frames);
 
-  app.ui.frameListAdd = new Container({ tag: 'frameListAdd', classes: [ 'frame-list-add' ] });
-  app.ui.bottom.add(app.ui.frameListAdd);
-  app.ui.frameListAdd.el.onclick = function() {
-    app.newFrame();
-  }
+  app.ui.frameList = new FrameList({ id: 'frame-list' });
+  app.ui.main.add(app.ui.frameList);
 
-  app.ui.frameListBar = new FrameListBar();
-  app.ui.frameListBar.bind('new-frame', function(params) {
-    app.newFrame();
-  });
-  app.ui.frameListBar.bind('remove-frame', function(params) {
-    app.removeFrame();
-  });
-  app.ui.frameListBar.bind('onion', function(params) {
-    app.settings['onion'] = params.value;
-    app.render();
-    // console.log('onion');
-  });
-  app.ui.frameListBar.bind('loop', function(params) {
-    app.settings['loop'] = params.value;
-  });
-  app.ui.top.add(app.ui.frameListBar);
+  // temp = new Container({
+  //   style: {
+  //     // flex:'auto',
+  //     position: 'fixed',
+  //     boxSizing: 'border-box',
+  //     border:'1px solid blue',
+  //     background: 'cyan',
+  //     bottom: '16px',
+  //     height:'100px',
+  //     width: '100%'
+  //   }
+  // });
+  // app.ui.main.add(temp);
+
+  // app.ui.bottom.add(app.ui.frames);
+
+  // app.ui.frameListNew = new FrameListNew();
+  // app.ui.bottom.add(app.ui.frameListNew);
+  // app.ui.frameListNew.bind('new-frame', function(params) {
+  //   app.newFrame();
+  // });
+
+  // app.ui.frameListBar = new FrameListBar();
+  // app.ui.frameListBar.bind('new-frame', function(params) {
+  //   app.newFrame();
+  // });
+  // app.ui.frameListBar.bind('remove-frame', function(params) {
+  //   app.removeFrame();
+  // });
+  // app.ui.frameListBar.bind('onion', function(params) {
+  //   app.settings['onion'] = params.value;
+  //   app.render();
+  // });
+  // app.ui.frameListBar.bind('loop', function(params) {
+  //   app.settings['loop'] = params.value;
+  // });
+  // app.ui.bottom.add(app.ui.frameListBar);
 
   app.sequence = new Sequence();
   app.newFrame();
@@ -163,8 +202,8 @@ app.startup = function() {
 
   app.tools.pointer = new Tools.Pointer();
   app.tools.pointer.bind('marquee', function(params) {
-    var p1 = app.paper.screenToWorld(params.xmin, params.ymin);
-    var p2 = app.paper.screenToWorld(params.xmax, params.ymax);
+    var p1 = app.ui.paper.screenToWorld(params.xmin, params.ymin);
+    var p2 = app.ui.paper.screenToWorld(params.xmax, params.ymax);
 
     app.marqueeSelect(p1.x, p1.y, p2.x, p2.y);
 
@@ -205,7 +244,11 @@ app.startup = function() {
 
   app.tools.pen = new Tools.Pen();
   app.tools.pen.bind('stroke', function(params) {
-    app.createStroke(params.points);
+    // console.log(params.points);
+    var fill = app.ui.toolsPalette.getFillColor();
+    var color = app.ui.toolsPalette.getStrokeColor()
+    // console.log(fill, color);
+    app.createStroke(params.points, color, fill);
     // app.addAction(new Actions.Pencil());
   });
   app.tools.pen.bind('change', function(params) {
@@ -224,7 +267,7 @@ app.startup = function() {
 
   app.tools.line = new Tools.Line();
   app.tools.line.bind('stroke', function(params) {
-    app.createStroke(params.points);
+    app.createStroke(params.points, app.ui.toolsPalette.getStrokeColor(), app.ui.toolsPalette.getFillColor());
     // app.addAction(new Actions.Line());
   });
   app.tools.line.bind('change', function(params) {
@@ -236,7 +279,8 @@ app.startup = function() {
     app.render();
   });
   app.tools.polygon.bind('stroke', function(params) {
-    app.createStroke(params.points);
+    // app.createStroke(params.points);
+    app.createStroke(params.points, app.ui.toolsPalette.getStrokeColor(), app.ui.toolsPalette.getFillColor());
   });
 
   app.tools.knife = new Tools.Knife();
@@ -244,19 +288,19 @@ app.startup = function() {
   app.tools.hand = new Tools.Hand();
   app.tools.hand.bind('change', function(params) {
     var dx = params.dx, dy = params.dy;
-    app.paper.panCameraBy(dx, dy);
+    app.ui.paper.panCameraBy(dx, dy);
     app.render();
   });
 
   app.tools.zoom = new Tools.Zoom();
   app.tools.zoom.bind('zoom-in', function(params) {
-    app.paper.zoomIn();
-    app.ui.status.setZoom(app.paper.scale);
+    app.ui.paper.zoomIn();
+    app.ui.status.setZoom(app.ui.paper.scale);
     app.render();
   });
   app.tools.zoom.bind('zoom-out', function(params) {
-    app.paper.zoomOut();
-    app.ui.status.setZoom(app.paper.scale);
+    app.ui.paper.zoomOut();
+    app.ui.status.setZoom(app.ui.paper.scale);
     app.render();
   });
 
@@ -291,18 +335,18 @@ app.loadImages = function() {
 app.clearOverlay = function() {
     // var ctx = app.getOverlayContext();
     // ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
-    // app.paper.clearOverlay();
+    // app.ui.paper.clearOverlay();
 }
 
 app.getOverlayContext = function() {
-  // return app.paper.overlay.getContext('2d');
-  return app.paper.overlayCanvas.getContext('2d');
+  // return app.ui.paper.overlay.getContext('2d');
+  return app.ui.paper.overlayCanvas.getContext('2d');
 }
 
 app.render = function() {
 
-  app.paper.clear();
-  app.paper.clearOverlay();
+  app.ui.paper.clear();
+  app.ui.paper.clearOverlay();
 
   // render previous frame
 
@@ -311,7 +355,7 @@ app.render = function() {
       var frame = app.sequence.frames[app.sequence.position - 1];
       for (var i = 0; i < frame.strokes.length; i++) {
         var stroke = frame.strokes[i];
-        app.paper.renderPath(stroke.points, { strokeStyle: 'lightgray', fill: stroke.fill ? 'white' : undefined });
+        app.ui.paper.renderPath(stroke.points, { strokeStyle: Const.color.Onion, fill: stroke.fill ? Color.White : undefined });
       }
     }
   }
@@ -321,9 +365,9 @@ app.render = function() {
   for (var i = 0; i < app.sequence.frame.strokes.length; i++) {
     var stroke = app.sequence.frame.strokes[i];
     // if (stroke.selected) {
-      // app.paper.renderStroke(stroke, { strokeStyle: 'dodgerblue', lineWidth: 2 } );
+      // app.ui.paper.renderStroke(stroke, { strokeStyle: 'dodgerblue', lineWidth: 2 } );
     // } else {
-      app.paper.renderPath(stroke.points, { fill: stroke.fill ? 'white' : undefined });
+      app.ui.paper.renderPath(stroke.points, { fill: stroke.fill ? Color.White : undefined });
     // }
   }
 
@@ -332,7 +376,8 @@ app.render = function() {
   for (var i = 0; i < app.sequence.selection.elements.length; i++) {
     var element = app.sequence.selection.elements[i];
     if (element instanceof Stroke) {
-      app.paper.renderPath(element.points, { strokeStyle: Const.color.strokeSelected, lineWidth: 2, fill: element.fill ? 'red' : undefined });
+      // app.ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: element.fill ? Color.Red : undefined });
+      app.ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: undefined });
     }
   }
 
@@ -341,15 +386,15 @@ app.render = function() {
   if (app.settings['dots']) {
     for (var i = 0; i < app.sequence.frame.strokes.length; i++) {
       var stroke = app.sequence.frame.strokes[i];
-      app.paper.renderDots(stroke);
+      app.ui.paper.renderDots(stroke);
     }
   }
 
-  // app.paper.renderBitmap();
+  // app.ui.paper.renderBitmap();
 
   if (app.tool) app.tool.render();
 
-  app.paper.render();
+  app.ui.paper.render();
 }
 
 app.setMode = function(mode) {
@@ -377,7 +422,7 @@ app.setTool = function(name) {
 }
 
 app.setCursor = function(name) {
-  app.paper.el.style.cursor = app.cursors[name];
+  app.ui.paper.el.style.cursor = app.cursors[name];
 }
 
 app.undo = function() {
@@ -391,9 +436,9 @@ app.redo = function() {
 
 app.hitTest = function(x, y) {
   // var p = new Point(x, y);
-  var p = app.paper.screenToWorld(x, y);
+  var p = app.ui.paper.screenToWorld(x, y);
   var selection = null;
-  var radius = 4 / app.paper.scale;
+  var radius = 4 / app.ui.paper.scale;
 
   var strokes = app.sequence.frame.strokes;
 
@@ -464,16 +509,18 @@ app.strokeFromPoints = function(sourcePoints, convertToWorld) {
     var p = sourcePoints[i];
     var x = p.x, y = p.y;
     if (convertToWorld) {
-      points[i] = app.paper.screenToWorld(x, y);
+      points[i] = app.ui.paper.screenToWorld(x, y);
     } else {
       points[i] = new Point(x, y);
     }
   }
-  return new Stroke(points);
+  return new Stroke({ points: points });
 }
 
 app.updateFrameLabel = function() {
-  app.ui.frameListBar.setFrame(app.sequence.position + 1, app.sequence.size());
+  // app.ui.frameListBar.setFrame(app.sequence.position + 1, app.sequence.size());
+  // console.log('update');
+  app.ui.frameList.render({ cmd: 'update', index: app.sequence.position + 1, total: app.sequence.size() });
 }
 
 app.updateFrameListIcon = function(frame) {
@@ -492,7 +539,7 @@ app.updateFrameListIcon = function(frame) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = Const.COLOR_STROKE;
+    ctx.strokeStyle = Const.color.Stroke.toHexString();
 
     for (var i = 0; i < frame.strokes.length; i++) {
       var stroke = frame.strokes[i];
@@ -577,8 +624,12 @@ app.addAction = function(action) {
   // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
 }
 
-app.createStroke = function(points) {
+app.createStroke = function(points, color, fill) {
+  // console.log(points, color, fill);
   var stroke = app.strokeFromPoints(points, true);
+  // console.log(stroke);
+  stroke.setColor(color);
+  stroke.setFill(fill);
   app.sequence.frame.addStroke(stroke);
   app.updateFrameListIcon(app.sequence.frame);
   app.render();
@@ -610,10 +661,10 @@ app.reposition = function() {
   var width = window.innerWidth;
   var height = window.innerHeight;
 
-  app.paper.resize(width, height);
+  app.ui.paper.resize(width, height);
 
-  var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
-  app.ui.frameListBar.el.style.left = b + 'px';
+  // var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
+  // app.ui.frameListBar.el.style.left = b + 'px';
 
   b = ((height / 2) - (app.ui.toolsPalette.el.offsetHeight/2)) >> 0;
   app.ui.toolsPalette.el.style.top = b + 'px';
@@ -621,21 +672,21 @@ app.reposition = function() {
   // b = ((width / 2) - (app.ui.frameList.el.offsetWidth/2)) >> 0;
   // app.ui.frameList.el.style.left = b + 'px';
 
-  app.ui.frameList.adjust();
+  // app.ui.frames.adjust();
 }
 
 app.onMouseDown = function(event) {
   app.mouseX = event.clientX;
   app.mouseY = event.clientY;
 
-  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
-  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
+  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
+  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
 
   app.mouseDownX = app.mouseX;
   app.mouseDownY = app.mouseY;
 
-  app.paper.mouseDownX = app.mouseDownX - app.paper.el.offsetLeft;
-  app.paper.mouseDownY = app.mouseDownY - app.paper.el.offsetTop;
+  app.ui.paper.mouseDownX = app.mouseDownX - app.ui.paper.el.offsetLeft;
+  app.ui.paper.mouseDownY = app.mouseDownY - app.ui.paper.el.offsetTop;
 
   app.mouseLeft = (event.button === 0);
 
@@ -658,6 +709,7 @@ app.onMouseDown = function(event) {
       // event.stopPropagation();
     }
   } else {
+    console.log(app.mouseTargetTag);
     var target = app.tags[app.mouseTargetTag];
     if (target) {
       target.handleEvent(event);
@@ -669,8 +721,8 @@ app.onMouseUp = function(event) {
   app.mouseX = event.clientX;
   app.mouseY = event.clientY;
 
-  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
-  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
+  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
+  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
 
   app.mouseTarget = event.target;
   app.mouseTargetTag = event.target.dataset.tag;
@@ -678,7 +730,7 @@ app.onMouseUp = function(event) {
   app.mouseLeft = (event.button === 0) ? false : app.mouseLeft;
 
   if (app.mode === 'pan') {
-    if (!app.key[Const.KEY_DRAG] && event.button === 0) {
+    if (!app.key[Const.KEY_PAN] && event.button === 0) {
       app.setMode('tool');
     }
   } else {
@@ -705,8 +757,8 @@ app.onMouseMove = function(event) {
   app.mouseX = event.clientX;
   app.mouseY = event.clientY;
 
-  app.paper.mouseX = app.mouseX - app.paper.el.offsetLeft;
-  app.paper.mouseY = app.mouseY - app.paper.el.offsetTop;
+  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
+  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
 
   app.mouseDeltaX = app.mouseX - previousX;
   app.mouseDeltaY = app.mouseY - previousY;
@@ -717,10 +769,10 @@ app.onMouseMove = function(event) {
   if (app.mode === 'pan') {
     if (event.buttons === 1) {
 
-      var dx = -app.mouseDeltaX / app.paper.scale;
-      var dy = -app.mouseDeltaY / app.paper.scale;
+      var dx = -app.mouseDeltaX / app.ui.paper.scale;
+      var dy = -app.mouseDeltaY / app.ui.paper.scale;
 
-      app.paper.panCameraBy(dx, dy);
+      app.ui.paper.panCameraBy(dx, dy);
       app.render();
     }
   } else {
@@ -771,7 +823,6 @@ app.onMouseOver = function(event) {
     if (app.mouseDownTargetTag === app.mouseTargetTag) {
       var target = app.tags[app.mouseTargetTag];
       if (target) {
-        // console.log('over', app.mouseDownTargetTag, app.mouseTargetTag);
         target.handleEvent(event);
       }
     }
@@ -786,7 +837,7 @@ app.onMouseOver = function(event) {
 app.onKeyDown = function(event) {
   app.key[event.key] = true;
 
-  if (event.key === Const.KEY_DRAG) {
+  if (event.key === Const.KEY_PAN) {
     event.preventDefault();
     if (!event.repeat) {
       if (!app.mouseLeft) {
@@ -811,7 +862,7 @@ app.onKeyDown = function(event) {
     app.render();
   }
   else if (event.key === 'h' && !event.repeat) {
-    app.paper.center();
+    app.ui.paper.center();
     app.render();
   }
   else if (event.key === '.' && !event.repeat) {
@@ -835,7 +886,7 @@ app.onKeyDown = function(event) {
 app.onKeyUp = function(event) {
   delete app.key[event.key];
 
-  if (event.key === Const.KEY_DRAG) {
+  if (event.key === Const.KEY_PAN) {
      if (!app.mouseLeft) {
        app.setMode('tool');
      }
@@ -849,9 +900,22 @@ app.onResize = function() {
     window.resizeTimeoutId = setTimeout(function() {
       app.reposition();
       window.resizeTimeoutId = 0;
-      // app.repositionPanels();
       app.render();
     }, 66);
+  }
+}
+
+app.onPaste = function(event) {
+  var target = app.tags[app.mouseTargetTag];
+  if (target) {
+    target.handleEvent(event);
+  }
+}
+
+app.onCopy = function(event) {
+  var target = app.tags[app.mouseTargetTag];
+  if (target) {
+    target.handleEvent(event);
   }
 }
 
@@ -880,6 +944,12 @@ app.handleEvent = function(event) {
   else if (event.type === 'resize') {
     app.onResize(event);
   }
+  else if (event.type === 'paste') {
+    app.onPaste(event);
+  }
+  else if (event.type === 'copy') {
+    app.onCopy(event);
+  }
 }
 
 app.initEventListeners = function() {
@@ -891,6 +961,8 @@ app.initEventListeners = function() {
   window.addEventListener('keydown', this);
   window.addEventListener('keyup', this);
   window.addEventListener('resize', this);
+  window.addEventListener('copy', this);
+  window.addEventListener('paste', this);
 }
 
 window.app = app;

@@ -1,17 +1,19 @@
-const List = require('../list');
-const ListItem = require('../list_item');
 const Panel = require('../panel');
 const Spacer = require('../spacer');
-const StrokeProperties = require('./properties/stroke_properties');
-const Stroke = require('../../display/stroke');
+// const List = require('../list');
+// const ListItem = require('../list_item');
+// const StrokeProperties = require('./properties/stroke_properties');
+// const Stroke = require('../../stroke');
 
 function PropertiesPanel(params) {
   params = params || {};
-  params.title = 'Properties';
+  // params.title = 'Properties';
   Panel.call(this, params);
 
-  var self = this;
+  this.addClass('properties-palette');
 
+  // var self = this;
+  //
   // this.panes = [];
   // this.panes.stroke = new StrokeProperties();
   // this.panes.stroke.bind('fill-change', function(params) {

@@ -2,7 +2,7 @@ const Const = require('../const');
 const Util = require('../util');
 const Geom = require('../geom/');
 
-const Stroke = require('../display/stroke');
+const Stroke = require('../stroke');
 const Tool = require('./tool');
 const Actions = require('../actions/');
 

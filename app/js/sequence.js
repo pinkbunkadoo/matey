@@ -1,7 +1,7 @@
 const Util = require('./util');
 const Point = require('./geom/point');
 
-const Stroke = require('./display/stroke');
+const Stroke = require('./stroke');
 const Frame = require('./frame');
 const Selection = require('./selection');
 

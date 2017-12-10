@@ -4,7 +4,7 @@ const Base = require('./base');
 
 const Tools = require('../tools/');
 // const Emitter = require('../emitter');
-const Stroke = require('../display/stroke');
+const Stroke = require('../stroke');
 
 function Paper(params) {
   params = params || {};
@@ -219,14 +219,11 @@ Paper.prototype.renderPath = function(points, options) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
-  // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
   var screen = (options.screen != undefined ? options.screen : false);
-  var fill = (options.fill ? options.fill : null);
-  var strokeStyle = (options.strokeStyle != undefined ? options.strokeStyle : Const.color.STROKE);
+  var fill = (options.fill ? options.fill.toHexString() : null);
+  var strokeStyle = (options.strokeStyle ? options.strokeStyle.toHexString() : Const.color.Stroke.toHexString());
   var lineWidth = (options.lineWidth != undefined ? options.lineWidth : Const.LINE_WIDTH);
-
-  // console.log('renderStroke', points);
-  // ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
+  // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
 
   ctx.beginPath();
 
@@ -286,14 +283,14 @@ Paper.prototype.renderBitmap = function() {
 Paper.prototype.clear = function() {
   var ctx = this.canvas.getContext('2d');
   // ctx.save();
-  ctx.fillStyle = Const.color.WORKSPACE;
+  ctx.fillStyle = Const.color.Workspace.toHexString();
   ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
   ctx.save();
 
   var p1 = this.worldToScreen(0, 0);
-  ctx.fillStyle = Const.color.PAPER;
+  ctx.fillStyle = Const.color.Paper.toHexString();
   ctx.lineWidth = 1;
   ctx.setLineDash([2, 4]);
   ctx.lineDashOffset = 5;
@@ -458,11 +455,17 @@ Paper.prototype.onKeyUp = function(event) {
   // }
 }
 
+Paper.prototype.onPaste = function(event) {
+  // console.log('hi');
+  console.log(event.clipboardData.types);
+}
+
 Paper.prototype.handleEvent = function(event) {
   if (event.type === 'mousedown') {
     this.onMouseDown(event);
   }
   else if (event.type === 'mousemove') {
+    // console.log('moev');
     this.onMouseMove(event);
   }
   else if (event.type === 'mouseup') {
@@ -473,6 +476,9 @@ Paper.prototype.handleEvent = function(event) {
   }
   else if (event.type === 'keyup') {
     this.onKeyUp(event);
+  }
+  else if (event.type === 'paste') {
+    this.onPaste(event);
   }
 
 }

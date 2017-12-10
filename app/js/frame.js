@@ -4,7 +4,7 @@ const Const = require('./const');
 const History = require('./history');
 const Selection = require('./selection');
 // const Fragment = require('./fragment');
-const Stroke = require('./display/stroke');
+const Stroke = require('./stroke');
 
 function Frame() {
   // Notifier.call(this);

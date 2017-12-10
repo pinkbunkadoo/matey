@@ -1,7 +1,7 @@
 const Const = require('../const');
 const Util = require('../util');
 const Point = require('../geom/point');
-const Stroke = require('../display/stroke');
+const Stroke = require('../stroke');
 const Smooth = require('../lib/smooth');
 const Tool = require('./tool');
 

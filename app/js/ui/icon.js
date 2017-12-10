@@ -18,7 +18,11 @@ function Icon(params) {
   svg.setAttribute('width', this.width);
   svg.setAttribute('height', this.height);
   // svg.setAttribute('fill', 'green');
-  svg.setAttribute('class', 'icon-dark');
+  if (params.invert) {
+    svg.setAttribute('class', 'icon-light');
+  } else {
+    svg.setAttribute('class', 'icon-dark');
+  }
 
   var svguse = document.createElementNS('http://www.w3.org/2000/svg', 'use');
   svguse.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + this.resource);

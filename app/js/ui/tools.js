@@ -1,27 +1,27 @@
 const Container = require('./container');
 const ToolButton = require('./tool_button');
-// const Panel = require('../panel');
+const Color = require('../color');
+const ColorSwatch = require('./color_swatch');
 const Spacer = require('./spacer');
+const Divider = require('./divider');
 
 function Tools() {
   Container.call(this);
 
-  this.addClass('tools');
-
+  var self = this;
   this.buttons = [];
+
+  this.addClass('tools-palette');
 
   var buttonContainer = new Container({ style: { flexDirection: 'column', alignItems: 'center' }});
 
-  // console.log(app.icons['pointer'].width);
-  var self = this;
-
   var button = new ToolButton({ tag: 'tools_pointer', image: 'pointer', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('pointer'); };
+  button.onPress = function() { self.onToolSelect('pointer'); };
   buttonContainer.add(button);
   this.buttons['pointer'] = button;
 
   button = new ToolButton({ tag: 'tools_pen', image: 'pencil', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('pen'); };
+  button.onPress = function() { self.onToolSelect('pen'); };
   buttonContainer.add(button);
   this.buttons['pen'] = button;
 
@@ -31,12 +31,12 @@ function Tools() {
   // this.buttons['pencil'] = button;
 
   button = new ToolButton({ tag: 'tools_line', image: 'line', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('line'); };
+  button.onPress = function() { self.onToolSelect('line'); };
   buttonContainer.add(button);
   this.buttons['line'] = button;
 
   button = new ToolButton({ tag: 'tools_polygon', image: 'polygon', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('polygon'); };
+  button.onPress = function() { self.onToolSelect('polygon'); };
   buttonContainer.add(button);
   this.buttons['polygon'] = button;
 
@@ -45,29 +45,40 @@ function Tools() {
   // buttonContainer.add(button);
   // this.buttons['knife'] = button;
 
-  button = new ToolButton({ tag: 'tools_hand', image: 'hand', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('hand'); };
-  buttonContainer.add(button);
-  this.buttons['hand'] = button;
-
-
   button = new ToolButton({ tag: 'tools_zoom', image: 'zoom', width: 48, height: 36 });
-  button.onPress = function() { self._setToolNotify('zoom'); };
+  button.onPress = function() { self.onToolSelect('zoom'); };
   buttonContainer.add(button);
   this.buttons['zoom'] = button;
 
+  button = new ToolButton({ tag: 'tools_hand', image: 'hand', width: 48, height: 36 });
+  button.onPress = function() { self.onToolSelect('hand'); };
+  buttonContainer.add(button);
+  this.buttons['hand'] = button;
+
   this.add(buttonContainer);
 
-  // this.panels.tools.add(buttonContainer);
-  // this.setPane(buttonContainer);
+  this.add(new Divider({ orientation: 'horizontal', style: { width: '32px' } }))
 
-  // this.tool = 'pointer';
+  var colorContainer = new Container({ style: { justifyContent: 'center' }});
+
+  this.strokeColor = new ColorSwatch({ tag: 'stroke_color', color: Color.Black });
+  colorContainer.add(this.strokeColor);
+  this.strokeColor.bind('color-change', function(color) {
+    // self.emit()
+  });
+
+  colorContainer.add(new Spacer({ width: 3, height: 2 }));
+
+  this.fillColor = new ColorSwatch({ tag: 'fill_color', color: Color.White });
+  colorContainer.add(this.fillColor);
+
+  this.add(colorContainer);
 }
 
 Tools.prototype = Object.create(Container.prototype);
 Tools.prototype.constructor = Tools;
 
-Tools.prototype._setToolNotify = function(name) {
+Tools.prototype.onToolSelect = function(name) {
   this.setTool(name);
   this.emit('tool-change', { tool: name });
 }
@@ -75,12 +86,17 @@ Tools.prototype._setToolNotify = function(name) {
 Tools.prototype.setTool = function(name) {
   if (this.tool) {
     this.buttons[this.tool].setState(false);
-    // this.buttons[this.tool].removeClass('selected');
   }
   this.tool = name;
-  // console.log(name);
   this.buttons[this.tool].setState(true);
-  // this.buttons[this.tool].addClass('selected');
+}
+
+Tools.prototype.getStrokeColor = function() {
+  return this.strokeColor.getColor();
+}
+
+Tools.prototype.getFillColor = function() {
+  return this.fillColor.getColor();
 }
 
 module.exports = Tools;
