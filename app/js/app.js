@@ -32,6 +32,7 @@ app.preload = function() {
 app.registerTag = function(params) {
   if (params.tag && params.control) {
     app.tags[params.tag] = params.control;
+    // console.log('tag', params.tag);
   }
 }
 
@@ -675,6 +676,16 @@ app.reposition = function() {
   // app.ui.frames.adjust();
 }
 
+app.onClick = function(event) {
+  // console.log('window click');
+  // event.preventDefault();
+  // event.stopPropagation();
+  // var target = app.tags[app.mouseTargetTag];
+  // if (target) {
+  //   target.handleEvent(event);
+  // }
+}
+
 app.onMouseDown = function(event) {
   app.mouseX = event.clientX;
   app.mouseY = event.clientY;
@@ -920,7 +931,10 @@ app.onCopy = function(event) {
 }
 
 app.handleEvent = function(event) {
-  if (event.type === 'mousedown') {
+  if (event.type === 'click') {
+    app.onClick(event);
+  }
+  else if (event.type === 'mousedown') {
     app.onMouseDown(event);
   }
   else if (event.type === 'mouseup') {
@@ -953,6 +967,7 @@ app.handleEvent = function(event) {
 }
 
 app.initEventListeners = function() {
+  window.addEventListener('click', this);
   window.addEventListener('mousedown', this);
   window.addEventListener('mousemove', this);
   window.addEventListener('mouseup', this);

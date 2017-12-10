@@ -17,8 +17,8 @@ function FrameList(params) {
 
   // this.addClass('frame-list');
 
-  this.width = params.width || 64;
-  this.height = params.height || 40;
+  this.width = params.width || 128;
+  this.height = params.height || 80;
 
   this.items = [];
   this.selection = null;
@@ -26,10 +26,14 @@ function FrameList(params) {
   // this.frameListContainer = new Container();
   // this.frameListContainer.addClass('frame-list');
 
-  this.container = new Container({ style: { flexDirection: 'row', pointerEvents: 'none' } });
+  this.container = new Container({ style: { flexDirection: 'row' } });
   this.add(this.container);
 
   // this.add(this.frameListContainer);
+
+  // this.el.addEventListener('mousedown', function(event) {
+  //   console.log('mousedown frame-list');
+  // });
 
   this.grab = false;
 }
@@ -44,6 +48,7 @@ FrameList.prototype.constructor = FrameList;
 // }
 //
 FrameList.prototype.addFrame = function() {
+  // console.log('add');
 
   // this.container.remove(this.creator);
 
@@ -52,6 +57,18 @@ FrameList.prototype.addFrame = function() {
 
   this.container.add(item);
   item.setNumber(this.items.length);
+
+  var self = this;
+
+  item.el.addEventListener('click', function(event) {
+    // console.log('click');
+    console.log('click', event.target.dataset.index);
+  });
+
+  // item.bind('select', function(item) {
+  //   var index = self.items.indexOf(item);
+  //   console.log('select', index);
+  // });
 
   // this.notifyChange({ type: 'insert', index: index });
   // this.container.add(this.creator);

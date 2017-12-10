@@ -10,13 +10,14 @@ function Base(params) {
   this.el = document.createElement('div');
 
   if (params.tag) {
-    this.el.dataset.tag = params.tag;
     this.tag = params.tag;
-    app.registerTag({ tag: params.tag, control: this });
+    this.el.dataset.tag = this.tag;
+    app.registerTag({ tag: this.tag, control: this });
 
   } else if (params.id) {
-    this.el.id = params.id;
     this.tag = params.id;
+    this.el.dataset.tag = this.tag;
+    this.el.id = this.tag;
     app.registerTag({ tag: this.tag, control: this });
   }
 
