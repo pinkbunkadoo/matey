@@ -20,9 +20,9 @@ function Button(params) {
 
   if (this.image) {
     var scale = 1;
-    var w = (app.icons[this.image].width * scale) >> 0;
-    var h = (app.icons[this.image].height * scale) >> 0;
-
+    // var w = (app.icons[this.image].width * scale) >> 0;
+    // var h = (app.icons[this.image].height * scale) >> 0;
+    var w = 16, h = 16;
     this.icon = new Icon({ resource: this.image, width: w, height: h });
     this.add(this.icon);
 

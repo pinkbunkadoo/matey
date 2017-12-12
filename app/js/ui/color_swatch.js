@@ -14,7 +14,8 @@ function ColorSwatch(params) {
 
   // this.color = params.color ? params.color.copy() : new Color()
 
-  this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });
+  // this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });
+  this.nullColorIcon = new Icon({ resource: 'nullcolor', width: 16, height: 16 });
   this.add(this.nullColorIcon);
 
   this.setColor(params.color);

@@ -1,3 +1,5 @@
+(function () {
+
 const Const = require('./const');
 const Util = require('./util');
 const Color = require('./color');
@@ -22,426 +24,287 @@ const Actions = require('./actions/');
 const HistoryState = require('./history_state');
 const Loader = require('./loader');
 
-var app = {};
+var width, height;
+var settings;
+var cursors;
+var ui;
+var mouseX, mouseY, mouseDownX, mouseDownY;
+var mouseTarget, mouseTargetTag;
+var mouseDownTargetTag, mouseDownTarget;
+var keys;
+var tags;
+var mode;
+var tool;
+var tools;
+var sequence;
 
-app.preload = function() {
-  console.log('preload');
-  app.loadImages();
-}
-
-app.registerTag = function(params) {
-  if (params.tag && params.control) {
-    app.tags[params.tag] = params.control;
-    // console.log('tag', params.tag);
-  }
-}
-
-app.startup = function() {
+function startup() {
   console.log('startup');
 
-  app.tags = {};
+  width = window.innerWidth;
+  height = window.innerHeight;
 
-  app.width = window.innerWidth;
-  app.height = window.innerHeight;
-
-  app.settings = {};
+  tags = {};
+  keys = {};
+  settings = {};
 
   // bitmap cursors
-  app.cursors = {};
-  app.cursors['pointer'] = 'url(./images/cursor_pointer.png) 1 1, auto';
-  app.cursors['pencil'] = 'url(./images/cursor_pencil.png) 1 1, auto';
-  app.cursors['line'] = 'url(./images/cursor_line.png) 3 3, auto';
-  app.cursors['hand'] = 'url(./images/cursor_hand.png) 12 12, auto';
-  app.cursors['zoomin'] = 'url(./images/cursor_zoomin.png) 7 7, auto';
-  app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
+  cursors = {};
+  cursors['pointer'] = 'url(./images/cursor_pointer.png) 1 1, auto';
+  cursors['pencil'] = 'url(./images/cursor_pencil.png) 1 1, auto';
+  cursors['line'] = 'url(./images/cursor_line.png) 3 3, auto';
+  cursors['hand'] = 'url(./images/cursor_hand.png) 12 12, auto';
+  cursors['zoomin'] = 'url(./images/cursor_zoomin.png) 7 7, auto';
+  cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
-  app.ui = {};
-  // app.ui.main = document.createElement('div');
-  // app.ui.main.id = 'main';
-  app.ui.main = new Container({ id: 'main' });
+  ui = {};
+  ui.main = new Container({ id: 'main' });
+  document.body.appendChild(ui.main.getDOMElement());
 
-  // app.ui.outer = new Container({ classes: [ 'outer' ] });
-  // app.ui.header = new Container({ classes: [ 'header' ] });
-  // app.ui.content = new Container({ classes: [ 'content' ] });
-  // app.ui.footer = new Container({ classes: [ 'footer' ] });
-
-  // app.ui.outer.add(app.ui.header);
-  // app.ui.main.add(app.ui.content);
-  // app.ui.outer.add(app.ui.footer);
-
-  app.ui.left = new Container({ classes: [ 'left' ] });
-  // app.ui.main.add(app.ui.left);
-
-  app.ui.top = new Container({ classes: [ 'top' ] });
-  // app.ui.main.add(app.ui.top);
-
-  app.ui.right = new Container({ classes: [ 'right' ] });
-  // app.ui.main.add(app.ui.right);
-
-  app.ui.bottom = new Container({ classes: [ 'bottom' ] });
-  // app.ui.main.add(app.ui.bottom);
-
-  // app.ui.workspace = new Container({ classes: [ 'workspace' ] });
-  // app.ui.content.add(app.ui.workspace);
-  // app.ui.right = new Container({ classes: [ 'properties' ] });
-
-  document.body.appendChild(app.ui.main.el);
-
-  app.ui.paper = new Paper({ id: 'paper' });
-  app.ui.paper.bind('zoom', function(params) {
-    app.status.setZoom(params.scale)
+  ui.toolsPalette = new ToolsPalette();
+  ui.toolsPalette.bind('tool-change', function(params) {
+    setTool(params.tool);
   });
-  app.ui.paper.bind('pick', function(params) {
+  ui.main.add(ui.toolsPalette);
+  // app.ui.left.add(app.ui.toolsPalette);
+
+  ui.paper = new Paper({ id: 'paper' });
+  ui.paper.bind('zoom', function(params) {
+    // status.setZoom(params.scale)
+
+  });
+  ui.paper.bind('pick', function(params) {
   });
   // app.ui.main.add(app.ui.paper);
 
-  app.ui.options = new Options();
-  // app.ui.header.add(app.ui.options);
+  ui.frameList = new FrameList({ id: 'frame-list' });
+  ui.main.add(ui.frameList);
 
-  app.ui.toolsPalette = new ToolsPalette();
-  app.ui.toolsPalette.bind('tool-change', function(params) {
-    app.setTool(params.tool);
-  });
-  // app.ui.left.add(app.ui.toolsPalette);
 
-  app.ui.pencilOptions = new Panels.PencilOptions({
-    style: {
-      position: 'absolute',
-      width: '120px',
-      height: app.ui.toolsPalette.el.offsetHeight + 'px',
-      left: (app.ui.toolsPalette.el.offsetWidth + 8) + 'px',
-      top: app.ui.toolsPalette.el.clientTop + 'px'
-    }
-  });
-  // app.ui.toolsPalette.add(app.ui.pencilOptions);
+  sequence = new Sequence();
+  newFrame();
 
-  app.ui.properties = new PropertiesPanel();
-  app.ui.properties.bind('stroke-fill-change', function(params) {
-    app.sequence.selection.elements[0].fill = params.fill;
-  });
-  // app.ui.right.add(app.ui.properties);
+  window.sequence = sequence;
 
-  app.ui.strokeProperties = new StrokeProperties();
-  app.ui.strokeProperties.bind('fill-change', function(params) {
-    app.setStrokeFill(params.fill);
-    app.render();
-  });
+  tools = {};
 
-  app.ui.properties.add(app.ui.strokeProperties);
+  tools.pointer = new Tools.Pointer();
+  tools.pointer.bind('marquee', function(params) {
+    var p1 = ui.paper.screenToWorld(params.xmin, params.ymin);
+    var p2 = ui.paper.screenToWorld(params.xmax, params.ymax);
 
-  // app.ui.history = new Panels.History();
-  // app.ui.history.bind('select', function(params) {
-  //   app.ui.history.render({ cmd: 'select', index: params.id });
-  //   app.sequence.setHistoryIndex(params.id);
-  // });
-  // app.regions['properties'].add(app.ui.history);
+    marqueeSelect(p1.x, p1.y, p2.x, p2.y);
 
-  app.ui.status = new Status({ style: { height: '31px' } });
-  app.ui.status.bind('center', function(params) {
-    app.ui.paper.center();
-    app.render();
-    app.ui.status.setZoom(app.ui.paper.scale);
-  });
-  // app.ui.footer.add(app.ui.status);
-
-  // app.ui.frames = new Frames({ id: 'frames', width: Const.WIDTH * (64 / Const.HEIGHT) >> 0, height: 64 });
-  // app.ui.frames.bind('new', function(params) {
-  //   app.newFrame();
-  // });
-  // app.ui.frames.bind('select', function(params) {
-  //   app.go(params.index);
-  // });
-  // app.ui.bottom.add(app.ui.frames);
-
-  app.ui.frameList = new FrameList({ id: 'frame-list' });
-  app.ui.main.add(app.ui.frameList);
-
-  // temp = new Container({
-  //   style: {
-  //     // flex:'auto',
-  //     position: 'fixed',
-  //     boxSizing: 'border-box',
-  //     border:'1px solid blue',
-  //     background: 'cyan',
-  //     bottom: '16px',
-  //     height:'100px',
-  //     width: '100%'
-  //   }
-  // });
-  // app.ui.main.add(temp);
-
-  // app.ui.bottom.add(app.ui.frames);
-
-  // app.ui.frameListNew = new FrameListNew();
-  // app.ui.bottom.add(app.ui.frameListNew);
-  // app.ui.frameListNew.bind('new-frame', function(params) {
-  //   app.newFrame();
-  // });
-
-  // app.ui.frameListBar = new FrameListBar();
-  // app.ui.frameListBar.bind('new-frame', function(params) {
-  //   app.newFrame();
-  // });
-  // app.ui.frameListBar.bind('remove-frame', function(params) {
-  //   app.removeFrame();
-  // });
-  // app.ui.frameListBar.bind('onion', function(params) {
-  //   app.settings['onion'] = params.value;
-  //   app.render();
-  // });
-  // app.ui.frameListBar.bind('loop', function(params) {
-  //   app.settings['loop'] = params.value;
-  // });
-  // app.ui.bottom.add(app.ui.frameListBar);
-
-  app.sequence = new Sequence();
-  app.newFrame();
-
-  window.sequence = app.sequence;
-
-  app.tools = {};
-
-  app.tools.pointer = new Tools.Pointer();
-  app.tools.pointer.bind('marquee', function(params) {
-    var p1 = app.ui.paper.screenToWorld(params.xmin, params.ymin);
-    var p2 = app.ui.paper.screenToWorld(params.xmax, params.ymax);
-
-    app.marqueeSelect(p1.x, p1.y, p2.x, p2.y);
-
-    if (app.sequence.selection.elements.length === 1)
-      app.showProperties(app.sequence.selection.elements[0]);
+    if (sequence.selection.elements.length === 1)
+      showProperties(sequence.selection.elements[0]);
     else
-      app.showProperties();
+      showProperties();
 
-    app.render();
+    render();
   });
-  app.tools.pointer.bind('pick', function(params) {
-    if (app.sequence.selection.elements.length === 1)
-      app.showProperties(params.stroke);
+  tools.pointer.bind('pick', function(params) {
+    if (sequence.selection.elements.length === 1)
+      showProperties(params.stroke);
     else
-      app.showProperties();
-    app.render();
+      showProperties();
+    render();
   });
-  app.tools.pointer.bind('moved', function(params) {
-    app.updateFrameListIcon(app.sequence.frame);
-    app.render();
+  tools.pointer.bind('moved', function(params) {
+    updateFrameListIcon(sequence.frame);
+    render();
   });
-  app.tools.pointer.bind('drag', function(params) {
+  tools.pointer.bind('drag', function(params) {
     // app.updateFrameListIcon(app.sequence.frame);
-    app.render();
+    render();
   });
-  app.tools.pointer.bind('delete', function(params) {
+  tools.pointer.bind('delete', function(params) {
     sequence.deleteSelected();
     // app.addAction(new Actions.Delete());
-    app.updateFrameListIcon(app.sequence.frame);
-    app.render();
+    updateFrameListIcon(sequence.frame);
+    render();
   });
-  app.tools.pointer.bind('change', function(params) {
+  tools.pointer.bind('change', function(params) {
     // console.log('change');
-    app.render();
+    render();
   });
 
   // app.tools.pointer = new Tools.Pointer();
 
-  app.tools.pen = new Tools.Pen();
-  app.tools.pen.bind('stroke', function(params) {
+  tools.pen = new Tools.Pen();
+  tools.pen.bind('stroke', function(params) {
     // console.log(params.points);
-    var fill = app.ui.toolsPalette.getFillColor();
-    var color = app.ui.toolsPalette.getStrokeColor()
+    var fill = ui.toolsPalette.getFillColor();
+    var color = ui.toolsPalette.getStrokeColor()
     // console.log(fill, color);
-    app.createStroke(params.points, color, fill);
+    createStroke(params.points, color, fill);
     // app.addAction(new Actions.Pencil());
   });
-  app.tools.pen.bind('change', function(params) {
-    app.render();
+  tools.pen.bind('change', function(params) {
+    render();
   });
 
-  app.tools.pencil = new Tools.Pencil();
-  app.tools.pencil.bind('stroke', function(params) {
+  tools.pencil = new Tools.Pencil();
+  tools.pencil.bind('stroke', function(params) {
     // app.createStroke(params.points);
     // console.log('stroke');
     // app.addAction(new Actions.Pencil());
   });
-  app.tools.pencil.bind('change', function(params) {
-    app.render();
+  tools.pencil.bind('change', function(params) {
+    render();
   });
 
-  app.tools.line = new Tools.Line();
-  app.tools.line.bind('stroke', function(params) {
-    app.createStroke(params.points, app.ui.toolsPalette.getStrokeColor(), app.ui.toolsPalette.getFillColor());
+  tools.line = new Tools.Line();
+  tools.line.bind('stroke', function(params) {
+    createStroke(params.points, ui.toolsPalette.getStrokeColor(), ui.toolsPalette.getFillColor());
     // app.addAction(new Actions.Line());
   });
-  app.tools.line.bind('change', function(params) {
-    app.render();
+  tools.line.bind('change', function(params) {
+    render();
   });
 
-  app.tools.polygon = new Tools.Polygon();
-  app.tools.polygon.bind('change', function(params) {
-    app.render();
+  tools.polygon = new Tools.Polygon();
+  tools.polygon.bind('change', function(params) {
+    render();
   });
-  app.tools.polygon.bind('stroke', function(params) {
+  tools.polygon.bind('stroke', function(params) {
     // app.createStroke(params.points);
-    app.createStroke(params.points, app.ui.toolsPalette.getStrokeColor(), app.ui.toolsPalette.getFillColor());
+    createStroke(params.points, ui.toolsPalette.getStrokeColor(), ui.toolsPalette.getFillColor());
   });
 
-  app.tools.knife = new Tools.Knife();
+  tools.knife = new Tools.Knife();
 
-  app.tools.hand = new Tools.Hand();
-  app.tools.hand.bind('change', function(params) {
+  tools.hand = new Tools.Hand();
+  tools.hand.bind('change', function(params) {
     var dx = params.dx, dy = params.dy;
-    app.ui.paper.panCameraBy(dx, dy);
-    app.render();
+    ui.paper.panCameraBy(dx, dy);
+    render();
   });
 
-  app.tools.zoom = new Tools.Zoom();
-  app.tools.zoom.bind('zoom-in', function(params) {
-    app.ui.paper.zoomIn();
-    app.ui.status.setZoom(app.ui.paper.scale);
-    app.render();
+  tools.zoom = new Tools.Zoom();
+  tools.zoom.bind('zoom-in', function(params) {
+    ui.paper.zoomIn();
+    ui.status.setZoom(ui.paper.scale);
+    render();
   });
-  app.tools.zoom.bind('zoom-out', function(params) {
-    app.ui.paper.zoomOut();
-    app.ui.status.setZoom(app.ui.paper.scale);
-    app.render();
+  tools.zoom.bind('zoom-out', function(params) {
+    ui.paper.zoomOut();
+    ui.status.setZoom(ui.paper.scale);
+    render();
   });
 
-  app.reposition();
-  app.render();
+  reposition();
+  render();
 
-  app.setTool('pen');
-  app.setMode('tool');
+  setTool('pen');
+  setMode('tool');
 
-  app.ui.status.setZoom(1);
-  app.updateFrameLabel();
-
-  app.key = [];
-
-  app.initEventListeners();
+  // ui.status.setZoom(1);
+  updateFrameLabel();
 }
 
-app.loadImages = function() {
-  app.icons = [];
-  Loader.load('./images/icons.svg', function(event) {
-    var svg = event.target.responseXML.documentElement;
-    for (var i = 0; i < svg.children.length; i++) {
-      var child = svg.children[i];
-      app.icons[child.id] = { width: child.viewBox.baseVal.width, height: child.viewBox.baseVal.height };
-      // console.log(child.id, app.icons[child.id]);
-    }
-    document.body.appendChild(svg);
-    app.startup();
-  });
+function getOverlayContext() {
+  return ui.paper.overlayCanvas.getContext('2d');
 }
 
-app.clearOverlay = function() {
-    // var ctx = app.getOverlayContext();
-    // ctx.clearRect(0, 0, app.overlay.width, app.overlay.height);
-    // app.ui.paper.clearOverlay();
-}
 
-app.getOverlayContext = function() {
-  // return app.ui.paper.overlay.getContext('2d');
-  return app.ui.paper.overlayCanvas.getContext('2d');
-}
+function render() {
 
-app.render = function() {
-
-  app.ui.paper.clear();
-  app.ui.paper.clearOverlay();
+  ui.paper.clear();
+  ui.paper.clearOverlay();
 
   // render previous frame
 
-  if (app.settings['onion']) {
-    if (app.sequence.position > 0) {
-      var frame = app.sequence.frames[app.sequence.position - 1];
+  if (settings['onion']) {
+    if (sequence.position > 0) {
+      var frame = sequence.frames[sequence.position - 1];
       for (var i = 0; i < frame.strokes.length; i++) {
         var stroke = frame.strokes[i];
-        app.ui.paper.renderPath(stroke.points, { strokeStyle: Const.color.Onion, fill: stroke.fill ? Color.White : undefined });
+        ui.paper.renderPath(stroke.points, { strokeStyle: Const.color.Onion, fill: stroke.fill ? Color.White : undefined });
       }
     }
   }
 
   // render unselected strokes
 
-  for (var i = 0; i < app.sequence.frame.strokes.length; i++) {
-    var stroke = app.sequence.frame.strokes[i];
+  for (var i = 0; i < sequence.frame.strokes.length; i++) {
+    var stroke = sequence.frame.strokes[i];
     // if (stroke.selected) {
-      // app.ui.paper.renderStroke(stroke, { strokeStyle: 'dodgerblue', lineWidth: 2 } );
+      // ui.paper.renderStroke(stroke, { strokeStyle: 'dodgerblue', lineWidth: 2 } );
     // } else {
-      app.ui.paper.renderPath(stroke.points, { fill: stroke.fill ? Color.White : undefined });
+      ui.paper.renderPath(stroke.points, { fill: stroke.fill ? Color.White : undefined });
     // }
   }
 
   // render selected strokes
 
-  for (var i = 0; i < app.sequence.selection.elements.length; i++) {
-    var element = app.sequence.selection.elements[i];
+  for (var i = 0; i < sequence.selection.elements.length; i++) {
+    var element = sequence.selection.elements[i];
     if (element instanceof Stroke) {
-      // app.ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: element.fill ? Color.Red : undefined });
-      app.ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: undefined });
+      // ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: element.fill ? Color.Red : undefined });
+      ui.paper.renderPath(element.points, { strokeStyle: Const.color.Selection, lineWidth: 2, fill: undefined });
     }
   }
 
   // render vertices
 
-  if (app.settings['dots']) {
-    for (var i = 0; i < app.sequence.frame.strokes.length; i++) {
-      var stroke = app.sequence.frame.strokes[i];
-      app.ui.paper.renderDots(stroke);
+  if (settings['dots']) {
+    for (var i = 0; i < sequence.frame.strokes.length; i++) {
+      var stroke = sequence.frame.strokes[i];
+      ui.paper.renderDots(stroke);
     }
   }
 
-  // app.ui.paper.renderBitmap();
+  // ui.paper.renderBitmap();
 
-  if (app.tool) app.tool.render();
+  if (tool) tool.render();
 
-  app.ui.paper.render();
+  ui.paper.render();
 }
 
-app.setMode = function(mode) {
-  if (app.mode !== mode) {
-    app.mode = mode;
-    if (app.mode === 'pan') {
-      app.setCursor('hand');
+function setMode(mode) {
+  if (mode !== mode) {
+    mode = mode;
+    if (mode === 'pan') {
+      setCursor('hand');
     } else {
-      if (app.tool) app.setCursor(app.tool.cursor);
+      if (tool) setCursor(tool.cursor);
     }
   }
 }
 
-app.setTool = function(name) {
-  if (app.tool !== app.tools[name]) {
-    if (app.tool) {
-      app.tool.blur();
-      app.previousTool = app.tool;
+function setTool(name) {
+  if (tool !== tools[name]) {
+    if (tool) {
+      tool.blur();
+      previousTool = tool;
     }
-    app.tool = app.tools[name];
-    app.tool.focus();
-    app.setCursor(app.tool.cursor);
-    app.ui.toolsPalette.setTool(name);
+    tool = tools[name];
+    tool.focus();
+    setCursor(tool.cursor);
+    ui.toolsPalette.setTool(name);
   }
 }
 
-app.setCursor = function(name) {
-  app.ui.paper.el.style.cursor = app.cursors[name];
+function setCursor(name) {
+  ui.paper.el.style.cursor = cursors[name];
 }
 
-app.undo = function() {
-  // app.sequence.undo();
-  // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
+function undo() {
+  // sequence.undo();
+  // ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
 }
 
-app.redo = function() {
-  // app.sequence.redo();
+function redo() {
+  // sequence.redo();
 }
 
-app.hitTest = function(x, y) {
+function hitTest(x, y) {
   // var p = new Point(x, y);
-  var p = app.ui.paper.screenToWorld(x, y);
+  var p = ui.paper.screenToWorld(x, y);
   var selection = null;
-  var radius = 4 / app.ui.paper.scale;
+  var radius = 4 / ui.paper.scale;
 
-  var strokes = app.sequence.frame.strokes;
+  var strokes = sequence.frame.strokes;
 
   for (var i = 0; i < strokes.length; i++) {
     var stroke = strokes[i];
@@ -454,11 +317,11 @@ app.hitTest = function(x, y) {
   return selection;
 }
 
-app.marqueeSelect = function(xmin, ymin, xmax, ymax) {
+function marqueeSelect(xmin, ymin, xmax, ymax) {
 
   var candidates = [];
   // var intersect = false;
-  var frame = app.sequence.frame;
+  var frame = sequence.frame;
 
   var edges = [
     [ xmin, ymin, xmin, ymax ],
@@ -495,22 +358,22 @@ app.marqueeSelect = function(xmin, ymin, xmax, ymax) {
     if (intersect) candidates.push(stroke);
   }
 
-  app.sequence.selection.clear();
-  app.sequence.selection.add(candidates);
+  sequence.selection.clear();
+  sequence.selection.add(candidates);
 
   // return selection;
 };
 
-app.createPath = function(ctx, points, dx, dy) {
+function createPath(ctx, points, dx, dy) {
 }
 
-app.strokeFromPoints = function(sourcePoints, convertToWorld) {
+function strokeFromPoints(sourcePoints, convertToWorld) {
   var points = [];
   for (var i = 0; i < sourcePoints.length; i++) {
     var p = sourcePoints[i];
     var x = p.x, y = p.y;
     if (convertToWorld) {
-      points[i] = app.ui.paper.screenToWorld(x, y);
+      points[i] = ui.paper.screenToWorld(x, y);
     } else {
       points[i] = new Point(x, y);
     }
@@ -518,19 +381,19 @@ app.strokeFromPoints = function(sourcePoints, convertToWorld) {
   return new Stroke({ points: points });
 }
 
-app.updateFrameLabel = function() {
-  // app.ui.frameListBar.setFrame(app.sequence.position + 1, app.sequence.size());
+function updateFrameLabel() {
+  // ui.frameListBar.setFrame(sequence.position + 1, sequence.size());
   // console.log('update');
-  app.ui.frameList.render({ cmd: 'update', index: app.sequence.position + 1, total: app.sequence.size() });
+  ui.frameList.render({ cmd: 'update', index: sequence.position + 1, total: sequence.size() });
 }
 
-app.updateFrameListIcon = function(frame) {
-  var index = app.sequence.frames.indexOf(frame);
-  // var frame = app.sequence.frames[index];
-  var scale = app.ui.frameList.width / Const.WIDTH;
-  var width = app.ui.frameList.width;
-  var height = app.ui.frameList.height;
-  var frameIcon = app.ui.frameList.get(index);
+function updateFrameListIcon(frame) {
+  var index = sequence.frames.indexOf(frame);
+  // var frame = sequence.frames[index];
+  var scale = ui.frameList.width / Const.WIDTH;
+  var width = ui.frameList.width;
+  var height = ui.frameList.height;
+  var frameIcon = ui.frameList.get(index);
 
   if (frameIcon) {
     var ctx = frameIcon.canvas.getContext('2d')
@@ -557,432 +420,444 @@ app.updateFrameListIcon = function(frame) {
   }
 }
 
-app.go = function(index) {
-  app.sequence.go(index);
-  app.ui.frameList.render({ cmd: 'select', index: index });
-  app.updateFrameLabel();
+function go(index) {
+  sequence.go(index);
+  ui.frameList.render({ cmd: 'select', index: index });
+  updateFrameLabel();
 
   // var items = [];
-  // for (var i = 0; i < app.sequence.frame.history.states.length; i++) {
-  //   var state = app.sequence.frame.history.states[i];
+  // for (var i = 0; i < sequence.frame.history.states.length; i++) {
+  //   var state = sequence.frame.history.states[i];
   //   items.push({ id: i, title: state.action.name });
   // }
-  // app.ui.history.render({ cmd: 'populate', items: items });
-  // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
+  // ui.history.render({ cmd: 'populate', items: items });
+  // ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
 
-  app.render();
+  render();
 }
 
-app.showProperties = function(object) {
+function showProperties(object) {
   if (object instanceof Stroke) {
-    // app.ui.properties.render({ cmd: 'show', object: object });
-    app.ui.properties.setPane(app.ui.strokeProperties);
-    app.ui.strokeProperties.render({ cmd: 'show', object: object });
+    // ui.properties.render({ cmd: 'show', object: object });
+    ui.properties.setPane(ui.strokeProperties);
+    ui.strokeProperties.render({ cmd: 'show', object: object });
 
   } else {
-    // app.ui.properties.render({ cmd: 'clear' });
-    app.ui.properties.setPane();
+    // ui.properties.render({ cmd: 'clear' });
+    ui.properties.setPane();
   }
 }
 
-app.newFrame = function() {
-  app.sequence.add();
-  app.sequence.end();
+function newFrame() {
+  sequence.add();
+  sequence.end();
 
-  app.ui.frameList.render({ cmd: 'frameAdd' });
-  app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
-  app.updateFrameListIcon(app.sequence.frame);
-  app.updateFrameLabel();
+  ui.frameList.render({ cmd: 'frameAdd' });
+  ui.frameList.render({ cmd: 'select', index: sequence.position });
+  updateFrameListIcon(sequence.frame);
+  updateFrameLabel();
 
-  // app.sequence.frame.history.add(new HistoryState(new Actions.New(), app.sequence.frame.copy()));
+  // sequence.frame.history.add(new HistoryState(new Actions.New(), sequence.frame.copy()));
 
-  // app.ui.history.render({ cmd: 'populate', items: [{ id: app.sequence.frame.history.marker, title: 'New' }] });
-  // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
+  // ui.history.render({ cmd: 'populate', items: [{ id: sequence.frame.history.marker, title: 'New' }] });
+  // ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
 
-  app.render();
+  render();
 }
 
-app.removeFrame = function() {
-  if (app.sequence.size() > 1) {
-    app.sequence.remove();
-    // app.sequence.go(app.sequence.position - 1);
+function removeFrame() {
+  if (sequence.size() > 1) {
+    sequence.remove();
+    // sequence.go(sequence.position - 1);
 
-    app.ui.frameList.render({ cmd: 'frameRemove', index: app.sequence.position });
-    // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
+    ui.frameList.render({ cmd: 'frameRemove', index: sequence.position });
+    // ui.frameList.render({ cmd: 'select', index: sequence.position });
 
-    // app.updateFrameListIcon(app.sequence.frame);
-    // app.updateFrameLabel();
+    // updateFrameListIcon(sequence.frame);
+    // updateFrameLabel();
     // console.log('remove');
-    // app.render();
-    app.go(app.sequence.position);
+    // render();
+    go(sequence.position);
   }
 }
 
-app.addAction = function(action) {
-  // app.sequence.addAction(new Actions.Pencil());
-  app.sequence.frame.history.add(new HistoryState(action, app.sequence.frame.copy()));
-  // app.ui.history.render({ cmd: 'add', id: app.sequence.frame.history.marker, title: action.name });
-  // app.ui.history.render({ cmd: 'select', index: app.sequence.frame.history.marker });
+function addAction(action) {
+  // sequence.addAction(new Actions.Pencil());
+  sequence.frame.history.add(new HistoryState(action, sequence.frame.copy()));
+  // ui.history.render({ cmd: 'add', id: sequence.frame.history.marker, title: action.name });
+  // ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
 }
 
-app.createStroke = function(points, color, fill) {
+function createStroke(points, color, fill) {
   // console.log(points, color, fill);
-  var stroke = app.strokeFromPoints(points, true);
+  var stroke = strokeFromPoints(points, true);
   // console.log(stroke);
   stroke.setColor(color);
   stroke.setFill(fill);
-  app.sequence.frame.addStroke(stroke);
-  app.updateFrameListIcon(app.sequence.frame);
-  app.render();
+  sequence.frame.addStroke(stroke);
+  updateFrameListIcon(sequence.frame);
+  render();
 }
 
-app.setStrokeFill = function(fill) {
-  for (var i = 0; i < app.sequence.selection.elements.length; i++) {
-    var element = app.sequence.selection.elements[i];
+function setStrokeFill(fill) {
+  for (var i = 0; i < sequence.selection.elements.length; i++) {
+    var element = sequence.selection.elements[i];
     if (element instanceof Stroke) {
       element.fill = fill;
     }
   }
 }
 
-app.repositionPanels = function() {
-  // app.ui.history.reposition();
-  // app.ui.properties.reposition();
-  // app.ui.tools.reposition();
+function repositionPanels() {
+  // ui.history.reposition();
+  // ui.properties.reposition();
+  // ui.tools.reposition();
 }
 
-app.reposition = function() {
-  app.width = window.innerWidth;
-  app.height = window.innerHeight;
+function reposition() {
+  width = window.innerWidth;
+  height = window.innerHeight;
 
-  // var width = window.innerWidth - app.ui.left.el.offsetWidth;
-  // var height = window.innerHeight - app.ui.header.el.offsetHeight - app.ui.footer.el.offsetHeight
-    // - app.ui.frameList.el.offsetHeight - app.ui.frameListBar.el.offsetHeight;
+  // var width = window.innerWidth - ui.left.el.offsetWidth;
+  // var height = window.innerHeight - ui.header.el.offsetHeight - ui.footer.el.offsetHeight
+    // - ui.frameList.el.offsetHeight - ui.frameListBar.el.offsetHeight;
 
   var width = window.innerWidth;
   var height = window.innerHeight;
 
-  app.ui.paper.resize(width, height);
+  ui.paper.resize(width, height);
 
-  // var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
-  // app.ui.frameListBar.el.style.left = b + 'px';
+  // var b = ((width / 2) - (ui.frameListBar.el.offsetWidth/2)) >> 0;
+  // ui.frameListBar.el.style.left = b + 'px';
 
-  b = ((height / 2) - (app.ui.toolsPalette.el.offsetHeight/2)) >> 0;
-  app.ui.toolsPalette.el.style.top = b + 'px';
+  b = ((height / 2) - (ui.toolsPalette.el.offsetHeight/2)) >> 0;
+  ui.toolsPalette.el.style.top = b + 'px';
 
-  // b = ((width / 2) - (app.ui.frameList.el.offsetWidth/2)) >> 0;
-  // app.ui.frameList.el.style.left = b + 'px';
+  // b = ((width / 2) - (ui.frameList.el.offsetWidth/2)) >> 0;
+  // ui.frameList.el.style.left = b + 'px';
 
-  // app.ui.frames.adjust();
+  // ui.frames.adjust();
 }
 
-app.onClick = function(event) {
+window.onclick = function(event) {
   // console.log('window click');
   // event.preventDefault();
   // event.stopPropagation();
-  // var target = app.tags[app.mouseTargetTag];
+  // var target = tags[mouseTargetTag];
   // if (target) {
   //   target.handleEvent(event);
   // }
 }
 
-app.onMouseDown = function(event) {
-  app.mouseX = event.clientX;
-  app.mouseY = event.clientY;
+window.onmousedown = function(event) {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
 
-  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
-  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
+  ui.paper.mouseX = mouseX - ui.paper.el.offsetLeft;
+  ui.paper.mouseY = mouseY - ui.paper.el.offsetTop;
 
-  app.mouseDownX = app.mouseX;
-  app.mouseDownY = app.mouseY;
+  mouseDownX = mouseX;
+  mouseDownY = mouseY;
 
-  app.ui.paper.mouseDownX = app.mouseDownX - app.ui.paper.el.offsetLeft;
-  app.ui.paper.mouseDownY = app.mouseDownY - app.ui.paper.el.offsetTop;
+  ui.paper.mouseDownX = mouseDownX - ui.paper.el.offsetLeft;
+  ui.paper.mouseDownY = mouseDownY - ui.paper.el.offsetTop;
 
-  app.mouseLeft = (event.button === 0);
+  mouseLeft = (event.button === 0);
 
-  app.mouseTarget = event.target;
-  app.mouseTargetTag = event.target.dataset.tag;
+  mouseTarget = event.target;
+  mouseTargetTag = event.target.dataset.tag;
 
-  app.mouseDownTarget = event.target;
-  app.mouseDownTargetTag = event.target.dataset.tag;
+  mouseDownTarget = event.target;
+  mouseDownTargetTag = event.target.dataset.tag;
 
   if (event.buttons === 4) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  if (app.mouseDownTargetTag === 'paper') {
-    if (app.mode === 'pan') {
+  if (mouseDownTargetTag === 'paper') {
+    if (mode === 'pan') {
     } else {
-      app.tool.handleEvent(event);
+      tool.handleEvent(event);
       // event.preventDefault();
       // event.stopPropagation();
     }
   } else {
-    console.log(app.mouseTargetTag);
-    var target = app.tags[app.mouseTargetTag];
+    console.log(mouseTargetTag);
+    var target = tags[mouseTargetTag];
     if (target) {
       target.handleEvent(event);
     }
   }
 }
 
-app.onMouseUp = function(event) {
-  app.mouseX = event.clientX;
-  app.mouseY = event.clientY;
+window.onmouseup = function(event) {
+  mouseX = event.clientX;
+  mouseY = event.clientY;
 
-  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
-  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
+  ui.paper.mouseX = mouseX - ui.paper.el.offsetLeft;
+  ui.paper.mouseY = mouseY - ui.paper.el.offsetTop;
 
-  app.mouseTarget = event.target;
-  app.mouseTargetTag = event.target.dataset.tag;
+  mouseTarget = event.target;
+  mouseTargetTag = event.target.dataset.tag;
 
-  app.mouseLeft = (event.button === 0) ? false : app.mouseLeft;
+  mouseLeft = (event.button === 0) ? false : mouseLeft;
 
-  if (app.mode === 'pan') {
-    if (!app.key[Const.KEY_PAN] && event.button === 0) {
-      app.setMode('tool');
+  if (mode === 'pan') {
+    if (!keys[Const.KEY_PAN] && event.button === 0) {
+      setMode('tool');
     }
   } else {
-    if (app.mouseDownTargetTag === 'paper') {
-      app.tool.handleEvent(event);
+    if (mouseDownTargetTag === 'paper') {
+      tool.handleEvent(event);
       // event.preventDefault();
       // event.stopPropagation();
     } else {
-      var target = app.tags[app.mouseTargetTag];
+      var target = tags[mouseTargetTag];
       if (target) {
         target.handleEvent(event);
       }
     }
   }
 
-  app.mouseDownTargetTag = null;
-  app.mouseDownTarget = null;
+  mouseDownTargetTag = null;
+  mouseDownTarget = null;
 }
 
-app.onMouseMove = function(event) {
-  var previousX = app.mouseX;
-  var previousY = app.mouseY;
+window.onmousemove = function(event) {
+  var previousX = mouseX;
+  var previousY = mouseY;
 
-  app.mouseX = event.clientX;
-  app.mouseY = event.clientY;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
 
-  app.ui.paper.mouseX = app.mouseX - app.ui.paper.el.offsetLeft;
-  app.ui.paper.mouseY = app.mouseY - app.ui.paper.el.offsetTop;
+  // ui.paper.mouseX = mouseX - ui.paper.el.offsetLeft;
+  // ui.paper.mouseY = mouseY - ui.paper.el.offsetTop;
 
-  app.mouseDeltaX = app.mouseX - previousX;
-  app.mouseDeltaY = app.mouseY - previousY;
+  mouseDeltaX = mouseX - previousX;
+  mouseDeltaY = mouseY - previousY;
 
-  app.mouseTarget = event.target;
-  app.mouseTargetTag = event.target.dataset.tag;
+  mouseTarget = event.target;
+  mouseTargetTag = event.target.dataset.tag;
 
-  if (app.mode === 'pan') {
+  if (mode === 'pan') {
     if (event.buttons === 1) {
 
-      var dx = -app.mouseDeltaX / app.ui.paper.scale;
-      var dy = -app.mouseDeltaY / app.ui.paper.scale;
+      var dx = -mouseDeltaX / ui.paper.scale;
+      var dy = -mouseDeltaY / ui.paper.scale;
 
-      app.ui.paper.panCameraBy(dx, dy);
-      app.render();
+      ui.paper.panCameraBy(dx, dy);
+      render();
     }
   } else {
-    if (app.mouseDownTargetTag) {
-      if (app.mouseDownTargetTag === 'paper') {
-        app.tool.handleEvent(event);
+    if (mouseDownTargetTag) {
+      if (mouseDownTargetTag === 'paper') {
+        tool.handleEvent(event);
         event.preventDefault();
         event.stopPropagation();
       } else {
-        var target = app.tags[app.mouseDownTargetTag];
+        var target = tags[mouseDownTargetTag];
         if (target) {
           target.handleEvent(event);
         }
       }
     } else {
-      if (app.mouseTargetTag === 'paper') {
-        app.tool.handleEvent(event);
+      if (mouseTargetTag === 'paper') {
+        tool.handleEvent(event);
       }
     }
   }
 }
 
-app.onMouseOut = function(event) {
-  app.mouseTarget = event.target;
-  app.mouseTargetTag = event.target.dataset.tag;
+window.onmouseout = function(event) {
+  mouseTarget = event.target;
+  mouseTargetTag = event.target.dataset.tag;
 
-  if (app.mouseDownTargetTag) {
-    if (app.mouseDownTargetTag === app.mouseTargetTag) {
-      var target = app.tags[app.mouseTargetTag];
+  if (mouseDownTargetTag) {
+    if (mouseDownTargetTag === mouseTargetTag) {
+      var target = tags[mouseTargetTag];
       if (target) {
-        // console.log('out', app.mouseDownTargetTag, app.mouseTargetTag);
+        // console.log('out', mouseDownTargetTag, mouseTargetTag);
         target.handleEvent(event);
       }
     }
   } else {
-    var target = app.tags[app.mouseTargetTag];
+    var target = tags[mouseTargetTag];
     if (target) {
       target.handleEvent(event);
     }
   }
 }
 
-app.onMouseOver = function(event) {
-  app.mouseTarget = event.target;
-  app.mouseTargetTag = event.target.dataset.tag;
+window.onmouseover = function(event) {
+  mouseTarget = event.target;
+  mouseTargetTag = event.target.dataset.tag;
 
-  if (app.mouseDownTargetTag) {
-    if (app.mouseDownTargetTag === app.mouseTargetTag) {
-      var target = app.tags[app.mouseTargetTag];
+  if (mouseDownTargetTag) {
+    if (mouseDownTargetTag === mouseTargetTag) {
+      var target = tags[mouseTargetTag];
       if (target) {
         target.handleEvent(event);
       }
     }
   } else {
-    var target = app.tags[app.mouseTargetTag];
+    var target = tags[mouseTargetTag];
     if (target) {
       target.handleEvent(event);
     }
   }
 }
 
-app.onKeyDown = function(event) {
-  app.key[event.key] = true;
+window.onkeydown = function(event) {
+  keys[event.key] = true;
 
   if (event.key === Const.KEY_PAN) {
     event.preventDefault();
     if (!event.repeat) {
-      if (!app.mouseLeft) {
-        app.setMode('pan');
+      if (!mouseLeft) {
+        setMode('pan');
       }
     }
   }
   else if (event.key == 'b' && !event.repeat) {
-    app.setTool('pen');
+    setTool('pen');
   }
   else if (event.key == 'q' && !event.repeat) {
-    app.setTool('pointer');
+    setTool('pointer');
   }
   else if (event.key == 'z' && !event.repeat) {
     if (event.ctrlKey)
-      app.undo();
+      undo();
     else
-      app.setTool('zoom');
+      setTool('zoom');
   }
   else if (event.key === 'd' && !event.repeat) {
-    app.settings['dots'] = !app.settings['dots'];
-    app.render();
+    settings['dots'] = !settings['dots'];
+    render();
   }
   else if (event.key === 'h' && !event.repeat) {
-    app.ui.paper.center();
-    app.render();
+    ui.paper.center();
+    render();
   }
   else if (event.key === '.' && !event.repeat) {
-    app.sequence.next();
-    app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
-    app.render();
+    sequence.next();
+    ui.frameList.render({ cmd: 'select', index: sequence.position });
+    render();
   }
   else if (event.key === ',' && !event.repeat) {
-    app.sequence.previous();
-    app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
-    app.render();
+    sequence.previous();
+    ui.frameList.render({ cmd: 'select', index: sequence.position });
+    render();
   }
   else if (event.key === 'n' && !event.repeat) {
-    app.newFrame();
+    newFrame();
   }
   else {
-    if (app.tool) app.tool.handleEvent(event);
+    if (tool) tool.handleEvent(event);
   }
 }
 
-app.onKeyUp = function(event) {
-  delete app.key[event.key];
+window.onkeyup = function(event) {
+  delete keys[event.key];
 
   if (event.key === Const.KEY_PAN) {
-     if (!app.mouseLeft) {
-       app.setMode('tool');
+     if (!mouseLeft) {
+       setMode('tool');
      }
   } else {
-    if (app.tool) app.tool.handleEvent(event);
+    if (tool) tool.handleEvent(event);
   }
 }
 
-app.onResize = function() {
+window.onresize = function() {
   if (!window.resizeTimeoutId) {
     window.resizeTimeoutId = setTimeout(function() {
-      app.reposition();
+      reposition();
       window.resizeTimeoutId = 0;
-      app.render();
+      render();
     }, 66);
   }
 }
 
-app.onPaste = function(event) {
-  var target = app.tags[app.mouseTargetTag];
+window.onpaste = function(event) {
+  var target = tags[mouseTargetTag];
   if (target) {
     target.handleEvent(event);
   }
 }
 
-app.onCopy = function(event) {
-  var target = app.tags[app.mouseTargetTag];
+window.oncopy = function(event) {
+  var target = tags[mouseTargetTag];
   if (target) {
     target.handleEvent(event);
   }
 }
 
-app.handleEvent = function(event) {
-  if (event.type === 'click') {
-    app.onClick(event);
-  }
-  else if (event.type === 'mousedown') {
-    app.onMouseDown(event);
-  }
-  else if (event.type === 'mouseup') {
-    app.onMouseUp(event);
-  }
-  else if (event.type === 'mousemove') {
-    app.onMouseMove(event);
-  }
-  else if (event.type === 'mouseover') {
-    app.onMouseOver(event);
-  }
-  else if (event.type === 'mouseout') {
-    app.onMouseOut(event);
-  }
-  else if (event.type === 'keydown') {
-    app.onKeyDown(event);
-  }
-  else if (event.type === 'keyup') {
-    app.onKeyUp(event);
-  }
-  else if (event.type === 'resize') {
-    app.onResize(event);
-  }
-  else if (event.type === 'paste') {
-    app.onPaste(event);
-  }
-  else if (event.type === 'copy') {
-    app.onCopy(event);
-  }
+// handleEvent = function(event) {
+//   if (event.type === 'click') {
+//     onClick(event);
+//   }
+//   else if (event.type === 'mousedown') {
+//     onMouseDown(event);
+//   }
+//   else if (event.type === 'mouseup') {
+//     onMouseUp(event);
+//   }
+//   else if (event.type === 'mousemove') {
+//     onMouseMove(event);
+//   }
+//   else if (event.type === 'mouseover') {
+//     onMouseOver(event);
+//   }
+//   else if (event.type === 'mouseout') {
+//     onMouseOut(event);
+//   }
+//   else if (event.type === 'keydown') {
+//     onKeyDown(event);
+//   }
+//   else if (event.type === 'keyup') {
+//     onKeyUp(event);
+//   }
+//   else if (event.type === 'resize') {
+//     onResize(event);
+//   }
+//   else if (event.type === 'paste') {
+//     onPaste(event);
+//   }
+//   else if (event.type === 'copy') {
+//     onCopy(event);
+//   }
+// }
+
+// initEventListeners = function() {
+//   window.addEventListener('click', this);
+//   window.addEventListener('mousedown', this);
+//   window.addEventListener('mousemove', this);
+//   window.addEventListener('mouseup', this);
+//   window.addEventListener('mouseover', this);
+//   window.addEventListener('mouseout', this);
+//   window.addEventListener('keydown', this);
+//   window.addEventListener('keyup', this);
+//   window.addEventListener('resize', this);
+//   window.addEventListener('copy', this);
+//   window.addEventListener('paste', this);
+// }
+
+window.onload = () => {
+  console.log('load');
+  startup();
+}
+// ipcRenderer.on('load', startup);
+
+window.onmousedown = (e) => {
+  console.log('onmousedown');
 }
 
-app.initEventListeners = function() {
-  window.addEventListener('click', this);
-  window.addEventListener('mousedown', this);
-  window.addEventListener('mousemove', this);
-  window.addEventListener('mouseup', this);
-  window.addEventListener('mouseover', this);
-  window.addEventListener('mouseout', this);
-  window.addEventListener('keydown', this);
-  window.addEventListener('keyup', this);
-  window.addEventListener('resize', this);
-  window.addEventListener('copy', this);
-  window.addEventListener('paste', this);
+window.onclick = (e) => {
+  console.log('click');
 }
 
-window.app = app;
+window.app = this;
 window.simplify = require('./lib/simplify');
 
-window.onload = function(event) {
-  app.preload();
-};
+}());

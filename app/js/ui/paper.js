@@ -1,157 +1,156 @@
 const Const = require('../const');
 const Point = require('../geom/point');
 const Base = require('./base');
-
 const Tools = require('../tools/');
-// const Emitter = require('../emitter');
 const Stroke = require('../stroke');
 
-function Paper(params) {
-  params = params || {};
-  Base.call(this, params);
+class Paper extends Base {
+  constructor(params = {}) {
+    // params = params || {};
+    // Base.call(this, params);
 
-  this.addClass('paper');
+    this.addClass('paper');
 
-  this.canvasWidth = params.width;
-  this.canvasHeight = params.height;
+    this.canvasWidth = params.width;
+    this.canvasHeight = params.height;
 
-  this.canvas = document.createElement('canvas');
-  this.canvas.width = this.canvasWidth;
-  this.canvas.height = this.canvasHeight;
-  this.canvas.style.pointerEvents = 'none';
-  // this.canvas.style.zIndex = -100;
-  this.el.appendChild(this.canvas);
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.canvasWidth;
+    this.canvas.height = this.canvasHeight;
+    this.canvas.style.pointerEvents = 'none';
+    // this.canvas.style.zIndex = -100;
+    this.el.appendChild(this.canvas);
 
-  this.overlayCanvas = document.createElement('canvas');
-  this.overlayCanvas.width = this.canvasWidth;
-  this.overlayCanvas.height = this.canvasHeight;
+    this.overlayCanvas = document.createElement('canvas');
+    this.overlayCanvas.width = this.canvasWidth;
+    this.overlayCanvas.height = this.canvasHeight;
 
-  this.scale = 1.0;
-  this.width = Const.WIDTH;
-  this.height = Const.HEIGHT;
+    this.scale = 1.0;
+    this.width = Const.WIDTH;
+    this.height = Const.HEIGHT;
 
-  this.bitmap = document.createElement('canvas');
-  this.bitmap.width = this.width;
-  this.bitmap.height = this.height;
+    this.bitmap = document.createElement('canvas');
+    this.bitmap.width = this.width;
+    this.bitmap.height = this.height;
 
-  this.tx = 0;
-  this.ty = 0;
+    this.tx = 0;
+    this.ty = 0;
 
-  this.tx = (this.width / 2) >> 0;
-  this.ty = (this.height / 2) >> 0;
+    this.tx = (this.width / 2) >> 0;
+    this.ty = (this.height / 2) >> 0;
 
-  this.globalAlpha = 1.0;
-}
+    this.globalAlpha = 1.0;
+  }
 
-Paper.prototype = Object.create(Base.prototype);
-Paper.prototype.constructor = Paper;
+// Paper.prototype = Object.create(Base.prototype);
+// Paper.prototype.constructor = Paper;
 
 // Paper.prototype.setOnion = function(value) {
 //   // console.log('setOnion', value);
 //   this.showOnion = value;
 // }
 
-Paper.prototype.resize = function(width, height) {
-  this.canvasWidth = width;
-  this.canvasHeight = height;
-  this.canvas.width = this.canvasWidth;
-  this.canvas.height = this.canvasHeight;
+  resize(width, height) {
+    this.canvasWidth = width;
+    this.canvasHeight = height;
+    this.canvas.width = this.canvasWidth;
+    this.canvas.height = this.canvasHeight;
 
-  this.overlayCanvas.width = this.canvasWidth;
-  this.overlayCanvas.height = this.canvasHeight;
+    this.overlayCanvas.width = this.canvasWidth;
+    this.overlayCanvas.height = this.canvasHeight;
 
-  // this.bitmap.width = this.canvasWidth;
-  // this.bitmap.height = this.canvasHeight;
-  // this.render();
-}
-
-Paper.prototype.setCameraPosition = function(x, y) {
-  this.tx = x;
-  this.ty = y;
-  // this.render();
-  // this.draw();
-}
-
-Paper.prototype.center = function() {
-  this.setCameraPosition((this.width / 2) >> 0, (this.height / 2) >> 0);
-  this.setZoom(1);
-}
-
-Paper.prototype.panCameraBy = function(x, y) {
-  this.setCameraPosition(this.tx + x, this.ty + y);
-  // console.log(x, y);
-}
-
-Paper.prototype.setZoom = function(value) {
-  // console.log('setZoom');
-  if (value <= 5 && value >= 0.05) {
-    this.scale = ((value * 100) >> 0) / 100;
-    if (this.scale == 1) {
-      this.tx = this.tx >> 0;
-      this.ty = this.ty >> 0;
-    }
+    // this.bitmap.width = this.canvasWidth;
+    // this.bitmap.height = this.canvasHeight;
     // this.render();
-    // this.emit('zoom', { scale: this.scale });
   }
-}
 
-Paper.prototype.zoomIn = function() {
-  // console.log('zoomIn', this.scale, Const.ZOOM_LEVELS);
-  var self = this;
-  var level = Const.ZOOM_LEVELS.find(function(element) {
-    return element > self.scale;
-  });
-  // console.log(level);
-  if (level) this.setZoom(level);
-}
-
-Paper.prototype.zoomOut = function() {
-  var level;
-  for (var i = Const.ZOOM_LEVELS.length - 1; i >= 0; i--) {
-    level = Const.ZOOM_LEVELS[i]
-    if (level < this.scale) break;
+  setCameraPosition(x, y) {
+    this.tx = x;
+    this.ty = y;
+    // this.render();
+    // this.draw();
   }
-  if (level) this.setZoom(level);
-}
 
-Paper.prototype.zoomCameraBy = function(x) {
-  var value = this.scale;
-  value = value + x;
-  this.setZoom(value);
-}
+  center() {
+    this.setCameraPosition((this.width / 2) >> 0, (this.height / 2) >> 0);
+    this.setZoom(1);
+  }
 
-Paper.prototype.screenToWorld = function(x, y) {
-  var widthHalf = (this.canvas.width / 2) >> 0;
-  var heightHalf = (this.canvas.height / 2) >> 0;
-  // var widthHalf = (this.canvas.width / 2);
-  // var heightHalf = (this.canvas.height / 2);
+  panCameraBy(x, y) {
+    this.setCameraPosition(this.tx + x, this.ty + y);
+    // console.log(x, y);
+  }
 
-  var px = x - widthHalf;
-  var py = y - heightHalf;
+  setZoom(value) {
+    // console.log('setZoom');
+    if (value <= 5 && value >= 0.05) {
+      this.scale = ((value * 100) >> 0) / 100;
+      if (this.scale == 1) {
+        this.tx = this.tx >> 0;
+        this.ty = this.ty >> 0;
+      }
+      // this.render();
+      // this.emit('zoom', { scale: this.scale });
+    }
+  }
 
-  var sx = px / this.scale;
-  var sy = py / this.scale;
+  zoomIn() {
+    // console.log('zoomIn', this.scale, Const.ZOOM_LEVELS);
+    var self = this;
+    var level = Const.ZOOM_LEVELS.find(function(element) {
+      return element > self.scale;
+    });
+    // console.log(level);
+    if (level) this.setZoom(level);
+  }
 
-  var tx = sx + this.tx;
-  var ty = sy + this.ty;
+  zoomOut() {
+    var level;
+    for (var i = Const.ZOOM_LEVELS.length - 1; i >= 0; i--) {
+      level = Const.ZOOM_LEVELS[i]
+      if (level < this.scale) break;
+    }
+    if (level) this.setZoom(level);
+  }
 
-  return new Point(tx, ty);
-}
+  zoomCameraBy(x) {
+    var value = this.scale;
+    value = value + x;
+    this.setZoom(value);
+  }
 
-Paper.prototype.worldToScreen = function(x, y) {
-  var tx = x - (this.tx);
-  var ty = y - (this.ty);
+  screenToWorld(x, y) {
+    var widthHalf = (this.canvas.width / 2) >> 0;
+    var heightHalf = (this.canvas.height / 2) >> 0;
+    // var widthHalf = (this.canvas.width / 2);
+    // var heightHalf = (this.canvas.height / 2);
 
-  var sx = (tx * this.scale);
-  var sy = (ty * this.scale);
+    var px = x - widthHalf;
+    var py = y - heightHalf;
 
-  var widthHalf = (this.canvas.width / 2) >> 0;
-  var heightHalf = (this.canvas.height / 2) >> 0;
-  // var widthHalf = (this.canvas.width / 2);
-  // var heightHalf = (this.canvas.height / 2);
+    var sx = px / this.scale;
+    var sy = py / this.scale;
 
-  return new Point(sx + widthHalf, sy + heightHalf);
-}
+    var tx = sx + this.tx;
+    var ty = sy + this.ty;
+
+    return new Point(tx, ty);
+  }
+
+  worldToScreen(x, y) {
+    var tx = x - (this.tx);
+    var ty = y - (this.ty);
+
+    var sx = (tx * this.scale);
+    var sy = (ty * this.scale);
+
+    var widthHalf = (this.canvas.width / 2) >> 0;
+    var heightHalf = (this.canvas.height / 2) >> 0;
+    // var widthHalf = (this.canvas.width / 2);
+    // var heightHalf = (this.canvas.height / 2);
+
+    return new Point(sx + widthHalf, sy + heightHalf);
+  }
 
 // Paper.prototype.addRenderObject = function(object) {
 //   this.renderList.push(object);
@@ -163,23 +162,23 @@ Paper.prototype.worldToScreen = function(x, y) {
 //   }
 // }
 
-Paper.prototype.renderDots = function(stroke) {
-  var ctx = this.canvas.getContext('2d');
-  ctx.lineWidth = 1;
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'black';
+  renderDots(stroke) {
+    var ctx = this.canvas.getContext('2d');
+    ctx.lineWidth = 1;
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
 
-  for (var j = 0; j < stroke.points.length; j++) {
-    var p = stroke.points[j];
-    p = this.worldToScreen(p.x, p.y);
-    var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
-    ctx.beginPath();
-    // ctx.rect(x - 1, y - 1, 3, 3);
-    ctx.rect(x - 1, y - 1, 2, 2);
-    ctx.fill();
-    ctx.stroke();
+    for (var j = 0; j < stroke.points.length; j++) {
+      var p = stroke.points[j];
+      p = this.worldToScreen(p.x, p.y);
+      var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
+      ctx.beginPath();
+      // ctx.rect(x - 1, y - 1, 3, 3);
+      ctx.rect(x - 1, y - 1, 2, 2);
+      ctx.fill();
+      ctx.stroke();
+    }
   }
-}
 
 
 // Paper.prototype.drawLine = function(x1, y1, x2, y2, options) {
@@ -210,155 +209,155 @@ Paper.prototype.renderDots = function(stroke) {
 // }
 
 
-Paper.prototype.renderPath = function(points, options) {
-  var ctx = this.canvas.getContext('2d');
-  // var dx = 0, dy = 0;
-  // var points = stroke.points;
-  options = options || {};
+  renderPath(points, options) {
+    var ctx = this.canvas.getContext('2d');
+    // var dx = 0, dy = 0;
+    // var points = stroke.points;
+    options = options || {};
 
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-  var screen = (options.screen != undefined ? options.screen : false);
-  var fill = (options.fill ? options.fill.toHexString() : null);
-  var strokeStyle = (options.strokeStyle ? options.strokeStyle.toHexString() : Const.color.Stroke.toHexString());
-  var lineWidth = (options.lineWidth != undefined ? options.lineWidth : Const.LINE_WIDTH);
-  // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
+    var screen = (options.screen != undefined ? options.screen : false);
+    var fill = (options.fill ? options.fill.toHexString() : null);
+    var strokeStyle = (options.strokeStyle ? options.strokeStyle.toHexString() : Const.color.Stroke.toHexString());
+    var lineWidth = (options.lineWidth != undefined ? options.lineWidth : Const.LINE_WIDTH);
+    // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
 
-  ctx.beginPath();
+    ctx.beginPath();
 
-  for (var i = 0; i < points.length; i++) {
-    var point = points[i];
-    var x = point.x, y = point.y;
+    for (var i = 0; i < points.length; i++) {
+      var point = points[i];
+      var x = point.x, y = point.y;
 
-    if (!screen) {
-      var p = this.worldToScreen(x, y);
-      x = p.x, y = p.y;
+      if (!screen) {
+        var p = this.worldToScreen(x, y);
+        x = p.x, y = p.y;
+      }
+      // var x = p.x + dx + 0.5, y = p.y + dy + 0.5;
+      // var x = p.x + dx, y = p.y + dy;
+      // var x = p.x, y = p.y;
+
+      if (i == 0)
+        ctx.moveTo(x, y);
+      else
+        ctx.lineTo(x, y);
     }
-    // var x = p.x + dx + 0.5, y = p.y + dy + 0.5;
-    // var x = p.x + dx, y = p.y + dy;
-    // var x = p.x, y = p.y;
 
-    if (i == 0)
-      ctx.moveTo(x, y);
-    else
-      ctx.lineTo(x, y);
+    // if (points.length == 2) ctx.closePath();
+
+    if (fill) {
+      // ctx.fillStyle = stroke.selected ? 'rgba(30, 144, 255, 0.5)' : 'white';
+      // ctx.globalAlpha = 0.5;
+      ctx.fillStyle = fill;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // ctx.globalAlpha = this.globalAlpha;
+    ctx.lineWidth = lineWidth; //Const.LINE_WIDTH;
+    // ctx.strokeStyle = stroke.selected ? 'dodgerblue' : Const.color.STROKE;
+    // ctx.strokeStyle = Const.color.STROKE;
+    ctx.strokeStyle = strokeStyle;
+    ctx.stroke();
+
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  // if (points.length == 2) ctx.closePath();
 
-  if (fill) {
-    // ctx.fillStyle = stroke.selected ? 'rgba(30, 144, 255, 0.5)' : 'white';
-    // ctx.globalAlpha = 0.5;
-    ctx.fillStyle = fill;
+  getBitmapContext() {
+    // return this.bitmap.getContext('2d');
+  }
+
+
+  renderBitmap() {
+    // var p1 = this.worldToScreen(0, 0);
+    // var ctx = this.canvas.getContext('2d');
+    // ctx.globalCompositeOperation = 'multiply';
+    // ctx.drawImage(this.bitmap, p1.x, p1.y, this.width * this.scale, this.height * this.scale);
+    // ctx.globalCompositeOperation = 'source-over';
+  }
+
+
+  clear() {
+    var ctx = this.canvas.getContext('2d');
+    // ctx.save();
+    ctx.fillStyle = Const.color.Workspace.toHexString();
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.save();
+
+    var p1 = this.worldToScreen(0, 0);
+    ctx.fillStyle = Const.color.Paper.toHexString();
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.lineDashOffset = 5;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.rect((p1.x >> 0) + 0.5, (p1.y >> 0) + 0.5, this.width * this.scale, this.height * this.scale);
     ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.stroke();
+
+    ctx.restore();
+
+    // ctx.fillRect(p1.x >> 0, p1.y >> 0, this.width * this.scale, this.height * this.scale);
+
+    // this.clearOverlay();
+
+    // if (objects) {
+    //   for (var i = 0; i < objects.length; i++) {
+    //     var obj = objects[i];
+    //     if (obj instanceof Stroke) {
+    //       ctx.save();
+    //       this.renderStroke(ctx, obj);
+    //
+    //       // var p = this.worldToScreen(obj.points[0].x, obj.points[0].y);
+    //       // ctx.fillStyle = 'red';
+    //       // ctx.font = '9px Roboto';
+    //       // ctx.fillText(i, p.x, p.y - 5);
+    //
+    //       ctx.restore();
+    //     }
+    //   }
+    // }
+    //
+    // if (this.overlay) {
+    //   ctx.drawImage(this.overlay, 0, 0);
+    //   var overlayContext = this.overlay.getContext('2d');
+    //   overlayContext.clearRect(0, 0, this.overlay.width, this.overlay.height);
+    // }
+    // // if (this.tool) this.tool.render(ctx);
+    //
+    // if (this.showOnion) {
+    //   ctx.fillStyle = 'blue';
+    //   ctx.font = '9px Roboto';
+    //   ctx.fillText('Onion', 100, 100);
+    // }
+    //
+    // if (this.showDots) {
+    //   ctx.lineWidth = 1;
+    //   ctx.fillStyle = 'white';
+    //   ctx.strokeStyle = 'black';
+    //
+    //   if (objects) {
+    //     for (var i = 0; i < objects.length; i++) {
+    //       var stroke = objects[i];
+    //       for (var j = 0; j < stroke.points.length; j++) {
+    //         var p = stroke.points[j];
+    //         p = this.worldToScreen(p.x, p.y);
+    //         var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
+    //         ctx.beginPath();
+    //         ctx.rect(x - 1, y - 1, 3, 3);
+    //         ctx.fill();
+    //         ctx.stroke();
+    //       }
+    //     }
+    //   }
+    // }
+    //
+    // ctx.restore();
   }
-
-  // ctx.globalAlpha = this.globalAlpha;
-  ctx.lineWidth = lineWidth; //Const.LINE_WIDTH;
-  // ctx.strokeStyle = stroke.selected ? 'dodgerblue' : Const.color.STROKE;
-  // ctx.strokeStyle = Const.color.STROKE;
-  ctx.strokeStyle = strokeStyle;
-  ctx.stroke();
-
-  // ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
-
-
-Paper.prototype.getBitmapContext = function() {
-  // return this.bitmap.getContext('2d');
-}
-
-
-Paper.prototype.renderBitmap = function() {
-  // var p1 = this.worldToScreen(0, 0);
-  // var ctx = this.canvas.getContext('2d');
-  // ctx.globalCompositeOperation = 'multiply';
-  // ctx.drawImage(this.bitmap, p1.x, p1.y, this.width * this.scale, this.height * this.scale);
-  // ctx.globalCompositeOperation = 'source-over';
-}
-
-
-Paper.prototype.clear = function() {
-  var ctx = this.canvas.getContext('2d');
-  // ctx.save();
-  ctx.fillStyle = Const.color.Workspace.toHexString();
-  ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-  ctx.save();
-
-  var p1 = this.worldToScreen(0, 0);
-  ctx.fillStyle = Const.color.Paper.toHexString();
-  ctx.lineWidth = 1;
-  ctx.setLineDash([2, 4]);
-  ctx.lineDashOffset = 5;
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-  ctx.beginPath();
-  ctx.rect((p1.x >> 0) + 0.5, (p1.y >> 0) + 0.5, this.width * this.scale, this.height * this.scale);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.restore();
-
-  // ctx.fillRect(p1.x >> 0, p1.y >> 0, this.width * this.scale, this.height * this.scale);
-
-  // this.clearOverlay();
-
-  // if (objects) {
-  //   for (var i = 0; i < objects.length; i++) {
-  //     var obj = objects[i];
-  //     if (obj instanceof Stroke) {
-  //       ctx.save();
-  //       this.renderStroke(ctx, obj);
-  //
-  //       // var p = this.worldToScreen(obj.points[0].x, obj.points[0].y);
-  //       // ctx.fillStyle = 'red';
-  //       // ctx.font = '9px Roboto';
-  //       // ctx.fillText(i, p.x, p.y - 5);
-  //
-  //       ctx.restore();
-  //     }
-  //   }
-  // }
-  //
-  // if (this.overlay) {
-  //   ctx.drawImage(this.overlay, 0, 0);
-  //   var overlayContext = this.overlay.getContext('2d');
-  //   overlayContext.clearRect(0, 0, this.overlay.width, this.overlay.height);
-  // }
-  // // if (this.tool) this.tool.render(ctx);
-  //
-  // if (this.showOnion) {
-  //   ctx.fillStyle = 'blue';
-  //   ctx.font = '9px Roboto';
-  //   ctx.fillText('Onion', 100, 100);
-  // }
-  //
-  // if (this.showDots) {
-  //   ctx.lineWidth = 1;
-  //   ctx.fillStyle = 'white';
-  //   ctx.strokeStyle = 'black';
-  //
-  //   if (objects) {
-  //     for (var i = 0; i < objects.length; i++) {
-  //       var stroke = objects[i];
-  //       for (var j = 0; j < stroke.points.length; j++) {
-  //         var p = stroke.points[j];
-  //         p = this.worldToScreen(p.x, p.y);
-  //         var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
-  //         ctx.beginPath();
-  //         ctx.rect(x - 1, y - 1, 3, 3);
-  //         ctx.fill();
-  //         ctx.stroke();
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // ctx.restore();
-}
 
 // Paper.prototype.draw = function() {
   // this.render();
@@ -380,80 +379,79 @@ Paper.prototype.clear = function() {
 
 // }
 
-Paper.prototype.clearOverlay = function() {
-  var ctx = this.overlayCanvas.getContext('2d');
-  ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
-}
+  clearOverlay() {
+    var ctx = this.overlayCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+  }
 
-Paper.prototype.render = function() {
-  var ctx = this.canvas.getContext('2d');
-  ctx.drawImage(this.overlayCanvas, 0, 0);
-}
+  render() {
+    var ctx = this.canvas.getContext('2d');
+    ctx.drawImage(this.overlayCanvas, 0, 0);
+  }
 
-Paper.prototype.onMouseDown = function(event) {
-  // if (event.target === this.el) {
-  //   if (this.mode === 'pan') {
-  //     // this.setMode('pan');
-  //
-  //   } else {
-  //     this.tool.handleEvent(event);
-  //   }
-  // }
+  onMouseDown(event) {
+    // if (event.target === this.el) {
+    //   if (this.mode === 'pan') {
+    //     // this.setMode('pan');
+    //
+    //   } else {
+    //     this.tool.handleEvent(event);
+    //   }
+    // }
+  }
 
-}
+  onMouseMove(event) {
+    // if (this.mode === 'pan') {
+    //   if (event.buttons === 1) {
+    //     this.panCameraBy(-app.mouseDeltaX / this.scale, -app.mouseDeltaY / this.scale);
+    //     this.render();
+    //   }
+    // } else {
+    //   this.tool.handleEvent(event);
+    // }
+  }
 
-Paper.prototype.onMouseMove = function(event) {
-  // if (this.mode === 'pan') {
-  //   if (event.buttons === 1) {
-  //     this.panCameraBy(-app.mouseDeltaX / this.scale, -app.mouseDeltaY / this.scale);
-  //     this.render();
-  //   }
-  // } else {
-  //   this.tool.handleEvent(event);
-  // }
-}
+  onMouseUp(event) {
+    // if (this.mode === 'pan') {
+    //   if (!app.key[Const.KEY_DRAG] && event.button === 0) {
+    //     this.setMode('tool');
+    //   }
+    // } else {
+    //   if (this.tool) this.tool.handleEvent(event);
+    // }
+  }
 
-Paper.prototype.onMouseUp = function(event) {
-  // if (this.mode === 'pan') {
-  //   if (!app.key[Const.KEY_DRAG] && event.button === 0) {
-  //     this.setMode('tool');
-  //   }
-  // } else {
-  //   if (this.tool) this.tool.handleEvent(event);
-  // }
-}
+  onKeyDown(event) {
+    // if (event.key === Const.KEY_DRAG) {
+    //   event.preventDefault();
+    //   if (!event.repeat) {
+    //     if (!app.mouseLeft) {
+    //       this.setMode('pan');
+    //     }
+    //   }
+    // }
+    // else if (event.key === 'd' && !event.repeat) {
+    //   this.showDots = !this.showDots;
+    //   this.render();
+    // }
+    // else if (event.key === 'h' && !event.repeat) {
+    //   this.center();
+    //   this.render();
+    // }
+    // else {
+    //   if (this.tool) this.tool.handleEvent(event);
+    // }
+  }
 
-Paper.prototype.onKeyDown = function(event) {
-  // if (event.key === Const.KEY_DRAG) {
-  //   event.preventDefault();
-  //   if (!event.repeat) {
-  //     if (!app.mouseLeft) {
-  //       this.setMode('pan');
-  //     }
-  //   }
-  // }
-  // else if (event.key === 'd' && !event.repeat) {
-  //   this.showDots = !this.showDots;
-  //   this.render();
-  // }
-  // else if (event.key === 'h' && !event.repeat) {
-  //   this.center();
-  //   this.render();
-  // }
-  // else {
-  //   if (this.tool) this.tool.handleEvent(event);
-  // }
-}
-
-Paper.prototype.onKeyUp = function(event) {
-  // if (event.key === Const.KEY_DRAG) {
-  //    if (!app.mouseLeft) {
-  //      this.setMode('tool');
-  //    }
-  // } else {
-  //   if (this.tool) this.tool.handleEvent(event);
-  // }
-}
+  onKeyUp(event) {
+    // if (event.key === Const.KEY_DRAG) {
+    //    if (!app.mouseLeft) {
+    //      this.setMode('tool');
+    //    }
+    // } else {
+    //   if (this.tool) this.tool.handleEvent(event);
+    // }
+  }
 
 Paper.prototype.onPaste = function(event) {
   // console.log('hi');
