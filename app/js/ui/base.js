@@ -2,43 +2,39 @@
 const EventEmitter = require('events').EventEmitter;
 
 class Base extends EventEmitter {
-  constructor(params = {}) {
-  // Emitter.call(this);
-    // params = params || {};
+  constructor(el) {
+    super();
 
-    this.name = params.name;
+    // this.name = params.name;
 
-    this.el = document.createElement('div');
+    this.el = el ? el : document.createElement('div');
 
-    if (params.tag) {
-      this.tag = params.tag;
-      this.el.dataset.tag = this.tag;
-      // app.registerTag({ tag: this.tag, control: this });
-
-    } else if (params.id) {
-      this.tag = params.id;
-      this.el.dataset.tag = this.tag;
-      this.el.id = this.tag;
-      // app.registerTag({ tag: this.tag, control: this });
-    }
+    // if (params.tag) {
+    //   this.tag = params.tag;
+    //   this.el.dataset.tag = this.tag;
+    //   // app.registerTag({ tag: this.tag, control: this });
+    //
+    // } else if (params.id) {
+    //   this.tag = params.id;
+    //   this.el.dataset.tag = this.tag;
+    //   this.el.id = this.tag;
+    //   // app.registerTag({ tag: this.tag, control: this });
+    // }
 
     this.addClass('ui');
 
-    if (params.style) {
-      for (var i in params.style) {
-        this.el.style[i] = params.style[i];
-      }
-    }
-
-    if (params.classes) {
-      for(var i in params.classes) {
-        this.addClass(params.classes[i]);
-      }
-    }
+    // if (params.style) {
+    //   for (var i in params.style) {
+    //     this.el.style[i] = params.style[i];
+    //   }
+    // }
+    //
+    // if (params.classes) {
+    //   for(var i in params.classes) {
+    //     this.addClass(params.classes[i]);
+    //   }
+    // }
   }
-
-// Base.prototype = Object.create(Emitter.prototype);
-// Base.prototype.constructor = Base;
 
   addClass(className) {
     this.el.classList.add(className);

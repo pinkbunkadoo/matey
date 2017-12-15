@@ -1,4 +1,5 @@
 const Base = require('./base');
+const Mouse = require('../mouse');
 const Container = require('./container');
 const Spacer = require('./spacer');
 const Divider = require('./divider');
@@ -10,247 +11,271 @@ const Scroller = require('./scroller');
 const FrameListItem = require('./frame_list_item');
 const Frame = require('../frame');
 
-function FrameList(params) {
-  Container.call(this, params);
+class FrameList extends Container {
+  constructor(el) {
+    super(el);
 
-  var self = this;
+    // this.addClass('frame-list');
 
-  // this.addClass('frame-list');
+    // this.width = params.width || 128;
+    // this.height = params.height || 80;
 
-  this.width = params.width || 128;
-  this.height = params.height || 80;
+    this.items = [];
+    this.selection = null;
 
-  this.items = [];
-  this.selection = null;
+    // this.frameListContainer = new Container();
+    // this.frameListContainer.addClass('frame-list');
 
-  // this.frameListContainer = new Container();
-  // this.frameListContainer.addClass('frame-list');
+    this.container = new Container(this.el.querySelector('#frame-list-container'));
+    this.add(this.container);
 
-  this.container = new Container({ style: { flexDirection: 'row' } });
-  this.add(this.container);
+    // this.add(this.frameListContainer);
 
-  // this.add(this.frameListContainer);
+    // this.el.addEventListener('mousedown', function(event) {
+    //   console.log('mousedown frame-list');
+    // });
+    this.thumbnailWidth = 32;
+    this.thumbnailHeight = 32;
 
-  // this.el.addEventListener('mousedown', function(event) {
-  //   console.log('mousedown frame-list');
-  // });
+    this.frameListNew = new Container();
+    this.frameListNew.addClass('frame-list-new');
+    this.frameListNew.el.onclick = () => {
+      this.emit('new-frame');
+    };
+    let icon = new Icon({ resource: 'plus' });
+    icon.el.style.width = '24px';
+    icon.el.style.height = '24px';
+    this.frameListNew.add(icon);
 
-  this.grab = false;
-}
+    this.items.push(this.frameListNew);
+    this.container.add(this.frameListNew);
 
-FrameList.prototype = Object.create(Container.prototype);
-FrameList.prototype.constructor = FrameList;
+    this.grab = false;
+    this.dragAmount = 0;
+    this.capture = false;
 
-// FrameList.prototype.notifyChange = function(params) {
-//   if (this.onChange) {
-//     this.onChange(params);
-//   }
-// }
-//
-FrameList.prototype.addFrame = function() {
-  // console.log('add');
-
-  // this.container.remove(this.creator);
-
-  var item = new FrameListItem({ width: this.width, height: this.height });
-  this.items.push(item);
-
-  this.container.add(item);
-  item.setNumber(this.items.length);
-
-  var self = this;
-
-  item.el.addEventListener('click', function(event) {
-    // console.log('click');
-    console.log('click', event.target.dataset.index);
-  });
-
-  // item.bind('select', function(item) {
-  //   var index = self.items.indexOf(item);
-  //   console.log('select', index);
-  // });
-
-  // this.notifyChange({ type: 'insert', index: index });
-  // this.container.add(this.creator);
-}
-
-FrameList.prototype.insertFrame = function(index) {
-
-  // this.container.remove(this.creator);
-
-  var item = new FrameListItem({ width: this.width, height: this.height });
-  this.items.splice(index, 0, item);
-  // this.frameContainer.insert(index, item);
-  this.container.insert(index, item);
-  for (var i = 0; i < this.items.length; i++) {
-    this.items[i].setNumber(i + 1);
+    this.el.addEventListener('mousedown', this);
+    // this.el.addEventListener('blur', this);
   }
 
-  // this.container.add(this.creator);
-  // this.notifyChange({ type: 'insert', index: index });
-}
-
-FrameList.prototype.removeFrame = function(index) {
-  // this.frameContainer.remove(this.items[index]);
-  this.container.remove(this.items[index]);
-  this.items.splice(index, 1);
-  for (var i = 0; i < this.items.length; i++) {
-    this.items[i].setNumber(i + 1);
-  }
-  // this.notifyChange({ type: 'remove', index: index });
-}
-
-FrameList.prototype.removeAll = function() {
-  this.clear();
-  this.items = [];
-  this.selection = null;
-  // this.notifyChange({ type: 'insert', index: index });
-}
-
-FrameList.prototype.get = function(index) {
-  return this.items[index];
-}
-
-FrameList.prototype.select = function(index) {
-  // console.log('select', index);
-  if (this.selection) {
-    this.selection.removeClass('selected');
-    this.selection.deselect();
-  }
-
-  this.selection = this.items[index];
-  this.selection.addClass('selected');
-
-  this.selection.select();
-
-  var item = this.selection;
-
-  var width = this.container.el.scrollWidth;
-
-  if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
-    this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth;
-
-  } else if (item.el.offsetLeft < this.el.scrollLeft) {
-    this.el.scrollLeft = item.el.offsetLeft;
-
-  } else {
-  }
-}
-
-FrameList.prototype.adjust = function(params) {
-
-  // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
-
-  // console.log();
-}
-
-FrameList.prototype.render = function(params) {
-
-  if (params.cmd === 'select') {
-    this.select(params.index);
-  }
-  else if (params.cmd === 'frameAdd') {
-    this.addFrame();
-  }
-  else if (params.cmd === 'frameInsert') {
-    this.insertFrame(params.index);
-  }
-  else if (params.cmd === 'frameRemove') {
-    this.removeFrame(params.index);
-  }
-  else if (params.cmd === 'removeAll') {
-    this.removeAll();
-  }
-  else if (params.cmd === 'update') {
-    // this.frameIndicator.setTitle(params.index + ' / ' + params.total);
-
-    // FrameListBar.prototype.setFrame = function(value1, value2) {
-    //   this.frame.setTitle(value1 + ' / ' + value2);
-    // }
-  }
-
-  // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
-}
-
-FrameList.prototype.onMouseDown = function(event) {
-  var target = event.target;
-
-  // console.log();
-  // console.log('down', target);
-
-  // if (target === this.el) {
-  //   console.log('down');
-  //
-  // } else if (target.data !== undefined) {
-  //   this.emit('select', { index: parseInt(target.data) - 1 });
+  // FrameList.prototype.notifyChange = function(params) {
+  //   if (this.onChange) {
+  //     this.onChange(params);
+  //   }
   // }
-
-  // if (this.grab) {
   //
-  // } else {
-  //
-  // }
-}
-
-FrameList.prototype.onMouseUp = function(event) {
-  // console.log('up');
-  var target = event.target;
-
-  if (this.grab) {
-
-  } else {
-    // var mx = app.mouseX - this.el.offsetLeft + this.frameListContainer.el.scrollLeft;
-    var mx = app.mouseX - this.el.offsetLeft + this.el.scrollLeft;
-
-    var index = Math.floor(mx / this.width);
-
-    if (index < this.items.length) {
-      // console.log(index);
-      this.emit('select', { index: index });
-    }
-  }
-
-  this.grab = false;
-}
-
-FrameList.prototype.onMouseMove = function(event) {
-  if (this.grab) {
-    this.el.scrollLeft -= event.movementX;
-  } else {
-    if (app.mouseLeft) {
-      if (Math.abs(app.mouseDownX - app.mouseX) > 3) {
-        this.grab = true;
+  refreshFrameNumbers() {
+    for (var i = 0; i < this.items.length; i++) {
+      let item = this.items[i];
+      if (item instanceof FrameListItem) {
+        item.setNumber(i + 1);
       }
     }
   }
-}
 
-FrameList.prototype.onWheel = function(event) {
-  // if (event.deltaY > 0) {
-  //   this.el.scrollLeft = this.el.scrollLeft + ((this.width * 0.5) >> 0);
-  // } else {
-  //   this.el.scrollLeft = this.el.scrollLeft - ((this.width * 0.5) >> 0);
-  // }
-}
+  addFrame() {
+    this.insertFrame(this.items.length-1);
+  }
 
-FrameList.prototype.handleEvent = function(event) {
-  if (event.type == 'mousedown') {
-    // console.log('mousedown');
-    this.onMouseDown(event);
+  insertFrame(index) {
+    let frameListItem = new FrameListItem(this.thumbnailWidth, this.thumbnailHeight);
+    frameListItem.on('select', (item) => {
+      this.emit('select', { index: this.items.indexOf(item) });
+    });
+    this.items.splice(index, 0, frameListItem);
+    this.container.insert(index, frameListItem);
+    this.refreshFrameNumbers();
   }
-  else if (event.type == 'mouseup') {
-    this.onMouseUp(event);
+
+  removeFrame(index) {
+    this.container.remove(this.items[index]);
+    this.items.splice(index, 1);
+    this.refreshFrameNumbers();
   }
-  else if (event.type == 'mousemove') {
-    this.onMouseMove(event);
+
+  removeAll() {
+    this.clear();
+    this.items = [];
+    this.selection = null;
   }
-  else if (event.type == 'wheel') {
-    this.onWheel(event);
+
+  get(index) {
+    return this.items[index];
   }
-  else if (event.type == 'resize') {
-    // this.onResize(event);
+
+  select(index) {
+    // console.log('select', index);
+    if (this.selection) {
+      this.selection.removeClass('selected');
+      this.selection.deselect();
+    }
+
+    this.selection = this.items[index];
+    this.selection.addClass('selected');
+
+    this.selection.select();
+
+    var item = this.selection;
+
+    var width = this.container.el.scrollWidth;
+
+    if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
+      this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth;
+
+    } else if (item.el.offsetLeft < this.el.scrollLeft) {
+      this.el.scrollLeft = item.el.offsetLeft;
+    }
+
+    // console.log(index, this.items.length-1);
+
+    if (index === this.items.length - 2) {
+      // console.log('hi');
+      this.el.scrollLeft = this.frameListNew.el.offsetLeft;
+      // console.log(this.frameListNew.el.clientWidth);
+    } else if (index === 0) {
+      this.el.scrollLeft = 0;
+    }
+  }
+
+  adjust(params) {
+    // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
+    // console.log();
+  }
+
+  setThumbnailSize(width, height) {
+    this.thumbnailWidth = width;
+    this.thumbnailHeight = height;
+    this.frameListNew.el.style.width = this.thumbnailWidth + 'px';
+    this.frameListNew.el.style.height = this.thumbnailHeight + 'px';
+  }
+
+  render(params) {
+    if (params.cmd === 'select') {
+      this.select(params.index);
+    }
+    else if (params.cmd === 'frameAdd') {
+      this.addFrame();
+    }
+    else if (params.cmd === 'frameInsert') {
+      this.insertFrame(params.index);
+    }
+    else if (params.cmd === 'frameRemove') {
+      this.removeFrame(params.index);
+    }
+    else if (params.cmd === 'removeAll') {
+      this.removeAll();
+    }
+    else if (params.cmd === 'update') {
+      // this.frameIndicator.setTitle(params.index + ' / ' + params.total);
+      // FrameListBar.prototype.setFrame = function(value1, value2) {
+      //   this.frame.setTitle(value1 + ' / ' + value2);
+      // }
+    }
+    // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
+  }
+
+  beginMouseCapture() {
+    this.capture = true;
+    window.addEventListener('mouseup', this);
+    window.addEventListener('mousemove', this);
+    window.addEventListener('blur', this);
+  }
+
+  endMouseCapture() {
+    this.capture = false;
+    window.removeEventListener('mouseup', this);
+    window.removeEventListener('mousemove', this);
+    window.removeEventListener('blur', this);
+  }
+
+  onBlur(event) {
+    this.endMouseCapture();
+  }
+
+  onMouseDown(event) {
+    // console.log('down');
+
+    var target = event.target;
+
+    this.dragAmount = 0;
+
+    // this.el.addEventListener('mouseup', this);
+    this.beginMouseCapture();
+
+    // this.el.setCapture(true);
+
+    // console.log();
+    // console.log('down', target);
+
+    // if (target === this.el) {
+    //   console.log('down');
+    //
+    // } else if (target.data !== undefined) {
+    //   this.emit('select', { index: parseInt(target.data) - 1 });
+    // }
+
+    // if (this.grab) {
+    //
+    // } else {
+    //
+    // }
+  }
+
+  onMouseUp(event) {
+    // console.log('up');
+
+    var target = event.target;
+    var point = Mouse.getPosition(event);
+
+    if (this.grab) {
+
+    } else {
+      if (event.target !== this.el) {
+        let index = event.target.dataset.index;
+        if (index !== undefined) {
+          this.emit('select', { index: index-1 });
+        }
+      }
+    }
+
+    this.endMouseCapture();
+    this.grab = false;
+  }
+
+  onMouseMove(event) {
+    var point = Mouse.getPosition(event);
+
+    if (this.grab) {
+      this.el.scrollLeft -= event.movementX;
+    } else {
+      if (Mouse.isLeftButtonDown(event)) {
+        this.dragAmount += event.movementX;
+        if (Math.abs(this.dragAmount) > 3) {
+          this.grab = true;
+        }
+      }
+    }
+  }
+
+  handleEvent(event) {
+    if (event.type == 'mousedown') {
+      // console.log('mousedown');
+      this.onMouseDown(event);
+    }
+    else if (event.type == 'mouseup') {
+      this.onMouseUp(event);
+    }
+    else if (event.type == 'mousemove') {
+      this.onMouseMove(event);
+    }
+    else if (event.type == 'resize') {
+      // this.onResize(event);
+    }
+    else if (event.type == 'blur') {
+      this.onBlur(event);
+      // this.onResize(event);
+    }
   }
 }
-
 
 module.exports = FrameList;

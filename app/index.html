@@ -7,7 +7,27 @@
     <title>SketchTime</title>
     <link rel="stylesheet" type="text/css" href="./css/default.css">
   </head>
-  <body></body>
+  <body>
+    <div id="main">
+      <div id="paper"></div>
+      <div id="frame-list">
+        <div id="frame-list-container"></div>
+      </div>
+      <div id="tools-palette">
+        <div id="tools-pointer" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#pointer"></use></svg></div>
+        <div id="tools-pencil" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#pencil"></use></svg></div>
+        <div id="tools-line" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#line"></use></svg></div>
+        <div id="tools-polygon" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#polygon"></use></svg></div>
+        <div id="tools-hand" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#hand"></use></svg></div>
+        <div id="tools-zoom" class="tool-button"><svg class="icon"><use xlink:href="./images/icons.svg#zoom"></use></svg></div>
+      </div>
+      <div id="control-palette">
+        <div id="control-first" class="button"><svg class="icon"><use xlink:href="./images/icons.svg#first"></use></svg></div>
+        <div id="control-play" class="button"><svg class="icon"><use xlink:href="./images/icons.svg#play"></use></svg></div>
+        <div id="control-last" class="button"><svg class="icon"><use xlink:href="./images/icons.svg#last"></use></svg></div>
+      </div>
+    </div>
+  </body>
   <script>
     require('./js/app');
   </script>
