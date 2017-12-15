@@ -6,9 +6,9 @@ var Const = {
 
   COLOR_STROKE: new Color(64, 64, 64),
   COLOR_SELECTION: new Color(30, 144, 255),
-  COLOR_WORKSPACE: new Color(240, 240, 238),
+  COLOR_WORKSPACE: new Color(250, 250, 250),
   COLOR_ONION: new Color(128, 255, 128),
-  COLOR_PAPER: new Color(240, 240, 238),
+  COLOR_PAPER: new Color(250, 250, 250),
 
   KEY_PAN: ' ',
   // LINE_WIDTH: 1.5,

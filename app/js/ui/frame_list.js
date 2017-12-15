@@ -42,7 +42,7 @@ class FrameList extends Container {
     this.frameListNew.el.onclick = () => {
       this.emit('new-frame');
     };
-    let icon = new Icon({ resource: 'plus' });
+    let icon = new Icon({ resource: 'plus', invert: true });
     icon.el.style.width = '24px';
     icon.el.style.height = '24px';
     this.frameListNew.add(icon);
@@ -53,8 +53,11 @@ class FrameList extends Container {
     this.grab = false;
     this.dragAmount = 0;
     this.capture = false;
+    this.velocity = 0;
+    this.timerId = null;
 
     this.el.addEventListener('mousedown', this);
+    this.el.addEventListener('wheel', this);
     // this.el.addEventListener('blur', this);
   }
 
@@ -257,9 +260,26 @@ class FrameList extends Container {
     }
   }
 
+  onWheel(event) {
+    let deltaX = event.deltaX;
+    if (Math.abs(deltaX) > Math.abs(this.velocity)) this.velocity = deltaX;
+    if (this.timerId == null) {
+      this.acceleration = 1;
+      this.timerId = setInterval(() => {
+        this.velocity = this.velocity * this.acceleration;
+        this.el.scrollLeft += this.velocity;
+        this.acceleration *= 0.5;
+        if (this.acceleration < 0.1) {
+          clearInterval(this.timerId);
+          this.velocity = 0;
+          this.timerId = null;
+        }
+      }, 1000/60);
+    }
+  }
+
   handleEvent(event) {
     if (event.type == 'mousedown') {
-      // console.log('mousedown');
       this.onMouseDown(event);
     }
     else if (event.type == 'mouseup') {
@@ -271,9 +291,11 @@ class FrameList extends Container {
     else if (event.type == 'resize') {
       // this.onResize(event);
     }
+    else if (event.type == 'wheel') {
+      this.onWheel(event);
+    }
     else if (event.type == 'blur') {
       this.onBlur(event);
-      // this.onResize(event);
     }
   }
 }

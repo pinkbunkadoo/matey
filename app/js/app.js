@@ -251,8 +251,9 @@ app.updateFrameListThumbnail = (frame) => {
 
   if (frameListItem) {
     var ctx = frameListItem.canvas.getContext('2d')
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
+    // ctx.fillStyle = 'white';
+    // ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
 

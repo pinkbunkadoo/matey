@@ -48,70 +48,64 @@ class PolygonTool extends Tool {
     this.emit('change');
   }
 
-  render() {
+  render(ctx) {
 
     if (this.drawing) {
-      app.paper.renderPath(this.points, { screen: true });
-      var last = this.points[this.points.length - 1];
-      var mp = new Point(this.mx, this.my);
-      app.paper.renderPath([ last, mp ], { screen: true });
+      // app.paper.renderPath(this.points, { screen: true });
+      // var last = this.points[this.points.length - 1];
+      // var mp = new Point(this.mx, this.my);
+      // app.paper.renderPath([ last, mp ], { screen: true });
     }
-  //   var ctx = app.getOverlayContext();
-  //   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  //   ctx.lineCap = 'round';
-  //   ctx.lineJoin = 'round';
-  //
-  //   // ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
-  //
-  //   if (this.points.length && this.drawing) {
-  //     ctx.lineWidth = Const.LINE_WIDTH;
-  //     ctx.strokeStyle = Const.color.STROKE;
-  //
-  //     if (this.points.length > 1) {
-  //       var p = this.points[0];
-  //
-  //       ctx.beginPath();
-  //
-  //       for (var i = 0; i < this.points.length; i++) {
-  //         var p = this.points[i];
-  //         x = p.x, y = p.y;
-  //         if (i == 0)
-  //           ctx.moveTo(x, y);
-  //         else
-  //           ctx.lineTo(x, y);
-  //       }
-  //
-  //       if (this.points.length == 2) ctx.closePath();
-  //
-  //       ctx.stroke();
-  //     }
-  //
-  //     var mx = this.mx, my = this.my;
-  //     p = this.points[this.points.length - 1];
-  //
-  //     ctx.save();
-  //     // ctx.globalCompositeOperation = 'difference';
-  //     // ctx.lineWidth = 1;
-  //     ctx.lineWidth = Const.LINE_WIDTH;
-  //     ctx.strokeStyle = Const.color.STROKE; //'dodgerblue';
-  //     // ctx.setLineDash([3, 4]);
-  //
-  //     // ctx.lineDashOffset = Util.distance(p.x, p.y, mx, my);
-  //     // ctx.globalAlpha = 0.5;
-  //     ctx.beginPath();
-  //     ctx.moveTo(p.x >> 0, p.y >> 0);
-  //     ctx.lineTo(mx >> 0, my >> 0);
-  //     // ctx.closePath();
-  //     ctx.stroke();
-  //     ctx.restore();
-  //   }
-  //
-  //   // ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (this.points.length) {
+      ctx.lineWidth = Const.LINE_WIDTH;
+      ctx.strokeStyle = Const.COLOR_STROKE;
+
+      if (this.points.length > 1) {
+        var p = this.points[0];
+
+        ctx.beginPath();
+
+        for (var i = 0; i < this.points.length; i++) {
+          let p = this.points[i];
+          let x = p.x, y = p.y;
+          if (i == 0)
+            ctx.moveTo(x, y);
+          else
+            ctx.lineTo(x, y);
+        }
+
+        // if (this.points.length == 2) ctx.closePath();
+
+        ctx.stroke();
+      }
+
+      let mx = this.mx, my = this.my;
+      p = this.points[this.points.length - 1];
+
+      // ctx.save();
+      // ctx.globalCompositeOperation = 'difference';
+      // ctx.lineWidth = 1;
+      ctx.lineWidth = Const.LINE_WIDTH;
+      ctx.strokeStyle = Const.COLOR_STROKE; //'dodgerblue';
+      // ctx.setLineDash([3, 4]);
+
+      // ctx.beginPath();
+      // ctx.moveTo(p.x >> 0, p.y >> 0);
+      // ctx.lineTo(mx >> 0, my >> 0);
+      // ctx.stroke();
+      // ctx.restore();
+    }
+
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   onMouseMove(event) {
-    var mx = event.clientX - app.paper.el.offsetLeft;
-    var my = event.clientY - app.paper.el.offsetTop;
+    var mx = event.clientX;//- app.paper.el.offsetLeft;
+    var my = event.clientY;// - app.paper.el.offsetTop;
 
     if (this.drawing) {
       // this.points[1].x = mx;
@@ -179,8 +173,8 @@ class PolygonTool extends Tool {
   }
 
   onMouseDown(event) {
-    var mx = event.clientX - app.paper.el.offsetLeft;
-    var my = event.clientY - app.paper.el.offsetTop;
+    var mx = event.clientX;// - app.paper.el.offsetLeft;
+    var my = event.clientY;// - app.paper.el.offsetTop;
 
     if (event.button == 0) {
       if (this.drawing) {
@@ -218,7 +212,6 @@ class PolygonTool extends Tool {
   }
 
   handleEvent(event) {
-    // console.log(event.type);
     if (event.type === 'mousedown') {
       this.onMouseDown(event);
     }

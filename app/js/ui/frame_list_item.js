@@ -26,13 +26,10 @@ class FrameListItem extends Container {
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.width;
     this.canvas.height = this.height;
-    this.canvas.style.background = 'gray';
-    // this.canvas.style.borderRadius = '2px';
     this.canvas.style.pointerEvents = 'none';
 
-    this.graphic = new Graphic({ image: this.canvas });
+    this.graphic = new Graphic(this.canvas);
     this.graphic.el.style.pointerEvents = 'none';
-    // this.graphic.el.style.borderRadius = '4px';
     this.add(this.graphic);
 
     // this.numberContainer = new Container({ style: { boxSizing: 'border-box', width: this.width + 'px', height: this.height + 'px', borderRadius: '4px' }});
