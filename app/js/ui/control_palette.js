@@ -10,6 +10,8 @@ class ControlPalette extends Container {
     this.buttons['first'] = new Button(this.el.querySelector('#control-first'));
     this.buttons['play'] = new Button(this.el.querySelector('#control-play'));
     this.buttons['last'] = new Button(this.el.querySelector('#control-last'));
+    this.buttons['loop'] = new Button(this.el.querySelector('#control-loop'));
+    this.buttons['onion'] = new Button(this.el.querySelector('#control-onion'));
 
     for (let name in this.buttons) {
       this.buttons[name].el.style.width = '16px';

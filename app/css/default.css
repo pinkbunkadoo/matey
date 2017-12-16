@@ -2,7 +2,7 @@
 html, body {
   font-family: sans-serif;
   font-size: 10px;
-  color: rgb(32, 32, 32);
+  /*color: rgb(32, 32, 32);*/
   padding: 0px;
   margin: 0px;
   overflow: hidden;
@@ -10,9 +10,7 @@ html, body {
   -ms-user-select:none;
   -moz-user-select: none;
   user-select: none;
-  /*height: 100%;*/
   min-height: 100vh;
-  /*background: green;*/
 }
 
 .ui {
@@ -98,8 +96,9 @@ html, body {
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(0, 0, 0, 0);
-  padding: 8px;
-  height: 24px;
+  padding: 6px;
+  /*background: orange;*/
+  /*height: 24px;*/
   /*height: 100%;*/
   /*width: 100%;*/
   /*width: 32px;
@@ -112,7 +111,7 @@ html, body {
 
 .button.selected {
   background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0);
 }
 
 .tool-button {
@@ -125,8 +124,8 @@ html, body {
   /*height: 28px;
   width: 28px;*/
   border: 1px solid rgba(0, 0, 0, 0);
-  padding: 8px;
-  height: 24px;
+  padding: 6px;
+  /*height: 24px;*/
 }
 
 .tool-button:hover {
@@ -135,7 +134,7 @@ html, body {
 
 .tool-button.selected {
   background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgb(192, 192, 192);
+  border: 1px solid rgba(0, 0, 0, 0);
 }
 
 .color-swatch {
@@ -171,21 +170,21 @@ html, body {
 }
 
 .pencil-options {
-  /*position: fixed;*/
-  /*left: 128px;*/
-  /*width: 100px;*/
-  /*height: 100px;*/
+  /*position: fixed;
+  left: 128px;
+  width: 100px;
+  height: 100px;*/
 }
 
 .panel-heading {
-  display: flex;
+  /*display: flex;
   flex-direction: row;
   align-items: center;
   height: 2.5em;
   min-height: 2.5em;
   max-height: 2.5em;
   font-size: 1em;
-  font-weight: bold;
+  font-weight: bold;*/
 }
 
 .label {
@@ -194,10 +193,9 @@ html, body {
 }
 
 .scroller {
-  background: rgb(200,200,200);
+  background: rgb(200, 200, 200);
   box-sizing: border-box;
   height: 6px;
-  /*border: 1px solid black;*/
 }
 
 .grabber {
@@ -234,10 +232,8 @@ html, body {
 }
 
 .palette {
-  /*background-color: #f5f6f7;*/
-  /*background: #e5e6e7;*/
   background: rgba(240, 242, 244, 0.95);
-  /*box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);*/
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);
   /*box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.3);*/
   border-radius: 8px;
   padding: 8px;
@@ -246,12 +242,9 @@ html, body {
 #tools-palette {
   flex-direction: column;
   position: fixed;
-  /*left: 0px;*/
   align-items: center;
-
   left: -8px;
   padding-left: 16px;
-
   /*background-color: #f5f6f7;*/
   /*border-radius: 0px 3px 3px 0px;*/
   /*box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);*/
@@ -271,7 +264,9 @@ html, body {
   overflow: hidden;
   top: 0px;
   width: 100%;
-  background: rgba(232, 234, 236, 0.5);
+  /*margin-left: 32px;*/
+  /*margin-right: 32px;*/
+  background: rgba(232, 234, 236, 0.8);
   /*cursor: none;*/
 }
 

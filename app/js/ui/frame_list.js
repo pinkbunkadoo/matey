@@ -14,26 +14,12 @@ const Frame = require('../frame');
 class FrameList extends Container {
   constructor(el) {
     super(el);
-
-    // this.addClass('frame-list');
-
-    // this.width = params.width || 128;
-    // this.height = params.height || 80;
-
     this.items = [];
     this.selection = null;
-
-    // this.frameListContainer = new Container();
-    // this.frameListContainer.addClass('frame-list');
 
     this.container = new Container(this.el.querySelector('#frame-list-container'));
     this.add(this.container);
 
-    // this.add(this.frameListContainer);
-
-    // this.el.addEventListener('mousedown', function(event) {
-    //   console.log('mousedown frame-list');
-    // });
     this.thumbnailWidth = 32;
     this.thumbnailHeight = 32;
 
@@ -55,6 +41,7 @@ class FrameList extends Container {
     this.capture = false;
     this.velocity = 0;
     this.timerId = null;
+    this.velocityTimeoutId = null;
 
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('wheel', this);
@@ -140,10 +127,10 @@ class FrameList extends Container {
     }
   }
 
-  adjust(params) {
+  // adjust(params) {
     // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
     // console.log();
-  }
+  // }
 
   setThumbnailSize(width, height) {
     this.thumbnailWidth = width;
@@ -196,42 +183,18 @@ class FrameList extends Container {
   }
 
   onMouseDown(event) {
-    // console.log('down');
-
     var target = event.target;
-
     this.dragAmount = 0;
-
-    // this.el.addEventListener('mouseup', this);
     this.beginMouseCapture();
-
-    // this.el.setCapture(true);
-
-    // console.log();
-    // console.log('down', target);
-
-    // if (target === this.el) {
-    //   console.log('down');
-    //
-    // } else if (target.data !== undefined) {
-    //   this.emit('select', { index: parseInt(target.data) - 1 });
-    // }
-
-    // if (this.grab) {
-    //
-    // } else {
-    //
-    // }
   }
 
   onMouseUp(event) {
-    // console.log('up');
-
     var target = event.target;
     var point = Mouse.getPosition(event);
 
     if (this.grab) {
-
+      this.clearVelocityTimeout();
+      if (Math.abs(this.velocity) > 1) this.startMomentumTimer();
     } else {
       if (event.target !== this.el) {
         let index = event.target.dataset.index;
@@ -240,18 +203,45 @@ class FrameList extends Container {
         }
       }
     }
-
     this.endMouseCapture();
     this.grab = false;
   }
 
+  stopMomentumTimer() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+  }
+
+  startMomentumTimer() {
+    if (this.timerId) clearInterval(this.timerId);
+    this.decay = 1;
+    this.timerId = setInterval(() => {
+      this.velocity = this.velocity * this.decay;
+      this.el.scrollLeft += this.velocity;
+      this.decay *= 0.995;
+      if (Math.abs(this.velocity) < 1) {
+        this.stopMomentumTimer();
+      }
+    }, 1000/60);
+  }
+
+  clearVelocityTimeout() {
+    clearTimeout(this.velocityTimeoutId);
+    this.velocityTimeoutId = null;
+  }
+
   onMouseMove(event) {
     var point = Mouse.getPosition(event);
-
     if (this.grab) {
-      this.el.scrollLeft -= event.movementX;
+      let deltaX = -event.movementX;
+      this.velocity = deltaX;
+      this.el.scrollLeft += deltaX;
+      clearTimeout(this.velocityTimeoutId);
+      this.velocityTimeoutId = setTimeout(() => { this.velocity = 0; }, 100);
     } else {
-      if (Mouse.isLeftButtonDown(event)) {
+      if (event.buttons & 1) {
         this.dragAmount += event.movementX;
         if (Math.abs(this.dragAmount) > 3) {
           this.grab = true;
@@ -263,19 +253,7 @@ class FrameList extends Container {
   onWheel(event) {
     let deltaX = event.deltaX;
     if (Math.abs(deltaX) > Math.abs(this.velocity)) this.velocity = deltaX;
-    if (this.timerId == null) {
-      this.acceleration = 1;
-      this.timerId = setInterval(() => {
-        this.velocity = this.velocity * this.acceleration;
-        this.el.scrollLeft += this.velocity;
-        this.acceleration *= 0.5;
-        if (this.acceleration < 0.1) {
-          clearInterval(this.timerId);
-          this.velocity = 0;
-          this.timerId = null;
-        }
-      }, 1000/60);
-    }
+    this.startMomentumTimer();
   }
 
   handleEvent(event) {

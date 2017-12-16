@@ -9,7 +9,7 @@ const PointerTool = require('../tools/pointer_tool');
 const PencilTool = require('../tools/pencil_tool');
 
 
-class Tools extends Container {
+class ToolsPalette extends Container {
   constructor(el) {
     super(el);
 
@@ -33,8 +33,8 @@ class Tools extends Container {
     this.buttons['zoom'].onPress = () => { this.onToolSelect('zoom'); };
 
     for (let name in this.buttons) {
-      this.buttons[name].el.style.width = '28px';
-      this.buttons[name].el.style.height = '28px';
+      this.buttons[name].el.style.width = '32px';
+      this.buttons[name].el.style.height = '24px';
     }
 
     // this.el.style.display = 'block';
@@ -123,4 +123,4 @@ class Tools extends Container {
   }
 }
 
-module.exports = Tools;
+module.exports = ToolsPalette;
