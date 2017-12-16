@@ -2,8 +2,8 @@ const Const = require('./const');
 const Util = require('./util');
 const Color = require('./color');
 const Tools = require('./tools/');
-const ToolsPalette = require('./ui/tools_palette');
-const ControlPalette = require('./ui/control_palette');
+const ToolsPalette = require('./ui/palettes/tools_palette');
+const ControlPalette = require('./ui/palettes/control_palette');
 const Stroke = require('./stroke');
 const Sequence = require('./sequence');
 const Geom = require('./geom/');
@@ -824,9 +824,7 @@ function startup() {
 
   app.tools.pencil = new Tools.Pencil();
   app.tools.pencil.on('stroke', (params) => {
-    let fill = app.ui.toolsPalette.getFillColor();
-    let color = app.ui.toolsPalette.getStrokeColor()
-    app.createStroke(params.points, color, fill);
+    app.createStroke(params.points, app.ui.toolsPalette.getColor(), app.ui.toolsPalette.getFill());
   });
   app.tools.pencil.on('change', (params) => {
     // console.log('change');
@@ -836,7 +834,7 @@ function startup() {
   app.tools.line = new Tools.Line();
   app.tools.line.on('stroke', (params) => {
     // console.log('line-stroke');
-    app.createStroke(params.points, app.ui.toolsPalette.getStrokeColor(), app.ui.toolsPalette.getFillColor());
+    app.createStroke(params.points, app.ui.toolsPalette.getColor(), app.ui.toolsPalette.getFill());
     // app.addAction(new Actions.Line());
   });
   app.tools.line.on('change', (params) => {

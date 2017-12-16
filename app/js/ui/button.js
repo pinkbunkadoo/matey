@@ -7,22 +7,30 @@ class Button extends Container {
     super(el);
 
     this.state = false;
-    this.onPress = undefined;
+    // this.callback = undefined;
 
     this.el.addEventListener('mousedown', this);
-
     // this.el.addEventListener('mouseup', this);
     // this.el.addEventListener('mouseout', this);
     // this.el.addEventListener('mouseover', this);
   }
 
   setState(state) {
-    if (state) {
-      if (!this.state) this.addClass('selected');
-    } else {
-      if (this.state) this.removeClass('selected');
+    if (state != this.state) {
+      this.state = state;
+      this.update();
     }
-    this.state = state;
+  }
+
+  update() {
+    this.removeClass('down');
+    if (this.state) {
+      this.addClass('down');
+    }
+  }
+
+  toggle() {
+    this.setState(!this.state);
   }
 
   endCapture() {
@@ -35,39 +43,26 @@ class Button extends Container {
   }
 
   onMouseDown(event) {
-    // console.log('down');
-    this.addClass('selected');
     window.addEventListener('mouseup', this);
     window.addEventListener('blur', this);
   }
 
   onMouseUp(event) {
-    // console.log('up');
-    this.removeClass('selected');
-    if (event.target === this.el && this.onPress) {
-      this.onPress(this);
+    if (event.target === this.el) {
+      this.emit('pressed');
     }
     this.endCapture();
+    this.update();
   }
 
   onMouseOut(event) {
-    // if (app.mouseDownTargetTag) {
-    //   if (app.mouseDownTargetTag === this.tag) {
-    //     this.removeClass('selected');
-    //   }
-    // } else {
-    // }
-    this.removeClass('hover');
+    // if (event.buttons & 1) this.removeClass('selected');
+    // this.removeClass('hover');
   }
 
   onMouseOver(event) {
-    // if (app.mouseDownTargetTag) {
-    //   if (app.mouseDownTargetTag === this.tag) {
-    //     this.addClass('selected');
-    //   }
-    // } else {
-    // }
-    this.addClass('hover');
+    // if (event.buttons & 1) this.addClass('selected');
+    // this.addClass('hover');
   }
 
   handleEvent(event) {

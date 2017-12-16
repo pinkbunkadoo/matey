@@ -252,8 +252,9 @@ class FrameList extends Container {
 
   onWheel(event) {
     let deltaX = event.deltaX;
-    if (Math.abs(deltaX) > Math.abs(this.velocity)) this.velocity = deltaX;
-    this.startMomentumTimer();
+    // if (Math.abs(deltaX) > Math.abs(this.velocity)) this.velocity = deltaX;
+    this.el.scrollLeft += deltaX;
+    // this.startMomentumTimer();
   }
 
   handleEvent(event) {

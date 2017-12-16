@@ -1,7 +1,7 @@
 
 html, body {
   font-family: sans-serif;
-  font-size: 10px;
+  font-size: 8px;
   /*color: rgb(32, 32, 32);*/
   padding: 0px;
   margin: 0px;
@@ -97,52 +97,29 @@ html, body {
   justify-content: center;
   border: 1px solid rgba(0, 0, 0, 0);
   padding: 6px;
-  /*background: orange;*/
-  /*height: 24px;*/
-  /*height: 100%;*/
-  /*width: 100%;*/
-  /*width: 32px;
-  height: 32px;*/
+  margin: 1px;
 }
 
 .button:hover {
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-.button.selected {
+.button:active {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.button.down {
   background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0);
-}
-
-.tool-button {
-  display: flex;
-  flex-direction: row;
-  border-radius: 3px;
-  /*box-sizing: border-box;*/
-  align-items: center;
-  justify-content: center;
-  /*height: 28px;
-  width: 28px;*/
-  border: 1px solid rgba(0, 0, 0, 0);
-  padding: 6px;
-  /*height: 24px;*/
-}
-
-.tool-button:hover {
-  border: 1px solid rgb(192, 192, 192);
-}
-
-.tool-button.selected {
-  background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0);
 }
 
 .color-swatch {
-  /*background: black;*/
   border: 1px solid #808080;
-  border-radius: 4px;
+  border-radius: 2px;
   align-items: center;
   justify-content: center;
+  width: 2em;
+  height: 2em;
+  margin: 1px;
 }
 
 .panel {
@@ -245,9 +222,14 @@ html, body {
   align-items: center;
   left: -8px;
   padding-left: 16px;
-  /*background-color: #f5f6f7;*/
-  /*border-radius: 0px 3px 3px 0px;*/
-  /*box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.2);*/
+}
+
+#tools-palette-colors {
+  display: flex;
+  /* flex: auto; */
+  flex-direction: row;
+  flex-wrap: nowrap;
+  /* border: 1px solid red; */
 }
 
 #paper {

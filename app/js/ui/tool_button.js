@@ -13,10 +13,12 @@ class ToolButton extends Button {
   // ToolButton.prototype.constructor = ToolButton;
 
   onMouseDown(event) {
-    this.addClass('selected');
-    if (this.onPress) {
-      this.onPress(this);
-    }
+    this.emit('pressed');
+    // this.addClass('down');
+    // if (this.onPress) {
+    //   this.onPress(this);
+    //   console.log('down');
+    // }
   }
 
   onMouseUp(event) {

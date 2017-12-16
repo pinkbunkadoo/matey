@@ -9,13 +9,15 @@ class ColorSwatch extends Container {
 
     this.addClass('color-swatch');
 
-    this.el.style.width = '18px';
-    this.el.style.height = '18px';
+    // this.el.style.width = '18px';
+    // this.el.style.height = '18px';
 
     // this.color = params.color ? params.color.copy() : new Color()
-
     // this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });
-    this.nullColorIcon = new Icon({ resource: 'nullcolor', width: 16, height: 16 });
+
+    this.nullColorIcon = new Icon({ resource: 'nullcolor' });
+    this.nullColorIcon.el.style.width = '1em';
+    this.nullColorIcon.el.style.height = '1em';
     this.add(this.nullColorIcon);
 
     this.setColor(params.color);
