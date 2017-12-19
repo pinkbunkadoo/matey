@@ -4,8 +4,8 @@ const Color = require('../color');
 const Icon = require('./icon');
 
 class ColorSwatch extends Container {
-  constructor(params = {}) {
-    super(params);
+  constructor(el) {
+    super(el);
 
     this.addClass('color-swatch');
 
@@ -15,12 +15,17 @@ class ColorSwatch extends Container {
     // this.color = params.color ? params.color.copy() : new Color()
     // this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });
 
-    this.nullColorIcon = new Icon({ resource: 'nullcolor' });
-    this.nullColorIcon.el.style.width = '1em';
-    this.nullColorIcon.el.style.height = '1em';
+    this.nullColorIcon = new Icon({ resource: 'checker', invert: false });
+    this.nullColorIcon.el.style.width = '2em';
+    this.nullColorIcon.el.style.height = '2em';
     this.add(this.nullColorIcon);
 
-    this.setColor(params.color);
+    this.setColor(null);
+
+    // this.setColor(params.color);
+
+    this.el.addEventListener('mousedown', this);
+    this.el.addEventListener('dblclick', this);
   }
 
   getColor() {
@@ -29,19 +34,37 @@ class ColorSwatch extends Container {
 
   setColor(color) {
     if (color instanceof Color) {
+      this.removeClass('none');
       this.color = color.copy();
       this.el.style.background = this.color.toHexString();
       this.nullColorIcon.setVisible(false);
     } else {
+      this.addClass('none');
       this.color = null;
-      this.el.style.background = 'transparent';
       this.nullColorIcon.setVisible(true);
+      this.el.style.background = 'transparent';
     }
   }
 
   onMouseDown(event) {
-    if (event.button === 2) {
+    if (event.buttons & 2) {
+      // console.log('down');
+      // if (this.color) {
+      //   this.setColor(null);
+      // } else {
+      //   this.setColor(Color.Black);
+      // }
+    }
+  }
+
+  onMouseUp(event) {
+  }
+
+  onDblClick(event) {
+    if (this.color) {
       this.setColor(null);
+    } else {
+      this.setColor(Color.Black);
     }
   }
 
@@ -61,6 +84,12 @@ class ColorSwatch extends Container {
   handleEvent(event) {
     if (event.type === 'mousedown') {
       this.onMouseDown(event);
+    }
+    if (event.type === 'mouseup') {
+      this.onMouseUp(event);
+    }
+    if (event.type === 'dblclick') {
+      this.onDblClick(event);
     }
     else if (event.type === 'copy') {
       this.onCopy(event);

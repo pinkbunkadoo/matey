@@ -1,7 +1,7 @@
-const Graphic = require('./graphic');
-const Container = require('./container');
-const Label = require('./label');
-const Spacer = require('./spacer');
+const Graphic = require('../graphic');
+const Container = require('../container');
+const Label = require('../label');
+const Spacer = require('../spacer');
 
 class FrameListItem extends Container {
   constructor(width, height) {

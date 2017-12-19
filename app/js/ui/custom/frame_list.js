@@ -1,27 +1,27 @@
-const Base = require('./base');
-const Mouse = require('../mouse');
-const Container = require('./container');
-const Spacer = require('./spacer');
-const Divider = require('./divider');
-const Label = require('./label');
-const Icon = require('./icon');
-const Button = require('./button');
-const Scroller = require('./scroller');
-
+const Base = require('../base');
+const Mouse = require('../../mouse');
+const Container = require('../container');
+const Spacer = require('../spacer');
+const Divider = require('../divider');
+const Label = require('../label');
+const Icon = require('../icon');
+const Button = require('../button');
+const Scroller = require('../scroller');
 const FrameListItem = require('./frame_list_item');
-const Frame = require('../frame');
+// const Frame = require('../../frame');
 
 class FrameList extends Container {
   constructor(el) {
     super(el);
+
     this.items = [];
     this.selection = null;
 
     this.container = new Container(this.el.querySelector('#frame-list-container'));
     this.add(this.container);
 
-    this.thumbnailWidth = 32;
-    this.thumbnailHeight = 32;
+    // this.thumbnailWidth = 32;
+    // this.thumbnailHeight = 32;
 
     this.frameListNew = new Container();
     this.frameListNew.addClass('frame-list-new');
@@ -29,8 +29,10 @@ class FrameList extends Container {
       this.emit('new-frame');
     };
     let icon = new Icon({ resource: 'plus', invert: true });
-    icon.el.style.width = '24px';
-    icon.el.style.height = '24px';
+    icon.el.style.width = '4em';
+    icon.el.style.height = '4em';
+    // this.frameListNew.el.style.width = '2em';
+    // this.frameListNew.el.style.height = '2em';
     this.frameListNew.add(icon);
 
     this.items.push(this.frameListNew);
@@ -38,13 +40,12 @@ class FrameList extends Container {
 
     this.grab = false;
     this.dragAmount = 0;
-    this.capture = false;
     this.velocity = 0;
     this.timerId = null;
     this.velocityTimeoutId = null;
 
     this.el.addEventListener('mousedown', this);
-    this.el.addEventListener('wheel', this);
+    // this.el.addEventListener('wheel', this);
     // this.el.addEventListener('blur', this);
   }
 
@@ -164,28 +165,28 @@ class FrameList extends Container {
     // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
   }
 
-  beginMouseCapture() {
-    this.capture = true;
-    window.addEventListener('mouseup', this);
-    window.addEventListener('mousemove', this);
-    window.addEventListener('blur', this);
+  beginCapture() {
+    app.capture(this);
+    // window.addEventListener('mouseup', this);
+    // window.addEventListener('mousemove', this);
+    // window.addEventListener('blur', this);
   }
 
-  endMouseCapture() {
-    this.capture = false;
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('mousemove', this);
-    window.removeEventListener('blur', this);
+  endCapture() {
+    app.release(this);
+    // window.removeEventListener('mouseup', this);
+    // window.removeEventListener('mousemove', this);
+    // window.removeEventListener('blur', this);
   }
 
-  onBlur(event) {
-    this.endMouseCapture();
-  }
+  // onBlur(event) {
+  //   this.endCapture();
+  // }
 
   onMouseDown(event) {
     var target = event.target;
     this.dragAmount = 0;
-    this.beginMouseCapture();
+    this.beginCapture();
   }
 
   onMouseUp(event) {
@@ -203,7 +204,7 @@ class FrameList extends Container {
         }
       }
     }
-    this.endMouseCapture();
+    this.endCapture();
     this.grab = false;
   }
 

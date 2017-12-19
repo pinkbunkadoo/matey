@@ -10,21 +10,23 @@ const LineAction = require('../actions/line_action');
 class LineTool extends Tool {
   constructor() {
     super('line');
-
     this.cursor = 'line';
-    this.points = [];
-    // console.log('linetool');
-    this.mx = 0;//app.mouseX;
-    this.my = 0;//app.mouseY;
+    this.reset();
+  }
 
+  reset() {
+    this.points = [];
+    this.mx = 0;
+    this.my = 0;
     this.drawing = false;
   }
 
   focus() {
+    this.reset();
   }
 
   blur() {
-    this.endStroke();
+    // this.reset();
   }
 
   addPoint(x, y) {
@@ -40,26 +42,30 @@ class LineTool extends Tool {
     this.addPoint(x, y);
     this.addPoint(x, y);
 
-    window.addEventListener('mouseup', this);
-    window.addEventListener('mousemove', this);
-    window.addEventListener('blur', this);
+    // window.addEventListener('mouseup', this);
+    // window.addEventListener('mousemove', this);
+    // window.addEventListener('blur', this);
+    app.capture(this);
   }
 
   endStroke() {
     // console.log('end');
     // this.addPoint(app.mouseX, app.mouseY);
-    if (this.points.length > 1) {
-      // app.updateFrameListIcon(app.sequence.position);
-      // app.sequence.addAction(new LineAction());
-      this.emit('stroke', { points: this.points });
+    if (this.drawing) {
+      this.drawing = false;
+      if (this.points.length > 1) {
+        // app.updateFrameListIcon(app.sequence.position);
+        // app.sequence.addAction(new LineAction());
+        // this.emit('stroke', { points: this.points });
+        app.createStroke(this.points, app.getColor(), app.getFill());
+      } else {
+        app.render();
+      }
+      this.points = [];
+      app.release(this);
     }
-
-    this.drawing = false;
-    this.points = [];
-
-    this.emit('change');
-
-    this.endCapture();
+    // this.emit('change');
+    // this.endCapture();
   }
 
   render(ctx) {
@@ -82,16 +88,6 @@ class LineTool extends Tool {
       ctx.stroke();
 
     }
-  }
-
-  endCapture() {
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('mousemove', this);
-    window.removeEventListener('blur', this);
-  }
-
-  onBlur(event) {
-    this.endCapture();
   }
 
   onMouseDown(event) {
@@ -124,14 +120,15 @@ class LineTool extends Tool {
   onMouseMove(event) {
     // console.log('mousemove_line');
 
-    var mx = event.clientX;// - app.paper.el.offsetLeft;
-    var my = event.clientY;// - app.paper.el.offsetTop;
+    let mx = app.cursorX; // - app.paper.el.offsetLeft;
+    let my = app.cursorY;// - app.paper.el.offsetTop;
 
     if (this.drawing) {
       this.points[1].x = mx;
       this.points[1].y = my;
 
-      this.emit('change');
+      // this.emit('change');
+      app.render();
 
       // // console.log(app.mouseX);
       //

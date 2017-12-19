@@ -10,62 +10,99 @@ class PolygonTool extends Tool {
     super('polygon');
 
     this.cursor = 'line';
+  }
+
+  reset() {
     this.points = [];
-
-    this.mx = 0; //app.mouseX;
-    this.my = 0; //app.mouseY;
-
+    this.mx = 0;
+    this.my = 0;
     this.drawing = false;
   }
 
   focus() {
+    this.reset();
   }
 
   blur() {
-    this.endStroke();
+    // this.endPath();
+    // this.endStroke();
   }
 
   addPoint(x, y) {
     x = Math.round(x), y = Math.round(y);
     this.points.push(new Point(x, y));
+    // console.log(this.points.length);
   }
 
-  beginStroke(x, y) {
+  beginPath(x, y) {
     this.drawing = true;
     this.addPoint(x, y);
     this.mx = x;
     this.my = y;
+
+    app.capture(this, true);
+
+    // console.log('poly-begin');
+
+    // console.log('beginStroke');
+
+    // window.addEventListener('mouseup', this);
+    // app.paper.canvas.addEventListener('mousemove', this);
+    // // window.addEventListener('mousemove', this);
+    // window.addEventListener('mousedown', this);
+    // window.addEventListener('blur', this);
+
+    // window.addEventListener('pointerlockchange', (event) => {
+    //   console.log('pointerlockchange');
+    // });
+    // window.addEventListener('pointerlockerror', (event) => {
+    //   console.log('pointerlockerror');
+    // });
+    //
+    // app.paper.canvas.requestPointerLock = app.paper.canvas.requestPointerLock || app.paper.canvas.mozRequestPointerLock;
+    // app.paper.canvas.requestPointerLock();
   }
 
-  endStroke() {
-    if (this.points.length > 1) {
-      this.emit('stroke', { points: this.points });
+  endPath() {
+    // console.log('endpath');
+
+    if (this.drawing) {
+      this.drawing = false;
+
+      if (this.points.length > 1) {
+        app.createStroke(this.points, app.getColor(), app.getFill());
+        // this.emit('stroke', { points: this.points });
+      } else {
+        app.render();
+      }
+
+      this.points = [];
+      app.release(this);
     }
 
-    this.drawing = false;
-    this.points = [];
+    // window.removeEventListener('mouseup', this);
+    // // window.removeEventListener('mousemove', this);
+    // window.removeEventListener('mousedown', this);
+    // app.paper.canvas.removeEventListener('mousemove', this);
+    // window.removeEventListener('blur', this);
+    //
+    // document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
+    // // Attempt to unlock
+    // document.exitPointerLock();
 
-    this.emit('change');
+    // console.log('poly-end');
   }
 
   render(ctx) {
-
-    if (this.drawing) {
-      // app.paper.renderPath(this.points, { screen: true });
-      // var last = this.points[this.points.length - 1];
-      // var mp = new Point(this.mx, this.my);
-      // app.paper.renderPath([ last, mp ], { screen: true });
-    }
-
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    if (this.points.length) {
+    if (this.drawing && this.points.length) {
       ctx.lineWidth = Const.LINE_WIDTH;
-      ctx.strokeStyle = Const.COLOR_STROKE;
+      ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
 
-      if (this.points.length > 1) {
-        var p = this.points[0];
+      if (this.points.length >= 1) {
+        // console.log('poly.render');
 
         ctx.beginPath();
 
@@ -78,43 +115,55 @@ class PolygonTool extends Tool {
             ctx.lineTo(x, y);
         }
 
-        // if (this.points.length == 2) ctx.closePath();
+        ctx.lineTo(this.mx, this.my);
 
         ctx.stroke();
+        // console.log(this.points.length);
       }
-
-      let mx = this.mx, my = this.my;
-      p = this.points[this.points.length - 1];
-
-      // ctx.save();
-      // ctx.globalCompositeOperation = 'difference';
-      // ctx.lineWidth = 1;
-      ctx.lineWidth = Const.LINE_WIDTH;
-      ctx.strokeStyle = Const.COLOR_STROKE; //'dodgerblue';
-      // ctx.setLineDash([3, 4]);
-
-      // ctx.beginPath();
-      // ctx.moveTo(p.x >> 0, p.y >> 0);
-      // ctx.lineTo(mx >> 0, my >> 0);
-      // ctx.stroke();
-      // ctx.restore();
     }
+  }
 
-    // ctx.setTransform(1, 0, 0, 1, 0, 0);
+  onMouseDown(event) {
+    // console.log('down', event.target);
+
+    var mx = app.cursorX; //event.clientX;// - app.paper.el.offsetLeft;
+    var my = app.cursorY; //event.clientY;// - app.paper.el.offsetTop;
+
+    if (event.buttons & 1) {
+      if (this.drawing) {
+        // console.log('addpoint');
+        this.addPoint(mx, my);
+        // this.emit('change');
+      } else {
+        // console.log('begindrawing');
+        this.beginPath(mx, my);
+        // this.emit('change');
+      }
+    //   if (this.points.length == 0) {
+    //     this.beginStroke();
+    //   } else {
+    //     this.addPoint(this.mx, this.my);
+    //   }
+    // } else {
+    //   this.endStroke();
+    }
+  }
+
+  onMouseUp(event) {
+    // this.points.push(new Point(app.mouseX, app.mouseY));
+    // this.endStroke();
+    if (event.button == 2) {
+      this.endPath();
+    }
+    // this.drawing = false;
   }
 
   onMouseMove(event) {
-    var mx = event.clientX;//- app.paper.el.offsetLeft;
-    var my = event.clientY;// - app.paper.el.offsetTop;
-
     if (this.drawing) {
-      // this.points[1].x = mx;
-      // this.points[1].y = my;
+      this.mx = app.cursorX; //mx;
+      this.my = app.cursorY; //my;
 
-      this.emit('change');
-
-      this.mx = mx;
-      this.my = my;
+      app.render();
 
       // // console.log(app.mouseX);
       //
@@ -172,42 +221,9 @@ class PolygonTool extends Tool {
     }
   }
 
-  onMouseDown(event) {
-    var mx = event.clientX;// - app.paper.el.offsetLeft;
-    var my = event.clientY;// - app.paper.el.offsetTop;
-
-    if (event.button == 0) {
-      if (this.drawing) {
-        // console.log('addpoint');
-        this.addPoint(mx, my);
-        this.emit('change');
-      } else {
-        // console.log('begindrawing');
-        this.beginStroke(mx, my);
-        this.emit('change');
-      }
-    //   if (this.points.length == 0) {
-    //     this.beginStroke();
-    //   } else {
-    //     this.addPoint(this.mx, this.my);
-    //   }
-    // } else {
-    //   this.endStroke();
-    }
-  }
-
-  onMouseUp(event) {
-    // this.points.push(new Point(app.mouseX, app.mouseY));
-    // this.endStroke();
-    if (event.button == 2) {
-      this.endStroke();
-    }
-    // this.drawing = false;
-  }
-
   onKeyDown(event) {
     if (event.key === 'Escape' && !event.repeat) {
-      this.endStroke();
+      this.endPath();
     }
   }
 

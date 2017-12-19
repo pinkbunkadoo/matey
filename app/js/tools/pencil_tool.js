@@ -11,22 +11,28 @@ class PencilTool extends Tool {
   constructor() {
     super('pencil');
     this.cursor = 'pencil';
+  }
+
+  reset() {
     this.points = [];
+    this.drawing = false;
   }
 
   focus() {
-    // console.log('focus');
+    this.reset();
   }
 
   blur() {
-    this.endStroke();
   }
 
   addPoint(x, y) {
     this.points.push(new Point(x, y));
+    // console.log(x, y);
   }
 
   beginStroke(mx, my) {
+    // console.log('begin');
+    app.capture(this);
     // console.log('beginStroke');
     this.drawing = true;
     // var mx = event.clientX - app.paper.el.offsetLeft;
@@ -35,159 +41,103 @@ class PencilTool extends Tool {
   }
 
   endStroke() {
+    // console.log('end');
+    app.release(this);
+
     this.drawing = false;
 
     if (this.points.length > 2) {
-      // this.points = Smooth.mcmaster(this.points);
-      // var before = this.points.length;
-      this.points = simplify(this.points, 0.5);
-      // var after = this.points.length;
-
-      // console.log(before, after, Math.round(after / before * 100) + '%');
-      // app.updateFrameListIcon(app.sequence.position);
-      // app.sequence.addAction(new PenAction());
-
-      // console.log('end');
-
-      this.emit('stroke', { points: this.points });
+      this.points = simplify(this.points, 0.1);
+      app.createStroke(this.points, app.getColor(), app.getFill());
+      // this.emit('stroke', { points: this.points });
     }
 
     this.points = [];
-    this.emit('change');
 
+    // app.render();
+
+    // this.emit('change');
     // app.clearOverlay();
-
     // this.emitter.emit('render', { points: this.points });
     // app.requestDraw();
   }
 
   render(ctx) {
 
-    // ctx.lineCap = 'round';
-    // ctx.lineJoin = 'round';
-    //
-    // var screen = (options.screen != undefined ? options.screen : false);
-    // var fill = (options.fill ? options.fill.toHexString() : null);
-    // var strokeStyle = (options.strokeStyle ? options.strokeStyle.toHexString() : Const.color.Stroke.toHexString());
-    // var lineWidth = (options.lineWidth != undefined ? options.lineWidth : Const.LINE_WIDTH);
-    // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
+    if (this.drawing) {
+      ctx.beginPath();
 
-    ctx.beginPath();
+      for (var i = 0; i < this.points.length; i++) {
+        var point = this.points[i];
+        var x = point.x, y = point.y;
 
-    for (var i = 0; i < this.points.length; i++) {
-      var point = this.points[i];
-      var x = point.x, y = point.y;
-
-      if (!screen) {
-        // var p = this.worldToScreen(x, y);
-        // x = p.x, y = p.y;
+        if (i == 0)
+          ctx.moveTo(x, y);
+        else
+          ctx.lineTo(x, y);
       }
-      // var x = p.x + dx + 0.5, y = p.y + dy + 0.5;
-      // var x = p.x + dx, y = p.y + dy;
-      // var x = p.x, y = p.y;
 
-      if (i == 0)
-        ctx.moveTo(x, y);
-      else
-        ctx.lineTo(x, y);
+      // ctx.lineTo(app.paper.cursorX, app.paper.cursorY);
+
+      ctx.lineWidth = Const.LINE_WIDTH;
+      ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
+      ctx.stroke();
     }
+  }
 
-    // if (points.length == 2) ctx.closePath();
-
-    // if (fill) {
-    //   ctx.fillStyle = fill;
-    //   ctx.fill();
-    //   ctx.globalAlpha = 1;
-    // }
-
-    ctx.lineWidth = Const.LINE_WIDTH;
-    ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
-    ctx.stroke();
-
-    // if (this.drawing) app.paper.renderPath(this.points, { screen: true });
-
-  //   app.clearOverlay();
-  //   var ctx = app.getOverlayContext();
-  //
-  //   ctx.lineCap = 'round';
-  //   ctx.lineJoin = 'round';
-  //
-  //   if (this.points.length && this.drawing) {
-  //
-  //     // ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
-  //
-  //     ctx.beginPath();
-  //     var p = this.points[0];
-  //     var x = p.x, y = p.y;
-  //     // x = Math.round(x), y = Math.round(y);
-  //
-  //     ctx.moveTo(x, y);
-  //
-  //     for (var i = 1; i < this.points.length; i++) {
-  //       var p = this.points[i];
-  //       var x = p.x, y = p.y;
-  //       ctx.lineTo(x, y);
-  //     }
-  //
-  //     // ctx.lineWidth = Const.LINE_WIDTH;
-  //     ctx.lineWidth = 1;
-  //     ctx.strokeStyle = Const.color.STROKE;
-  //     ctx.stroke();
-  //
-  //     // ctx.font = '12px sans-serif';
-  //     // ctx.fillStyle = 'blue';
-  //     // var text = '' + y;
-  //     // text = text.substring(0, text.indexOf('.') + 2);
-  //     // text = text + ' ' + this.points.length;
-  //     // ctx.fillText(text, 100, 100);
-  // //
-  //     // ctx.setTransform(1, 0, 0, 1, 0, 0);
-  //   }
+  beginCapture() {
+    // window.addEventListener('mouseup', this);
+    // window.addEventListener('mousemove', this);
+    // window.addEventListener('blur', this);
   }
 
   endCapture() {
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('mousemove', this);
-    window.removeEventListener('blur', this);
+    // window.removeEventListener('mouseup', this);
+    // window.removeEventListener('mousemove', this);
+    // window.removeEventListener('blur', this);
   }
 
   onBlur(event) {
-    this.endCapture();
+    // this.endCapture();
   }
 
   onMouseDown(event) {
-    // console.log('pencil-down');
     if (event.buttons === 1) {
       var mx = event.clientX;// - app.paper.el.offsetLeft;
       var my = event.clientY;// - app.paper.el.offsetTop;
       this.beginStroke(mx, my);
-
-      window.addEventListener('mouseup', this);
-      window.addEventListener('mousemove', this);
-      window.addEventListener('blur', this);
+      // this.beginCapture();
     }
   }
 
   onMouseUp(event) {
-    var mx = event.clientX;// - app.paper.el.offsetLeft;
-    var my = event.clientY;// - app.paper.el.offsetTop;
+    var mx = event.clientX; // - app.paper.el.offsetLeft;
+    var my = event.clientY; // - app.paper.el.offsetTop;
     this.addPoint(mx, my);
     this.endStroke();
-    this.endCapture();
+    // this.endCapture();
   }
 
   onMouseMove(event) {
-    // console.log('pencil-move');
-
-    var mx = event.clientX;// - app.paper.el.offsetLeft;
-    var my = event.clientY;// - app.paper.el.offsetTop;
+    var mx = event.clientX; // - app.paper.el.offsetLeft;
+    var my = event.clientY; // - app.paper.el.offsetTop;
 
     if (this.drawing) {
-      // this.addPoint(app.mouseX, app.mouseY);
       this.addPoint(mx, my);
+      // if (event.ctrlKey) {
+
       // Smooth.exp(this.points);
       Smooth.simple(this.points);
-      this.emit('change');
+
+      // let point = this.points[this.points.length - 1];
+      // point.x = mx;
+      // point.y = my;
+
+      // this.addPoint(mx, my);
+      //
+      // }
+      // this.emit('change');
+      app.render();
     }
   }
 
@@ -200,11 +150,14 @@ class PencilTool extends Tool {
     if (event.type === 'mousedown') {
       this.onMouseDown(event);
     }
+    else if (event.type === 'mouseup') {
+      this.onMouseUp(event);
+    }
     else if (event.type === 'mousemove') {
       this.onMouseMove(event);
     }
-    else if (event.type === 'mouseup') {
-      this.onMouseUp(event);
+    else if (event.type === 'blur') {
+      this.onBlur(event);
     }
   }
 }

@@ -7,11 +7,14 @@ class HandTool extends Tool {
   constructor() {
     super('hand');
     this.cursor = 'hand';
+  }
+
+  reset() {
     this.dragging = false;
   }
 
   focus() {
-    console.log('hand');
+    this.reset();
   }
 
   blur() {
@@ -29,31 +32,25 @@ class HandTool extends Tool {
   render() {
   }
 
-  endCapture() {
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('mousemove', this);
-    window.removeEventListener('blur', this);
-  }
-
-  onBlur(event) {
-    this.endCapture();
-  }
-
   onMouseDown(event) {
-    window.addEventListener('mouseup', this);
-    window.addEventListener('mousemove', this);
-    window.addEventListener('blur', this);
+    app.capture(this);
+    // window.addEventListener('mouseup', this);
+    // window.addEventListener('mousemove', this);
+    // window.addEventListener('blur', this);
   }
 
   onMouseUp(event) {
-    this.endCapture();
+    app.release(this);
+    // this.endCapture();
   }
 
   onMouseMove(event) {
     if (event.buttons === 1) {
-      var dx = -event.movementX;
-      var dy = -event.movementY;
-      this.emit('change', { dx: dx, dy: dy });
+      var dx = -event.movementX / app.paper.scale;
+      var dy = -event.movementY / app.paper.scale;
+      app.paper.panCameraBy(dx, dy);
+      app.paper.render();
+      // this.emit('pan', { dx: dx, dy: dy });
     }
   }
 

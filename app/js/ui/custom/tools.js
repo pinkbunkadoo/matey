@@ -1,4 +1,5 @@
 const EventEmitter = require('events').EventEmitter;
+const Const = require('../../const');
 const Container = require('../container');
 const ToolButton = require('../tool_button');
 const Color = require('../../color');
@@ -9,11 +10,9 @@ const Divider = require('../divider');
 // const PencilTool = require('../../tools/pencil_tool');
 
 
-class ToolsPalette extends Container {
+class Tools extends Container {
   constructor(el) {
     super(el);
-
-    // this.el = el;
 
     this.buttons = [];
     this.buttons['pointer'] = new ToolButton(this.el.querySelector('#tools-pointer'));
@@ -34,11 +33,16 @@ class ToolsPalette extends Container {
 
     for (let name in this.buttons) {
       this.buttons[name].el.style.width = '4em';
-      this.buttons[name].el.style.height = '3em';
+      this.buttons[name].el.style.height = '4em';
     }
 
     this.colorSwatch = new ColorSwatch(this.el.querySelector('#tools-color'));
     this.fillSwatch = new ColorSwatch(this.el.querySelector('#tools-fill'));
+
+    this.colorSwatch.setColor(Const.COLOR_STROKE);
+    // this.colorSwatch.setColor(Const.COLOR_STROKE);
+
+    // this.colorSwatch.on('pressed')
 
     // var colorContainer = new Container({ style: { justifyContent: 'center' }});
     //
@@ -78,4 +82,4 @@ class ToolsPalette extends Container {
   }
 }
 
-module.exports = ToolsPalette;
+module.exports = Tools;

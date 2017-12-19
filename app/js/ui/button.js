@@ -33,36 +33,23 @@ class Button extends Container {
     this.setState(!this.state);
   }
 
-  endCapture() {
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('blur', this);
-  }
-
-  onBlur(event) {
-    this.endCapture();
-  }
-
   onMouseDown(event) {
-    window.addEventListener('mouseup', this);
-    window.addEventListener('blur', this);
+    app.capture(this);
   }
 
   onMouseUp(event) {
     if (event.target === this.el) {
       this.emit('pressed');
     }
-    this.endCapture();
+    app.release(this);
+
     this.update();
   }
 
   onMouseOut(event) {
-    // if (event.buttons & 1) this.removeClass('selected');
-    // this.removeClass('hover');
   }
 
   onMouseOver(event) {
-    // if (event.buttons & 1) this.addClass('selected');
-    // this.addClass('hover');
   }
 
   handleEvent(event) {

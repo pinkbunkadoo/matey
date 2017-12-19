@@ -1,11 +1,9 @@
 const Const = require('../const');
 const Util = require('../util');
 const Geom = require('../geom/');
-
 const Stroke = require('../stroke');
 const Tool = require('./tool');
 const Actions = require('../actions/');
-
 const Smooth = require('../lib/smooth');
 
 class PointerTool extends Tool {
@@ -14,34 +12,22 @@ class PointerTool extends Tool {
     this.cursor = 'pointer';
   }
 
-  focus() {
+  reset() {
     this.mode = null;
     this.dragList = [];
-    // app.setCursor('pointer');
-    // this.render();
-    this.emit('change');
-    // app.requestDraw();
+    this.dx = 0;
+    this.dy = 0;
+  }
+
+  focus() {
+    this.reset();
   }
 
   blur() {
-    this.emit('change');
-  }
-
-  moveSelected(dx, dy) {
-    for (var i = 0; i < sequence.selection.elements.length; i++) {
-      var element = sequence.selection.elements[i];
-      var points = element.points;
-      for (var j = 0; j < points.length; j++) {
-        var p = points[j];
-        p.x = p.x + dx / app.paper.scale;
-        p.y = p.y + dy / app.paper.scale;
-      }
-    }
-    // this.emit('change');
   }
 
   nudge(dx, dy) {
-    // var selection = sequence.selection;
+    // var selection = app.selection;
     // var action = sequence.frame.history.get().action;
     //
     // this.moveSelected(dx, dy);
@@ -58,8 +44,8 @@ class PointerTool extends Tool {
 
   beginDrag() {
     this.mode = 'drag';
-    this.moveSelected(this.dx, this.dy);
-    this.emit('drag');
+    app.moveSelected(this.dx, this.dy);
+    // app.capture(this);
   }
 
   endDrag() {
@@ -79,8 +65,7 @@ class PointerTool extends Tool {
     this.dx = 0;
     this.dy = 0;
     this.mode = null;
-
-    this.emit('moved');
+    // app.release();
   }
 
 
@@ -90,21 +75,28 @@ class PointerTool extends Tool {
     this.xmax = Number.NEGATIVE_INFINITY;
     this.ymax = Number.NEGATIVE_INFINITY;
     this.mode = 'select';
-    this.beginCapture();
+    // app.capture(this);
+    // console.log('select');
   }
 
   endSelection() {
-    this.emit('marquee', { xmin: this.xmin, ymin: this.ymin, xmax: this.xmax, ymax: this.ymax });
     this.mode = null;
-    this.emit('change');
-    this.endCapture();
+    // this.emit('marquee', { xmin: this.xmin, ymin: this.ymin, xmax: this.xmax, ymax: this.ymax });
+    // this.emit('change');
+
+    let p1 = app.paper.screenToWorld(this.xmin, this.ymin);
+    let p2 = app.paper.screenToWorld(this.xmax, this.ymax);
+
+    app.marqueeSelect(p1, p2);
+    app.render();
+    // app.release();
+    // app.marqueeSelect();
   }
 
   render(ctx) {
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    ctx.lineWidth = Const.LINE_WIDTH * 2;
+    // ctx.lineCap = 'round';
+    // ctx.lineJoin = 'round';
+    // ctx.lineWidth = Const.LINE_WIDTH * 2;
 
     if (this.mode === 'select') {
       ctx.save();
@@ -117,7 +109,6 @@ class PointerTool extends Tool {
       ctx.rect(this.xmin, this.ymin, this.xmax - this.xmin, this.ymax - this.ymin);
       ctx.stroke();
       ctx.restore();
-
     }
   }
 
@@ -142,66 +133,49 @@ class PointerTool extends Tool {
   //   return bounds;
   // }
 
-  beginCapture() {
-    window.addEventListener('mouseup', this);
-    window.addEventListener('mousemove', this);
-    window.addEventListener('blur', this);
-  }
-
-  endCapture() {
-    window.removeEventListener('mouseup', this);
-    window.removeEventListener('mousemove', this);
-    window.removeEventListener('blur', this);
-  }
-
-  onBlur(event) {
-    this.endCapture();
-  }
-
   onMouseDown(event) {
-    var mx = event.clientX;
-    var my = event.clientY;
-
-    // this.emit('pick', mx, my);
+    // console.log('down');
+    let mx = this.mouseDownX = app.cursorX;
+    let my = this.mouseDownY = app.cursorY;
 
     var stroke = app.hitTest(mx, my);
 
     if (stroke) {
       if (stroke.selected) {
         if (event.shiftKey) {
-          sequence.deselect(stroke);
+          app.deselect(stroke);
         }
       } else {
-        if (!event.shiftKey) sequence.deselect();
-        sequence.select(stroke);
+        if (!event.shiftKey) app.deselect();
+        app.select(stroke);
       }
     } else {
-      if (!event.shiftKey) sequence.deselect();
+      if (!event.shiftKey) app.deselect();
     }
 
     // if (stroke) {
     //   if (stroke.selected) {
     //     if (event.shiftKey) {
-    //       sequence.selection.remove(stroke);
+    //       app.selection.remove(stroke);
     //       this.fuse(stroke);
     //       this.selectionChanged = true;
     //     }
     //   } else {
-    //     sequence.selection.add(stroke);
+    //     app.selection.add(stroke);
     //     this.fuse(stroke);
     //
     //     if (!event.shiftKey) {
-    //       var strokes = sequence.selection.elements.slice(0);
-    //       sequence.selection.clear();
+    //       var strokes = app.selection.items.slice(0);
+    //       app.selection.clear();
     //       for (var i = 0; i < strokes.length; i++) {
     //         if (strokes[i] !== stroke) this.fuse(strokes[i]);
     //       }
     //     }
-    //     sequence.selection.add(stroke);
+    //     app.selection.add(stroke);
     //     this.selectionChanged = true;
     //   }
     // } else {
-    //   if (!sequence.selection.isEmpty()) {
+    //   if (!app.selection.isEmpty()) {
     //     this.deselect();
     //     this.selectionChanged = true;
     //   }
@@ -209,24 +183,26 @@ class PointerTool extends Tool {
 
     this.picked = stroke;
 
-    this.emit('pick', { stroke: this.picked });
+    app.render();
+    // this.emit('pick', { stroke: this.picked });
+    app.capture(this);
   }
 
   onMouseUp(event) {
     if (this.mode == 'select') {
       this.endSelection();
-
     } else if (this.mode == 'drag') {
       this.endDrag();
     }
+    app.release(this);
   }
 
   onMouseMove(event) {
-    var mx = event.clientX;
-    var my = event.clientY;
+    let mx = app.cursorX;
+    let my = app.cursorY;
 
     if (this.mode == 'select') {
-      if (mx < app.paper.mouseDownX) {
+      if (mx < this.mouseDownX) {
         this.xmin = mx;
         this.xmax = this.mouseDownX;
       } else {
@@ -241,22 +217,17 @@ class PointerTool extends Tool {
         this.ymin = this.mouseDownY;
         this.ymax = my;
       }
-      this.emit('change');
-      // this.render();
-      // app.requestDraw();
+      // console.log('select', mx, my);
+      // this.emit('change');
+      app.render();
 
     } else if (this.mode == 'drag') {
-      // var dx = app.mouseDeltaX, dy = app.mouseDeltaY;
       var dx = event.movementX, dy = event.movementY;
-      // console.log(dx, dy);
-
-      // event.clientX - event.target.offsetLeft, event.clientY - event.target.offsetTop
-
-      this.moveSelected(dx, dy);
-      this.emit('drag');
+      app.moveSelected(dx, dy);
+      app.render();
+      // this.emit('drag');
 
     } else {
-      // console.log(app.downTarget);
       if (event.buttons & 1) {
         let dx = mx - this.mouseDownX;
         let dy = my - this.mouseDownY;
@@ -277,22 +248,18 @@ class PointerTool extends Tool {
   onKeyDown(event) {
     var shiftAmount = event.shiftKey ? 10 : 1;
     if ((event.key === 'Delete' || event.key === 'Backspace') && !event.repeat) {
-      // sequence.deleteSelected();
-      // sequence.addAction(new DeleteAction());
-      this.emit('delete');
-      // app.message({ type: 'selectionDeleted' });
-
+      // this.emit('delete');
     } else if (event.key === 'ArrowUp') {
       if (event.ctrlKey) {
-        sequence.frame.bringForward(sequence.selection.elements[0]);
-        this.emit('change');
+        app.frame.bringForward(app.selection.items[0]);
+        // this.emit('change');
       } else {
         this.nudge(0, -shiftAmount);
       }
     } else if (event.key === 'ArrowDown') {
       if (event.ctrlKey) {
-        sequence.frame.sendBack(sequence.selection.elements[0]);
-        this.emit('change');
+        app.frame.sendBack(app.selection.items[0]);
+        // this.emit('change');
       } else {
         this.nudge(0, shiftAmount);
       }

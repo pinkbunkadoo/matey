@@ -1,12 +1,12 @@
-const Util = require('../util');
-const Const = require('../const');
-const Base = require('./base');
-const Label = require('./label');
-const Spacer = require('./spacer');
-const Graphic = require('./graphic');
-const Container = require('./container');
-const ToolButton = require('./tool_button');
-const Button = require('./button');
+const Util = require('../../util');
+const Const = require('../../const');
+const Base = require('../base');
+const Label = require('../label');
+const Spacer = require('../spacer');
+const Graphic = require('../graphic');
+const Container = require('../container');
+const ToolButton = require('../tool_button');
+const Button = require('../button');
 
 function Status(params) {
   params = params || {};

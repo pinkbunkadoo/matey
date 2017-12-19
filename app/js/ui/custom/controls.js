@@ -2,7 +2,7 @@ const Base = require('../base');
 const Container = require('../container');
 const Button = require('../button');
 
-class ControlPalette extends Container {
+class Controls extends Container {
   constructor(el) {
     super(el);
 
@@ -29,9 +29,7 @@ class ControlPalette extends Container {
       this.buttons[name].el.style.width = '2em';
       this.buttons[name].el.style.height = '2em';
     }
-
-    // this.el.style.height = '32px';
   }
 }
 
-module.exports = ControlPalette;
+module.exports = Controls;
