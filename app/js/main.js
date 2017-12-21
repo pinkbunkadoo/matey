@@ -101,8 +101,8 @@ function createWindow () {
 
 function showExportDialog() {
   if (mainWindow) {
-    dialog.showSaveDialog({
-      title: "Export SVG animation...",
+    dialog.showSaveDialog(mainWindow, {
+      title: "Export animation...",
       filters:[
         {
           name: 'Animated GIF',
