@@ -1,5 +1,6 @@
 const Const = require('./const');
 const Geom = require('./geom/');
+const Transform = require('./transform');
 const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
@@ -13,6 +14,7 @@ const Container = require('./ui/container');
 // const Options = require('./ui/options');
 const Tools = require('./ui/custom/tools');
 const Controls = require('./ui/custom/controls');
+const Settings = require('./ui/custom/settings');
 const Paper = require('./ui/custom/paper');
 const Status = require('./ui/custom/status');
 const FrameList = require('./ui/custom/frame_list');
@@ -21,6 +23,10 @@ const FrameList = require('./ui/custom/frame_list');
 const Actions = require('./actions/');
 const HistoryState = require('./history_state');
 const Loader = require('./loader');
+
+const {ipcRenderer} = require('electron');
+const fs = require('fs');
+const GIFEncoder = require('gifencoder');
 
 var app = {
   width: 0, height: 0,
@@ -53,16 +59,18 @@ app.render = () => {
 
   for (let i = 0; i < app.frame.strokes.length; i++) {
     let stroke = app.frame.strokes[i];
-    app.paper.addDisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH });
+    let thickness = stroke.selected ? Const.LINE_WIDTH*2 : Const.LINE_WIDTH;
+    let color = stroke.selected ? Const.COLOR_SELECTION : stroke.color;
+    app.paper.addDisplayItem({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
 
-  if (!app.selection.isEmpty()) {
-    // console.log('render', app.selection.items);
-    for (let i = 0; i < app.selection.items.length; i++) {
-      let stroke = app.selection.items[i];
-      app.paper.addDisplayItem({ points: stroke.points, color: Const.COLOR_SELECTION, thickness: Const.LINE_WIDTH * 2 });
-    }
-  }
+  // if (!app.selection.isEmpty()) {
+  //   // console.log('render', app.selection.items);
+  //   for (let i = 0; i < app.selection.items.length; i++) {
+  //     let stroke = app.selection.items[i];
+  //     app.paper.addDisplayItem({ points: stroke.points, color: Const.COLOR_SELECTION, thickness: Const.LINE_WIDTH * 2 });
+  //   }
+  // }
 
   app.paper.render();
 }
@@ -75,7 +83,6 @@ app.setMode = (desired) => {
   if (desired !== app.mode) {
     app.mode = desired;
     if (app.mode === 'pan') {
-      console.log('pan-on');
       app.setCursor('hand');
     } else {
       if (app.paper.tool) app.setCursor(app.paper.tool.cursor);
@@ -103,7 +110,7 @@ app.setTool = (name) => {
 app.setCursor = (name) => {
   app.paper.el.style.cursor = app.cursors[name];
   app.cursor = name;
-  console.log('cursor', name);
+  // console.log('cursor', name);
 }
 
 app.getColor = () => {
@@ -244,23 +251,6 @@ app.moveSelected = (dx, dy) => {
   }
 }
 
-app.createPath = (ctx, points, dx, dy) => {
-}
-
-app.strokeFromPoints = (sourcePoints, convertToWorld) => {
-  var points = [];
-  for (var i = 0; i < sourcePoints.length; i++) {
-    var p = sourcePoints[i];
-    var x = p.x, y = p.y;
-    if (convertToWorld) {
-      points[i] = app.paper.screenToWorld(x, y);
-    } else {
-      points[i] = new Point(x, y);
-    }
-  }
-  return new Stroke({ points: points });
-}
-
 app.updateFrameLabel = () => {
   // app.ui.frameListBar.setFrame(sequence.position + 1, sequence.size());
   app.ui.frameList.render({ cmd: 'update', index: app.sequence.position + 1, total: app.sequence.size() });
@@ -305,6 +295,22 @@ app.go = (index) => {
   app.render();
 }
 
+app.first = () => {
+  app.go(0);
+}
+
+app.last = () => {
+  app.go(app.sequence.size() - 1);
+}
+
+app.next = () => {
+  app.go(app.sequence.position + 1);
+}
+
+app.previous = () => {
+  app.go(app.sequence.position - 1);
+}
+
 app.showProperties = (object) => {
   // if (object instanceof Stroke) {
   //   // app.ui.properties.render({ cmd: 'show', object: object });
@@ -345,6 +351,10 @@ app.removeFrame = () => {
   }
 }
 
+app.export = () => {
+  ipcRenderer.send('export');
+}
+
 app.addAction = (action) => {
   // sequence.addAction(new Actions.Pencil());
   // app.sequence.frame.history.add(new HistoryState(action, app.sequence.frame.copy()));
@@ -352,15 +362,30 @@ app.addAction = (action) => {
   // app.ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
 }
 
-app.createStroke = (points, color, fill) => {
-  // console.log('createStroke', points.length, color, fill);
+app.createPath = (ctx, points, dx, dy) => {
+  console.log('createPath');
+}
 
+app.strokeFromPoints = (sourcePoints, convertToWorld) => {
+  var points = [];
+  for (var i = 0; i < sourcePoints.length; i++) {
+    var p = sourcePoints[i];
+    var x = p.x, y = p.y;
+    if (convertToWorld) {
+      points[i] = app.paper.screenToWorld(x, y);
+    } else {
+      points[i] = new Point(x, y);
+    }
+  }
+  return new Stroke({ points: points });
+}
+
+app.createStroke = (points, color, fill) => {
   var stroke = app.strokeFromPoints(points, true);
-  // console.log(stroke);
   stroke.setColor(color);
   stroke.setFill(fill);
-
   app.frame.addStroke(stroke);
+  // console.log('stroke', stroke.points[0]);
   app.updateFrameListThumbnail(app.frame);
   app.render();
 }
@@ -374,15 +399,16 @@ app.setStrokeFill = (fill) => {
   }
 }
 
-app.repositionPanels = () => {
+// app.repositionPanels = () => {
   // app.ui.history.reposition();
   // app.ui.properties.reposition();
   // app.ui.tools.reposition();
-}
+// }
 
 app.reposition = () => {
   app.width = window.innerWidth;
-  app.height = window.innerHeight;
+  app.height = window.innerHeight - app.ui.frameList.el.offsetHeight;
+  // console.log(app.width, app.height, app.ui.frameList.el.offsetHeight);
 
   // var width = window.innerWidth;
   // var height = window.innerHeight;
@@ -392,11 +418,9 @@ app.reposition = () => {
   // var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
   // app.ui.frameListBar.el.style.left = b + 'px';
 
-  pos = ((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0;
-  app.ui.tools.el.style.top = pos + 'px';
-
-  pos = ((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0;
-  app.ui.controls.el.style.left = pos + 'px';
+  app.ui.settings.el.style.left = (((app.width / 2) - (app.ui.settings.el.offsetWidth/2)) >> 0) + 'px';
+  app.ui.tools.el.style.top = (((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
+  app.ui.controls.el.style.left = (((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
 }
 
 app.setModal = function(value) {
@@ -408,10 +432,10 @@ app.setModal = function(value) {
       // document.body.style.filter = 'brightness(90%)';
       app.ui.modal.style.cursor = app.cursors[app.cursor];
       // console.log(app.cursor);
-      console.log('modal-on');
+      // console.log('modal-on');
     } else {
       // document.body.style.filter = '';
-      console.log('modal-off');
+      // console.log('modal-off');
     }
   }
 }
@@ -434,10 +458,10 @@ app.release = (captor) => {
       if (app.modal) app.setModal(false);
       // document.body.style.filter = '';
     } else {
-      console.log('app.release', 'captor mismatch');
+      console.log('app.release', 'mismatch');
     }
   } else {
-    console.log('app.release', 'captor null');
+    console.log('app.release', 'null');
   }
 }
 
@@ -570,6 +594,9 @@ window.onkeydown = (event) => {
         // this.mode = 'pan';
         app.setMode('pan');
 
+      // } else if (event.key == 'e' && !event.repeat) {
+        // ipcRenderer.send('export');
+
       } else {
         app.paper.handleEvent(event);
       }
@@ -583,7 +610,7 @@ window.onkeyup = (event) => {
   if (app.mode === 'pan') {
     if (event.key === ' ') {
       if (!app.mouseLeft) {
-        console.log('pan-off');
+        // console.log('pan-off');
         app.setMode(null);
         // app.mode = null;
       }
@@ -647,42 +674,6 @@ window.oncopy = (event) => {
   //   target.handleEvent(event);
   // }
 }
-
-// handleEvent = function(event) {
-//   if (event.type === 'click') {
-//     onClick(event);
-//   }
-//   else if (event.type === 'mousedown') {
-//     onMouseDown(event);
-//   }
-//   else if (event.type === 'mouseup') {
-//     onMouseUp(event);
-//   }
-//   else if (event.type === 'mousemove') {
-//     onMouseMove(event);
-//   }
-//   else if (event.type === 'mouseover') {
-//     onMouseOver(event);
-//   }
-//   else if (event.type === 'mouseout') {
-//     onMouseOut(event);
-//   }
-//   else if (event.type === 'keydown') {
-//     onKeyDown(event);
-//   }
-//   else if (event.type === 'keyup') {
-//     onKeyUp(event);
-//   }
-//   else if (event.type === 'resize') {
-//     onResize(event);
-//   }
-//   else if (event.type === 'paste') {
-//     onPaste(event);
-//   }
-//   else if (event.type === 'copy') {
-//     onCopy(event);
-//   }
-// }
 
 // initEventListeners = function() {
 //   window.addEventListener('click', this);
@@ -749,11 +740,13 @@ window.onload = () => {
     app.newFrame();
   });
 
+  app.ui.controls = new Controls(document.getElementById('controls'));
+  app.ui.settings = new Settings(document.getElementById('settings'));
+
   app.ui.modal = document.getElementById('modal');
 
   app.ui.main.setVisible(true);
 
-  app.ui.controls = new Controls(document.getElementById('controls'));
 
   app.reposition();
   app.setTool('pencil');
@@ -762,3 +755,74 @@ window.onload = () => {
 }
 
 window.app = app;
+
+
+function saveAnimatedGIF(filename) {
+  let canvas = document.createElement('canvas');
+  canvas.width = app.paper.width;
+  canvas.height = app.paper.height;
+
+  let ctx = canvas.getContext('2d');
+  let transform = new Transform(0, 0);
+
+  const encoder = new GIFEncoder(app.paper.width, app.paper.height);
+  encoder.createReadStream().pipe(fs.createWriteStream(filename));
+  encoder.start();
+  encoder.setRepeat(0);
+  encoder.setDelay(500);
+
+  for (let i = 0; i < app.sequence.frames.length; i++) {
+    let frame = app.sequence.frames[i];
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    app.paper.clearDisplayList();
+
+    for (let i = 0; i < frame.strokes.length; i++) {
+      let stroke = frame.strokes[i];
+      app.paper.addDisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH });
+    }
+
+    app.paper.renderToCanvas(canvas, transform);
+    encoder.addFrame(ctx);
+  }
+
+  encoder.finish();
+
+  // canvas.toBlob((blob) => {
+  //   var r = new FileReader();
+  //      r.onloadend = function () {
+  //        fs.writeFileSync(filename, new Uint8Array(r.result));
+  //    };
+  //    r.readAsArrayBuffer(blob);
+  //
+  // }, 'image/png');
+}
+
+ipcRenderer.on('export', (event, filename) => {
+  console.log(filename);
+  let extension = filename.substring(filename.lastIndexOf('.') + 1);
+  console.log(extension);
+
+  if (extension === 'gif') {
+    saveAnimatedGIF(filename);
+
+  } else {
+    let data = '1234567890';
+
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+    svg.setAttribute('width', app.paper.width);
+    svg.setAttribute('height', app.paper.height);
+    svg.appendChild(document.createTextNode('\n'));
+
+    let node = document.createElement('polygon');
+    node.setAttribute('points', '50 160, 55 180, 70 180, 60 190, 65 205, 50 195, 35 205, 40 190, 30 180, 45 180');
+    node.setAttribute('fill', 'black');
+    svg.appendChild(node);
+    svg.appendChild(document.createTextNode('\n'));
+
+    fs.writeFileSync(filename, svg.outerHTML);
+  }
+
+})

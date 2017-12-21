@@ -34,6 +34,8 @@ class Tools extends Container {
     for (let name in this.buttons) {
       this.buttons[name].el.style.width = '4em';
       this.buttons[name].el.style.height = '4em';
+      this.buttons[name].el.style.paddingLeft = '1.5em';
+      this.buttons[name].el.style.paddingRight = '1.5em';
     }
 
     this.colorSwatch = new ColorSwatch(this.el.querySelector('#tools-color'));

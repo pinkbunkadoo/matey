@@ -14,28 +14,23 @@ class ZoomTool extends Tool {
   }
 
   onKeyDown(event) {
-    // console.log('down');
-    if (event.altKey && !event.repeat) {
-      // app.setCursor('zoomout');
-      this.cursor = 'zoomout';
-      this.emit('cursor-change', { cursor: 'zoomout' });
+    if (event.key === 'Alt' && !event.repeat) {
+      app.setCursor('zoomout');
     }
   }
 
   onKeyUp(event) {
-    if (event.altKey == false) {
-      // app.setCursor('zoomin');
-      this.cursor = 'zoomin';
-      this.emit('cursor-change', { cursor: 'zoomin' });
+    if (event.key === 'Alt') {
+      app.setCursor('zoomin');
     }
   }
 
   onMouseDown(event) {
     if (event.altKey || event.button === 2) {
-      this.emit('zoom-out');
+      app.paper.zoomOut();
     }
     else if (event.button === 0) {
-      this.emit('zoom-in');
+      app.paper.zoomIn();
     }
   }
 

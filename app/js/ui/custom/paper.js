@@ -15,7 +15,6 @@ class Paper extends Base {
     this.canvas.width = this.canvasWidth;
     this.canvas.height = this.canvasHeight;
     this.canvas.style.pointerEvents = 'none';
-    // this.canvas.style.background = 'blue';
     this.el.appendChild(this.canvas);
 
     this.overlayCanvas = document.createElement('canvas');
@@ -57,100 +56,87 @@ class Paper extends Base {
       // app.render();
     });
     this.tools.pointer.on('pick', (params) => {
-      if (app.selection.items.length === 1)
-        app.showProperties(params.stroke);
-      else
-        app.showProperties();
-      app.render();
+      // if (app.selection.items.length === 1)
+      //   app.showProperties(params.stroke);
+      // else
+      //   app.showProperties();
+      // app.render();
     });
     this.tools.pointer.on('moved', (params) => {
-      app.updateFrameListThumbnail(app.frame);
-      app.render();
+      // app.updateFrameListThumbnail(app.frame);
+      // app.render();
     });
     this.tools.pointer.on('drag', (params) => {
       // app.updateFrameListIcon(app.sequence.frame);
-      app.render();
+      // app.render();
     });
     this.tools.pointer.on('delete', (params) => {
-      app.deleteSelected();
-      // app.addAction(new Actions.Delete());
-      app.updateFrameListThumbnail(app.frame);
-      app.render();
+      // app.deleteSelected();
+      // // app.addAction(new Actions.Delete());
+      // app.updateFrameListThumbnail(app.frame);
+      // app.render();
     });
     this.tools.pointer.on('change', (params) => {
-      // console.log('change');
-      app.render();
+      // // console.log('change');
+      // app.render();
     });
 
     this.tools.pencil = new Tools.Pencil();
     this.tools.pencil.on('stroke', (params) => {
-      app.createStroke(params.points, app.getColor(), app.getFill());
+      // app.createStroke(params.points, app.getColor(), app.getFill());
     });
     this.tools.pencil.on('change', (params) => {
-      // console.log('change');
-      app.render();
+      // // console.log('change');
+      // app.render();
     });
 
     this.tools.line = new Tools.Line();
     this.tools.line.on('stroke', (params) => {
-      // console.log('line-stroke');
-      app.createStroke(params.points, app.getColor(), app.getFill());
-      // app.addAction(new Actions.Line());
+      // // console.log('line-stroke');
+      // app.createStroke(params.points, app.getColor(), app.getFill());
+      // // app.addAction(new Actions.Line());
     });
     this.tools.line.on('change', (params) => {
-      app.render();
+      // app.render();
     });
 
     this.tools.polygon = new Tools.Polygon();
     this.tools.polygon.on('change', (params) => {
-      this.render();
+      // this.render();
     });
     this.tools.polygon.on('stroke', (params) => {
-      // app.createStroke(params.points);
-      app.createStroke(params.points, app.getColor(), app.getFill());
+      // // app.createStroke(params.points);
+      // app.createStroke(params.points, app.getColor(), app.getFill());
     });
 
     this.tools.hand = new Tools.Hand();
     this.tools.hand.on('pan', (params) => {
-      var dx = params.dx, dy = params.dy;
-      dx = dx / this.scale;
-      dy = dy / this.scale;
-      this.panCameraBy(dx, dy);
-      app.render();
+      // var dx = params.dx, dy = params.dy;
+      // dx = dx / this.scale;
+      // dy = dy / this.scale;
+      // this.panCameraBy(dx, dy);
+      // app.render();
     });
 
     this.tools.zoom = new Tools.Zoom();
     this.tools.zoom.on('cursor-change', (params) => {
-      app.setCursor(params.cursor);
+      // app.setCursor(params.cursor);
     });
     this.tools.zoom.on('zoom-in', (params) => {
-      this.zoomIn();
-      app.render();
+      // this.zoomIn();
+      // app.render();
     });
     this.tools.zoom.on('zoom-out', (params) => {
-      this.zoomOut();
-      app.render();
+      // this.zoomOut();
+      // app.render();
     });
 
-    // this.setTool('pencil');
-    // this.setMode('tool');
-
-    // this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('mousemove', this);
-    // window.addEventListener('keydown', this);
-    // window.addEventListener('keyup', this);
-
-    this.dislayList = [];
+    this.displayList = [];
     this.mouseDown = false;
 
     this.cursorX = 0;
     this.cursorY = 0;
   }
-
-// Paper.prototype.setOnion = function(value) {
-//   // console.log('setOnion', value);
-//   this.showOnion = value;
-// }
 
   resize(width, height) {
     this.canvasWidth = width;
@@ -165,42 +151,36 @@ class Paper extends Base {
   setCameraPosition(x, y) {
     this.tx = x;
     this.ty = y;
-    // this.render();
-    // this.draw();
   }
 
   center() {
     this.setCameraPosition((this.width / 2) >> 0, (this.height / 2) >> 0);
     this.setZoom(1);
+    this.render();
   }
 
   panCameraBy(x, y) {
-    // console.log(x, y);
     this.setCameraPosition(this.tx + x, this.ty + y);
-    // console.log(x, y);
+    this.render();
   }
 
   setZoom(value) {
-    // console.log('setZoom');
     if (value <= 5 && value >= 0.05) {
       this.scale = ((value * 100) >> 0) / 100;
       if (this.scale == 1) {
         this.tx = this.tx >> 0;
         this.ty = this.ty >> 0;
       }
-      // this.render();
-      // this.emit('zoom', { scale: this.scale });
     }
   }
 
   zoomIn() {
-    // console.log('zoomIn', this.scale, Const.ZOOM_LEVELS);
     var self = this;
     var level = Const.ZOOM_LEVELS.find(function(element) {
       return element > self.scale;
     });
-    // console.log(level);
     if (level) this.setZoom(level);
+    this.render();
   }
 
   zoomOut() {
@@ -210,6 +190,7 @@ class Paper extends Base {
       if (level < this.scale) break;
     }
     if (level) this.setZoom(level);
+    this.render();
   }
 
   zoomCameraBy(x) {
@@ -221,8 +202,6 @@ class Paper extends Base {
   screenToWorld(x, y) {
     var widthHalf = (this.canvas.width / 2) >> 0;
     var heightHalf = (this.canvas.height / 2) >> 0;
-    // var widthHalf = (this.canvas.width / 2);
-    // var heightHalf = (this.canvas.height / 2);
 
     var px = x - widthHalf;
     var py = y - heightHalf;
@@ -245,33 +224,23 @@ class Paper extends Base {
 
     var widthHalf = (this.canvas.width / 2) >> 0;
     var heightHalf = (this.canvas.height / 2) >> 0;
-    // var widthHalf = (this.canvas.width / 2);
-    // var heightHalf = (this.canvas.height / 2);
 
     return new Point(sx + widthHalf, sy + heightHalf);
   }
 
   setTool(name) {
     let tool = this.tools[name];
-
-    if (tool !== this.tool) {
-      if (this.tool) {
-        this.tool.blur();
+    if (tool) {
+      if (tool !== this.tool) {
+        if (this.tool) {
+          this.tool.blur();
+        }
+        this.tool = tool;
+        this.tool.focus();
+        this.setCursor(this.tool.cursor);
       }
-      this.tool = tool;
-      this.tool.focus();
-      this.setCursor(this.tool.cursor);
-
-      // if (app.tool) {
-      //   app.tool.blur();
-      //   app.previousTool = app.tool;
-      // }
-      // app.tool = app.tools[name];
-      // app.tool.focus();
-      // app.setCursor(app.tool.cursor);
-      // app.ui.tools.setTool(name);
-      // app.ui.paper.tool = app.tool;
-      // }
+    } else {
+      console.log('setTool', name, 'doesn\'t exist');
     }
   }
 
@@ -282,32 +251,28 @@ class Paper extends Base {
   }
 
   renderDots(stroke) {
-    var ctx = this.canvas.getContext('2d');
-    ctx.lineWidth = 1;
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-
-    for (var j = 0; j < stroke.points.length; j++) {
-      var p = stroke.points[j];
-      p = this.worldToScreen(p.x, p.y);
-      var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
-      ctx.beginPath();
-      // ctx.rect(x - 1, y - 1, 3, 3);
-      ctx.rect(x - 1, y - 1, 2, 2);
-      ctx.fill();
-      ctx.stroke();
-    }
+    // var ctx = this.canvas.getContext('2d');
+    // ctx.lineWidth = 1;
+    // ctx.fillStyle = 'white';
+    // ctx.strokeStyle = 'black';
+    //
+    // for (var j = 0; j < stroke.points.length; j++) {
+    //   var p = stroke.points[j];
+    //   p = this.worldToScreen(p.x, p.y);
+    //   var x = (p.x >> 0) + 0.5, y = (p.y >> 0) + 0.5;
+    //   ctx.beginPath();
+    //   // ctx.rect(x - 1, y - 1, 3, 3);
+    //   ctx.rect(x - 1, y - 1, 2, 2);
+    //   ctx.fill();
+    //   ctx.stroke();
+    // }
   }
 
   clear() {
     var ctx = this.canvas.getContext('2d');
-    // ctx.save();
 
     ctx.fillStyle = Const.COLOR_WORKSPACE.toHexString();
-    // ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.save();
 
@@ -317,10 +282,11 @@ class Paper extends Base {
     // ctx.setLineDash([2, 4]);
     // ctx.lineDashOffset = 5;
     ctx.strokeStyle = 'rgba(180, 180, 180, 1)';
-    ctx.beginPath();
-    ctx.rect((p1.x >> 0) + 0.5, (p1.y >> 0) + 0.5, this.width * this.scale, this.height * this.scale);
-    ctx.stroke();
-    ctx.fill();
+    // ctx.beginPath();
+    // ctx.rect((p1.x >> 0) + 0.5, (p1.y >> 0) + 0.5, this.width * this.scale, this.height * this.scale);
+    // ctx.stroke();
+    // ctx.fill();
+    ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
 
     ctx.restore();
   }
@@ -331,25 +297,22 @@ class Paper extends Base {
   }
 
   clearDisplayList() {
-    this.dislayList = [];
+    this.displayList = [];
   }
 
   addDisplayItem(item) {
-    this.dislayList.push(item);
+    this.displayList.push(item);
     // console.log('display item', item);
   }
 
-  renderDisplayItem(item) {
-    let ctx = this.canvas.getContext('2d');
-    let points = item.points;
+  renderPath(ctx, points, params) {
+    if (points.length) {
+      let transform = params.transform;
 
-    if (points) {
-      let screen = (item.screen != undefined ? item.screen : false);
-      let fill = (item.fill ? item.fill.toHexString() : null);
-      let strokeStyle = (item.color ? item.color.toHexString() : Const.COLOR_STROKE.toHexString());
-
-      let lineWidth = (item.thickness != undefined ? item.thickness : Const.LINE_WIDTH);
-      // var alpha = (options.alpha != undefined ? options.alpha : 1.0);
+      ctx.save();
+      ctx.lineWidth = params.thickness ? params.thickness : Const.LINE_WIDTH;
+      ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
+      ctx.strokeStyle = params.color ? params.color.toHexString() : Const.COLOR_STROKE.toHexString();
 
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -358,40 +321,41 @@ class Paper extends Base {
 
       for (let i = 0; i < points.length; i++) {
         let point = points[i];
-        let x = point.x, y = point.y;
+        let p;
 
-        if (!screen) {
-          let p = this.worldToScreen(x, y);
-          x = p.x, y = p.y;
+        if (transform) {
+          p = transform.apply(point);
+        } else {
+          p = this.worldToScreen(point.x, point.y);
         }
-        // var x = p.x + dx + 0.5, y = p.y + dy + 0.5;
-        // var x = p.x + dx, y = p.y + dy;
-        // var x = p.x, y = p.y;
 
         if (i == 0)
-          ctx.moveTo(x, y);
+          ctx.moveTo(p.x, p.y);
         else
-          ctx.lineTo(x, y);
+          ctx.lineTo(p.x, p.y);
       }
 
-      // if (points.length == 2) ctx.closePath();
+      // if (fill) {
+      //   ctx.fillStyle = fill;
+      //   ctx.fill();
+      //   ctx.globalAlpha = 1;
+      // }
 
-      if (fill) {
-        // ctx.fillStyle = stroke.selected ? 'rgba(30, 144, 255, 0.5)' : 'white';
-        // ctx.globalAlpha = 0.5;
-        ctx.fillStyle = fill;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-
-      // ctx.globalAlpha = this.globalAlpha;
-      ctx.lineWidth = lineWidth; //Const.LINE_WIDTH;
-      // ctx.strokeStyle = stroke.selected ? 'dodgerblue' : Const.color.STROKE;
-      // ctx.strokeStyle = Const.color.STROKE;
-      ctx.strokeStyle = strokeStyle;
+      ctx.fill();
       ctx.stroke();
 
-      // ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  renderDisplayItem(ctx, item, transform=null) {
+    let points = item.points;
+    if (points.length) {
+      // console.log('renderDisplayItem', points, item, transform);
+      // let fill = (item.fill ? item.fill.toHexString() : null);
+      // let color = (item.color ? item.color.toHexString() : Const.COLOR_STROKE.toHexString());
+      // let thickness = (item.thickness != undefined ? item.thickness : Const.LINE_WIDTH);
+      this.renderPath(ctx, points, { color: item.color, fill: item.fill, thickness: item.thickness, transform: transform });
     }
   }
 
@@ -403,84 +367,58 @@ class Paper extends Base {
 
     let ctx = this.canvas.getContext('2d');
 
-    // ctx.fillStyle = 'black';
-    // ctx.fillRect(0, 0, 100, 100);
-
-    for (let i = 0; i < this.dislayList.length; i++) {
-      let item = this.dislayList[i];
+    for (let i = 0; i < this.displayList.length; i++) {
+      let item = this.displayList[i];
       // let color = item.color ? item.color.toHexString() : undefined;
       // let fill = item.fill ? item.fill.toHexString() : undefined;
       // let thickness = item.thickness ? item.thickness : undefined;
       // this.renderPath({ points: item.points, thickness: item.thickness, fill: item.fill, color: item.color });
 
-      this.renderDisplayItem(item);
+      this.renderDisplayItem(ctx, item);
     }
-    // console.log('paper-rendered', this.dislayList.length, 'strokes');
 
     ctx.drawImage(this.overlayCanvas, 0, 0);
-    // if (tool)
-    // console.log('paper-render');
   }
 
-  // setMode(mode) {
-  //   this.mode = mode;
-  //   // console.log(mode);
-  //   this.emit('change-mode', { mode: mode });
-  // }
+  renderToCanvas(canvas, transform=null) {
+    let ctx = canvas.getContext('2d');
+    // ctx.fillStyle = 'magenta';
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // console.log(this.displayList);
+    for (let i = 0; i < this.displayList.length; i++) {
+      let item = this.displayList[i];
+      this.renderDisplayItem(ctx, item, transform);
+    }
+  }
 
-  // beginCapture() {
-  //   app.capture(this);
-  // }
-  //
-  // endCapture() {
-  //   app.release();
-  // }
-  //
   onFocus(event) {
     if (this.tool) {
       this.tool.focus();
     }
-    // console.log('paper-focus');
   }
 
   onBlur(event) {
-    // this.endCapture();
-
     this.mode = null;
-
     if (this.tool) {
       this.tool.blur();
     }
-    // console.log('paper-blur');
   }
 
   onMouseDown(event) {
     this.mouseDown = true;
 
-    // if (event.button === 0) {
-    //   this.beginCapture();
-    // }
+    if (event.button === 1) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.center();
+    }
 
-    // if (this.mode === 'pan') {
-    //   this.beginCapture();
-    // } else {
-    // }
     if (this.tool) {
       this.tool.handleEvent(event);
     }
   }
 
   onMouseUp(event) {
-    // if (this.mode === 'pan') {
-    //   this.endCapture();
-    //   if (event.buttons === 1) {
-    //     this.setMode('tool');
-    //   }
-    // } else {
-    //   // if (this.tool) this.tool.handleEvent(event);
-    // }
-
-    // if (this.tool) this.tool.handleEvent(event);
     this.mouseDown = false;
   }
 
@@ -492,75 +430,15 @@ class Paper extends Base {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
     }
-
-    // if (this.tool) this.tool.handleEvent(event);
-
-    if (this.mode === 'pan') {
-      // if (event.buttons === 1) {
-      //   var dx = -event.movementX / this.scale;
-      //   var dy = -event.movementY / this.scale;
-      //   this.panCameraBy(dx, dy);
-      //   this.render();
-      // }
-    } else {
-      // if (this.tool) this.tool.handleEvent(event);
-      // if (mouseDownTargetTag) {
-        // if (mouseDownTargetTag === 'paper') {
-        //   this.tool.handleEvent(event);
-        //   event.preventDefault();
-        //   event.stopPropagation();
-        // } else {
-          // var target = tags[mouseDownTargetTag];
-          // if (target) {
-          //   target.handleEvent(event);
-          // }
-      //   }
-      // } else {
-      //   // if (mouseTargetTag === 'paper') {
-      //   // }
-      // }
-    }
-
-    // if (this.mode === 'pan') {
-    //   if (event.buttons === 1) {
-    //     this.panCameraBy(-app.mouseDeltaX / this.scale, -app.mouseDeltaY / this.scale);
-    //     this.render();
-    //   }
-    // } else {
-    //   this.tool.handleEvent(event);
-    // }
   }
 
   onKeyDown(event) {
-    // if (this.mode ===) {
-    //
-    // }
-    // if (event.key === Const.KEY_PAN) {
-    //   event.preventDefault();
-    //   if (!event.repeat) {
-    //     if (!this.mouseDown) {
-    //       this.setMode('pan');
-    //     }
-    //   }
-    // } else {
-    //   if (this.tool) {
-    //     this.tool.handleEvent(event);
-    //   }
-    // }
-
+    if (this.tool) this.tool.handleEvent(event);
   }
 
   onKeyUp(event) {
-    // if (event.key === Const.KEY_PAN) {
-    //    if (!this.mouseDown) {
-    //      this.setMode('tool');
-    //    }
-    // } else {
-    //   if (this.tool) this.tool.handleEvent(event);
-    // }
+    if (this.tool) this.tool.handleEvent(event);
   }
-
-
 
   onPaste(event) {
     // console.log(event.clipboardData.types);

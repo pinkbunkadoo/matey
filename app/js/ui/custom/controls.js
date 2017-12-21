@@ -13,9 +13,13 @@ class Controls extends Container {
     this.buttons['loop'] = new Button(this.el.querySelector('#control-loop'));
     this.buttons['onion'] = new Button(this.el.querySelector('#control-onion'));
 
-    this.buttons['first'].on('pressed', () => {  });
+    this.buttons['first'].on('pressed', () => {
+      app.first();
+    });
     this.buttons['play'].on('pressed', () => {  });
-    this.buttons['last'].on('pressed', () => {  });
+    this.buttons['last'].on('pressed', () => {
+      app.last();
+    });
     this.buttons['loop'].on('pressed', () => {
       this.buttons['loop'].toggle();
       console.log('loop', this.buttons['loop'].state);

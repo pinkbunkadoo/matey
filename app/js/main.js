@@ -1,9 +1,10 @@
 // const electron = require('electron')
 // Module to control application life.
-const {app, globalShortcut, BrowserWindow, Menu} = require('electron')
+const {ipcMain, app, globalShortcut, BrowserWindow, Menu, dialog} = require('electron')
 // Module to create native browser window.
 // const BrowserWindow = electron.BrowserWindow
 // const Menu = electron.Menu
+// const GIFEncoder = require('gifencoder');
 
 const path = require('path')
 const url = require('url')
@@ -16,6 +17,19 @@ function createWindow () {
 
   const template = [
     {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Export',
+          accelerator: 'CommandOrControl+E',
+          click: () => {
+            // console.log('menu-export')
+            showExportDialog()
+          }
+        }
+      ]
+    },
+    {
       label: 'View',
       submenu: [
         {
@@ -23,7 +37,17 @@ function createWindow () {
           role: 'reload',
           accelerator: 'CommandOrControl+R',
           click: () => {
+            // console.log('menu-refresh');
             mainWindow.reload()
+          }
+        },
+        {
+          label: 'Toggle Developer Tools',
+          // role: 'reload',
+          accelerator: (() => app.platform==='darwin' ? 'CommandOrControl+Alt+I' : 'CommandOrControl+Shift+I')(),
+          click: () => {
+            // console.log('menu-refresh');
+            mainWindow.toggleDevTools()
           }
         }
       ]
@@ -38,15 +62,15 @@ function createWindow () {
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, './app/index.html'),
+    pathname: path.join(__dirname, '../index.html'),
     protocol: 'file:',
     slashes: true
   }))
 
-  // menu = Menu.buildFromTemplate(template)
+  menu = Menu.buildFromTemplate(template)
 
   // mainWindow.menu = null;
-  // Menu.setApplicationMenu(menu)
+  Menu.setApplicationMenu(menu)
   // Menu.setApplicationMenu(null)
 
   // mainWindow.webContents.setVisualZoomLevelLimits(0, 0)
@@ -64,6 +88,36 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+}
+
+function showExportDialog() {
+  if (mainWindow) {
+    dialog.showSaveDialog({
+      title: "Export SVG animation...",
+      filters:[
+        {
+          name: 'Animated GIF',
+          extensions: [
+            'gif'
+          ]
+        },
+        {
+          name: 'Scalable Vector Graphics (SMIL)',
+          extensions: [
+            'svg'
+          ]
+        },
+        {
+          name: 'PNG Image Sequence',
+          extensions: [
+            'png'
+          ]
+        }
+      ]}, filename => {
+        console.log(filename);
+        mainWindow.send('export', filename);
+    })
+  }
 }
 
 // This method will be called when Electron has finished
@@ -90,3 +144,8 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('export', (event, arg) => {
+  console.log('export')
+  showExportDialog()
+})

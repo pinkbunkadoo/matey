@@ -12,17 +12,6 @@ class FrameListItem extends Container {
     this.width = width;
     this.height = height;
 
-    // this.width = params.width || 64;
-    // this.height = params.height || 40;
-
-    // this.height = this.height + 16;
-    // this.add(new Spacer({ width: this.width, height: 6 }));
-    // console.log(this.height);
-
-    // this.el.style.width = this.width + 'px';
-    // this.el.style.height = this.height + 'px';
-    // this.el.style.background = 'yellow';
-
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.width;
     this.canvas.height = this.height;
@@ -32,18 +21,11 @@ class FrameListItem extends Container {
     this.graphic.el.style.pointerEvents = 'none';
     this.add(this.graphic);
 
-    // this.numberContainer = new Container({ style: { boxSizing: 'border-box', width: this.width + 'px', height: this.height + 'px', borderRadius: '4px' }});
-    // this.numberContainer = new Container({ style: { position: 'absolute', pointerEvents: 'none' } });
     this.numberContainer = new Container();
     this.numberContainer.addClass('frame-list-item-number');
-    // this.number = new Label({ title: 0, style: { padding: '4px 6px 4px 6px' } });
     this.number = new Label({ title: '' });
     this.numberContainer.add(this.number);
     this.add(this.numberContainer);
-
-    // this.el.addEventListener('click', (event) => {
-    //   this.emit('select', this);
-    // });
   }
 
   setNumber(data) {
@@ -52,18 +34,20 @@ class FrameListItem extends Container {
   }
 
   select() {
-    this.numberContainer.el.style.background = 'dodgerblue';
-    this.numberContainer.el.style.color = 'white';
-    this.numberContainer.el.style.border = '0px solid dodgerblue'
+    // this.numberContainer.el.style.background = 'dodgerblue';
+    // this.numberContainer.el.style.color = 'white';
+    // this.numberContainer.el.style.border = '0px solid dodgerblue'
+    this.numberContainer.addClass('selected');
     this.addClass('selected');
     // this.highlight.el.style.opacity = 1;
   }
 
 
   deselect() {
-    this.numberContainer.el.style.background = 'rgba(0,0,0,0)';
-    this.numberContainer.el.style.color = 'gray';
-    this.numberContainer.el.style.border = '0px solid rgba(0,0,0,0)'
+    // this.numberContainer.el.style.background = 'rgba(0,0,0,0)';
+    // this.numberContainer.el.style.color = 'gray';
+    // this.numberContainer.el.style.border = '0px solid rgba(0,0,0,0)'
+    this.numberContainer.removeClass('selected');
     this.removeClass('selected');
     // this.highlight.el.style.opacity = 1;
   }
