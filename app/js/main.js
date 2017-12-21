@@ -106,26 +106,23 @@ function showExportDialog() {
       filters:[
         {
           name: 'Animated GIF',
-          extensions: [
-            'gif'
-          ]
+          extensions: [ 'gif', 'giggy' ]
         },
         {
           name: 'Scalable Vector Graphics (SMIL)',
-          extensions: [
-            'svg'
-          ]
+          extensions: [ 'svg', 'savg' ]
         },
         {
           name: 'PNG Image Sequence',
-          extensions: [
-            'png'
-          ]
+          extensions: [ 'png' ]
         }
-      ]}, filename => {
+      ]},
+      filename => {
         console.log(filename);
-        mainWindow.send('export', filename);
-    })
+        if (filename) {
+          mainWindow.send('export', filename);
+        }
+      })
   }
 }
 
