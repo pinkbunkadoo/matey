@@ -103,20 +103,14 @@ function showExportDialog() {
   if (mainWindow) {
     dialog.showSaveDialog(mainWindow, {
       title: "Export animation...",
-      filters:[
-        {
-          name: 'Animated GIF',
-          extensions: [ 'gif', 'giggy' ]
-        },
-        {
-          name: 'Scalable Vector Graphics (SMIL)',
-          extensions: [ 'svg', 'savg' ]
-        },
-        {
-          name: 'PNG Image Sequence',
-          extensions: [ 'png' ]
-        }
-      ]},
+      message: "Hello Mr. Export",
+      buttonLabel: "Export",
+      filters: [
+        { name: 'Animated GIF', extensions: [ 'gif' ] },
+        { name: 'SVG (SMIL)', extensions: [ 'svg' ] },
+        { name: 'PNG Sequence', extensions: [ 'png' ] }
+      ]
+      },
       filename => {
         console.log(filename);
         if (filename) {
