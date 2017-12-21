@@ -26,6 +26,15 @@ function createWindow () {
             // console.log('menu-export')
             showExportDialog()
           }
+        },
+        {
+          label: 'Quit',
+          accelerator: 'CommandOrControl+Q',
+          role: 'quit',
+          click: () => {
+            // console.log('menu-export')
+            // showExportDialog()
+          }
         }
       ]
     },
@@ -58,7 +67,7 @@ function createWindow () {
   // })
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1024, height: 768 })
+  mainWindow = new BrowserWindow({width: 1024, height: 1024 })
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
