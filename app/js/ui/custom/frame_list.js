@@ -11,32 +11,8 @@ const FrameListItem = require('./frame_list_item');
 // const Frame = require('../../frame');
 
 class FrameList extends Container {
-  constructor(el) {
-    super(el);
-
-    this.items = [];
-    this.selection = null;
-
-    this.container = new Container(this.el.querySelector('#frame-list-container'));
-    this.add(this.container);
-
-    // this.thumbnailWidth = 32;
-    // this.thumbnailHeight = 32;
-
-    this.frameListNew = new Container();
-    this.frameListNew.addClass('frame-list-new');
-    this.frameListNew.el.onclick = () => {
-      this.emit('new-frame');
-    };
-    let icon = new Icon({ resource: 'plus', invert: true });
-    icon.el.style.width = '4em';
-    icon.el.style.height = '4em';
-    // this.frameListNew.el.style.width = '2em';
-    // this.frameListNew.el.style.height = '2em';
-    this.frameListNew.add(icon);
-
-    this.items.push(this.frameListNew);
-    this.container.add(this.frameListNew);
+  constructor() {
+    super();
 
     this.grab = false;
     this.dragAmount = 0;
@@ -44,17 +20,44 @@ class FrameList extends Container {
     this.timerId = null;
     this.velocityTimeoutId = null;
 
+    this.el = document.getElementById('frame-list');
+
+    this.items = [];
+    this.selection = null;
+
+    this.container = new Container();
+    this.container.el = document.getElementById('frame-list-container');
+
+    this.frameListNew = new Container();
+    this.frameListNew.addClass('frame-list-item');
+    this.frameListNew.addClass('new');
+    // this.frameListNew.el.onclick = () => {
+      // this.emit('new-frame');
+    // };
+    let icon = new Icon({ resource: 'plus', invert: true });
+    icon.el.style.width = (32 * app.unit) + 'px';
+    icon.el.style.height = (32 * app.unit) + 'px';
+    icon.el.style.pointerEvents = 'none';
+    this.frameListNew.add(icon);
+
+    this.items.push(this.frameListNew);
+    this.container.add(this.frameListNew);
+
+    this.add(this.container);
+
+    // this.marker = new Container({ id: 'frame-list-marker', fromDOMElement:true });
+    // this.add(this.marker);
+
+    // this.nodule = new Container({ id: 'frame-list-nodule' });
+    // this.marker.add(this.nodule);
+
+    // let e = document.createElement('div');
+    // e.id = 'frame-list-nodule';
+    // this.marker.addDomElement(e);
+
     this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('wheel', this);
-    // this.el.addEventListener('blur', this);
   }
 
-  // FrameList.prototype.notifyChange = function(params) {
-  //   if (this.onChange) {
-  //     this.onChange(params);
-  //   }
-  // }
-  //
   refreshFrameNumbers() {
     for (var i = 0; i < this.items.length; i++) {
       let item = this.items[i];
@@ -95,7 +98,6 @@ class FrameList extends Container {
   }
 
   select(index) {
-    // console.log('select', index);
     if (this.selection) {
       this.selection.removeClass('selected');
       this.selection.deselect();
@@ -106,38 +108,29 @@ class FrameList extends Container {
 
     this.selection.select();
 
-    var item = this.selection;
-
-    var width = this.container.el.scrollWidth;
+    let item = this.selection;
+    let width = this.container.el.scrollWidth;
+    let margin = 8;
 
     if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
-      this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth;
+      this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth + margin;
 
     } else if (item.el.offsetLeft < this.el.scrollLeft) {
-      this.el.scrollLeft = item.el.offsetLeft;
+      this.el.scrollLeft = item.el.offsetLeft - margin;
     }
 
-    // console.log(index, this.items.length-1);
-
     if (index === this.items.length - 2) {
-      // console.log('hi');
       this.el.scrollLeft = this.frameListNew.el.offsetLeft;
-      // console.log(this.frameListNew.el.clientWidth);
     } else if (index === 0) {
       this.el.scrollLeft = 0;
     }
   }
 
-  // adjust(params) {
-    // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
-    // console.log();
-  // }
-
   setThumbnailSize(width, height) {
     this.thumbnailWidth = width;
     this.thumbnailHeight = height;
     this.frameListNew.el.style.width = this.thumbnailWidth + 'px';
-    this.frameListNew.el.style.height = this.thumbnailHeight + 'px';
+    // this.frameListNew.el.style.height = this.thumbnailHeight + 'px';
   }
 
   render(params) {
@@ -157,31 +150,22 @@ class FrameList extends Container {
       this.removeAll();
     }
     else if (params.cmd === 'update') {
-      // this.frameIndicator.setTitle(params.index + ' / ' + params.total);
-      // FrameListBar.prototype.setFrame = function(value1, value2) {
-      //   this.frame.setTitle(value1 + ' / ' + value2);
-      // }
     }
-    // this.scroller.adjust({ page: this.el.offsetWidth, total: this.frameContainer.el.scrollWidth });
+    if (this.selection) {
+      // this.nodule.el.style.left = (this.selection.offsetLeft / this.container.offsetWidth) + 'px';
+      // this.nodule.el.style.width = (this.selection.offsetWidth / this.container.scrollWidth) + 'px';
+      // let width = (this.selection.el.offsetWidth / this.container.el.scrollWidth);
+      // console.log(this.el.scrollWidth);
+    }
   }
 
   beginCapture() {
     app.capture(this);
-    // window.addEventListener('mouseup', this);
-    // window.addEventListener('mousemove', this);
-    // window.addEventListener('blur', this);
   }
 
   endCapture() {
     app.release(this);
-    // window.removeEventListener('mouseup', this);
-    // window.removeEventListener('mousemove', this);
-    // window.removeEventListener('blur', this);
   }
-
-  // onBlur(event) {
-  //   this.endCapture();
-  // }
 
   onMouseDown(event) {
     var target = event.target;
@@ -198,9 +182,14 @@ class FrameList extends Container {
       if (Math.abs(this.velocity) > 1) this.startMomentumTimer();
     } else {
       if (event.target !== this.el) {
-        let index = event.target.dataset.index;
-        if (index !== undefined) {
-          this.emit('select', { index: index-1 });
+        // console.log(event.target, this.frameListNew.el);
+        if (event.target === this.frameListNew.el) {
+          this.emit('new-frame');
+        } else {
+          let index = event.target.dataset.index;
+          if (index !== undefined) {
+            this.emit('select', { index: index - 1 });
+          }
         }
       }
     }
@@ -221,6 +210,7 @@ class FrameList extends Container {
     this.timerId = setInterval(() => {
       this.velocity = this.velocity * this.decay;
       this.el.scrollLeft += this.velocity;
+      this.emit('scroll');
       this.decay *= 0.995;
       if (Math.abs(this.velocity) < 1) {
         this.stopMomentumTimer();
@@ -239,6 +229,9 @@ class FrameList extends Container {
       let deltaX = -event.movementX;
       this.velocity = deltaX;
       this.el.scrollLeft += deltaX;
+
+      this.emit('scroll');
+
       clearTimeout(this.velocityTimeoutId);
       this.velocityTimeoutId = setTimeout(() => { this.velocity = 0; }, 100);
     } else {
@@ -253,9 +246,8 @@ class FrameList extends Container {
 
   onWheel(event) {
     let deltaX = event.deltaX;
-    // if (Math.abs(deltaX) > Math.abs(this.velocity)) this.velocity = deltaX;
     this.el.scrollLeft += deltaX;
-    // this.startMomentumTimer();
+    this.emit('scroll');
   }
 
   handleEvent(event) {

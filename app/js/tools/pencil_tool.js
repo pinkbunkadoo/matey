@@ -47,8 +47,10 @@ class PencilTool extends Tool {
     this.drawing = false;
 
     if (this.points.length > 2) {
-      this.points = simplify(this.points, 0.1);
+      // console.log(this.points.length);
+      this.points = simplify(this.points, 0.2);
       app.createStroke(this.points, app.getColor(), app.getFill());
+      // console.log(this.points.length);
       // this.emit('stroke', { points: this.points });
     }
 

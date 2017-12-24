@@ -2,19 +2,26 @@ const Base = require('./base');
 
 class Label extends Base {
   constructor(params = {}) {
-    super();
+    super(params);
+    // this.addClass('label');
+    if (params.text) {
+      // this.text = params.text;
+      this.set(params.text);
+    } else {
 
-    this.addClass('label');
-
-    this.title = params.title;
-    this.el.innerHTML = this.title;
+    }
   }
 
-  setTitle(title) {
-    // console.log('serTitle', title);
-    this.title = title;
-    this.el.innerHTML = this.title;
+  set(text) {
+    this.el.innerHTML = text;
   }
+
+  render(params) {
+    if (params.cmd === 'show') {
+      this.set(params.value);
+    }
+  }
+
 }
 
 module.exports = Label;

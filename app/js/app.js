@@ -5,23 +5,24 @@ const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
 const Selection = require('./selection');
+const DisplayList = require('./display_list');
 const Sequence = require('./sequence');
+const Tool = require('./tools/tool');
 // const HistoryPanel = require('./ui/panels/history_panel');
 // const PropertiesPanel = require('./ui/panels/properties_panel');
 // const StrokeProperties = require('./ui/panels/properties/stroke_properties');
 // const Panels = require('./ui/panels/');
-const Container = require('./ui/container');
 // const Options = require('./ui/options');
+const Container = require('./ui/container');
 const Tools = require('./ui/custom/tools');
 const Controls = require('./ui/custom/controls');
 const Settings = require('./ui/custom/settings');
 const Paper = require('./ui/custom/paper');
-const Status = require('./ui/custom/status');
+// const Status = require('./ui/custom/status');
 const FrameList = require('./ui/custom/frame_list');
-// const FrameListBar = require('./ui/frame_list_bar');
-// const FrameListNew = require('./ui/frame_list_new');
+const FrameListMarker = require('./ui/custom/frame_list_marker');
 const Actions = require('./actions/');
-const HistoryState = require('./history_state');
+// const HistoryState = require('./history_state');
 const Loader = require('./loader');
 
 const {ipcRenderer} = require('electron');
@@ -30,6 +31,7 @@ const GIFEncoder = require('gifencoder');
 
 var app = {
   width: 0, height: 0,
+  unit: 1.0,
   settings: [],
   cursors: [],
   ui: [],
@@ -43,7 +45,9 @@ var app = {
   tool: null,
   tools: [],
   sequence: null,
+  position: 0,
   frame: null,
+  fps: 12,
   selection: null,
   captureTarget: null,
   modal: false
@@ -53,15 +57,32 @@ app.getOverlayContext = () => {
   return app.paper.overlayCanvas.getContext('2d');
 }
 
+app.setDocumentName = (name) => {
+  app.documentName = name;
+  document.title = app.name + ' — ' + app.documentName;
+}
+
 app.render = () => {
   // console.log('app.render');
-  app.paper.clearDisplayList();
+  app.paper.displayList.clear();
+
+  if (app.onion) {
+    if (app.position > 0) {
+      let frame = app.sequence.frames[app.position - 1];
+      for (let i = 0; i < frame.strokes.length; i++) {
+        let stroke = frame.strokes[i];
+        let thickness = stroke.selected ? Const.LINE_WIDTH*2 : Const.LINE_WIDTH;
+        let color = Const.COLOR_ONION; //stroke.selected ? Const.COLOR_SELECTION : stroke.color;
+        app.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+      }
+    }
+  }
 
   for (let i = 0; i < app.frame.strokes.length; i++) {
     let stroke = app.frame.strokes[i];
     let thickness = stroke.selected ? Const.LINE_WIDTH*2 : Const.LINE_WIDTH;
     let color = stroke.selected ? Const.COLOR_SELECTION : stroke.color;
-    app.paper.addDisplayItem({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+    app.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
 
   // if (!app.selection.isEmpty()) {
@@ -228,14 +249,11 @@ app.marqueeSelect = (p1, p2) => {
 }
 
 app.deleteSelected = () => {
-  // app.selection.
-  // console.log(app.frame.strokes);
-  // app.sequence.remove(app.selection);
   let set = app.selection.items;
   let result = app.frame.strokes.filter(element => !set.includes(element));
   app.selection.clear();
   app.frame.strokes = result;
-  // console.log(result);
+  app.updateFrameListThumbnail(app.frame);
   app.render();
 }
 
@@ -253,7 +271,15 @@ app.moveSelected = (dx, dy) => {
 
 app.updateFrameLabel = () => {
   // app.ui.frameListBar.setFrame(sequence.position + 1, sequence.size());
-  app.ui.frameList.render({ cmd: 'update', index: app.sequence.position + 1, total: app.sequence.size() });
+  // app.ui.frameList.render({ cmd: 'update', index: app.position + 1, total: app.sequence.size() });
+}
+
+app.updateFrameListMarker = () => {
+  let width = app.ui.frameList.el.offsetWidth;
+  let total = app.ui.frameList.container.el.scrollWidth;
+  let size = total > width ? ((width / total) * width) >> 0 : width;
+  let offset = Math.ceil((app.ui.frameList.el.scrollLeft / app.ui.frameList.el.scrollWidth) * width);
+  app.ui.frameListMarker.render({ cmd: 'update', size: size, offset: offset });
 }
 
 app.updateFrameListThumbnail = (frame) => {
@@ -265,34 +291,61 @@ app.updateFrameListThumbnail = (frame) => {
   var frameListItem = app.ui.frameList.get(index);
 
   if (frameListItem) {
-    var ctx = frameListItem.canvas.getContext('2d')
+    let canvas = frameListItem.canvas;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
     ctx.clearRect(0, 0, width, height);
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.fillRect(0, 0, width, height);
+    // ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
+    let displayList = new DisplayList();
+
+    let transform = new Transform(0, 0, scale);
 
     for (var i = 0; i < frame.strokes.length; i++) {
-      var stroke = frame.strokes[i];
-      ctx.beginPath();
-      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-      for (var j = 0; j < stroke.points.length; j++) {
-        var point = stroke.points[j];
-        ctx.lineTo(point.x, point.y);
-      }
-      ctx.stroke();
+      let stroke = frame.strokes[i];
+      displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH * scale});
     }
+    // console.log(displayList);
+    app.paper.renderDisplayListToCanvas(canvas, displayList, transform);
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // var ctx = frameListItem.canvas.getContext('2d')
+    // ctx.fillStyle = 'white';
+    // ctx.clearRect(0, 0, width, height);
+    // ctx.fillRect(0, 0, width, height);
+    // ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    //
+    // ctx.lineWidth = 2;
+    // ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
+    //
+    // for (var i = 0; i < frame.strokes.length; i++) {
+    //   var stroke = frame.strokes[i];
+    //   ctx.beginPath();
+    //   ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    //   for (var j = 0; j < stroke.points.length; j++) {
+    //     var point = stroke.points[j];
+    //     ctx.lineTo(point.x, point.y);
+    //   }
+    //   ctx.stroke();
+    // }
+    //
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 }
 
 app.go = (index) => {
-  app.sequence.go(index);
-  app.frame = app.sequence.getFrame();
-  app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
-  app.selection.clear();
-  app.render();
+  // console.log('go', index, app.sequence.size());
+  // app.sequence.go(index);
+  let frame = app.sequence.getFrame(index);
+  if (frame) {
+    app.position = index;
+    app.frame = frame;
+    app.ui.frameList.render({ cmd: 'select', index: app.position });
+    app.ui.controls.setFrame(app.position + 1, app.sequence.size());
+    app.selection.clear();
+    app.render();
+    app.updateFrameListMarker();
+  }
 }
 
 app.first = () => {
@@ -304,11 +357,11 @@ app.last = () => {
 }
 
 app.next = () => {
-  app.go(app.sequence.position + 1);
+  app.go(app.position + 1);
 }
 
 app.previous = () => {
-  app.go(app.sequence.position - 1);
+  app.go(app.position - 1);
 }
 
 app.showProperties = (object) => {
@@ -326,28 +379,21 @@ app.showProperties = (object) => {
 app.newFrame = () => {
   app.sequence.add();
   app.ui.frameList.render({ cmd: 'frameAdd' });
-  app.go(app.sequence.frames.length - 1);
-  // app.frame = app.sequence.frames[app.sequence.position];
-
-  // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
+  app.go(app.sequence.size() - 1);
+  app.updateFrameListMarker();
   app.updateFrameListThumbnail(app.frame);
   app.updateFrameLabel();
-  // sequence.frame.history.add(new HistoryState(new Actions.New(), sequence.frame.copy()));
-  // app.ui.history.render({ cmd: 'populate', items: [{ id: sequence.frame.history.marker, title: 'New' }] });
-  // app.ui.history.render({ cmd: 'select', index: sequence.frame.history.marker });
-  // app.render();
 }
 
 app.removeFrame = () => {
   if (app.sequence.size() > 1) {
-    app.sequence.remove();
-    // sequence.go(sequence.position - 1);
-    app.ui.frameList.render({ cmd: 'frameRemove', index: app.sequence.position });
-    // app.ui.frameList.render({ cmd: 'select', index: sequence.position });
-    // updateFrameListIcon(sequence.frame);
-    // updateFrameLabel();
-    // render();
-    app.go(app.sequence.position);
+    app.sequence.remove(app.position);
+    app.ui.frameList.render({ cmd: 'frameRemove', index: app.position });
+    if (app.position >= app.sequence.size()) {
+      app.go(app.sequence.size() - 1);
+    } else {
+      app.go(app.position);
+    }
   }
 }
 
@@ -385,9 +431,9 @@ app.createStroke = (points, color, fill) => {
   stroke.setColor(color);
   stroke.setFill(fill);
   app.frame.addStroke(stroke);
-  // console.log('stroke', stroke.points[0]);
   app.updateFrameListThumbnail(app.frame);
   app.render();
+  // console.log('createStroke', app.frame.strokes.length, stroke.points);
 }
 
 app.setStrokeFill = (fill) => {
@@ -399,28 +445,21 @@ app.setStrokeFill = (fill) => {
   }
 }
 
-// app.repositionPanels = () => {
-  // app.ui.history.reposition();
-  // app.ui.properties.reposition();
-  // app.ui.tools.reposition();
-// }
-
 app.reposition = () => {
   app.width = window.innerWidth;
-  app.height = window.innerHeight - app.ui.frameList.el.offsetHeight;
-  // console.log(app.width, app.height, app.ui.frameList.el.offsetHeight);
-
-  // var width = window.innerWidth;
-  // var height = window.innerHeight;
+  app.height = window.innerHeight - app.ui.frameList.el.offsetHeight -  app.ui.frameListMarker.el.offsetHeight;
 
   app.paper.resize(app.width, app.height);
-
-  // var b = ((width / 2) - (app.ui.frameListBar.el.offsetWidth/2)) >> 0;
-  // app.ui.frameListBar.el.style.left = b + 'px';
 
   app.ui.settings.el.style.left = (((app.width / 2) - (app.ui.settings.el.offsetWidth/2)) >> 0) + 'px';
   app.ui.tools.el.style.top = (((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
   app.ui.controls.el.style.left = (((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
+
+  app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMarker.el.offsetHeight - 4) + 'px';
+  // app.ui.controls.el.style.top = (app.paper.el.offsetTop + app.paper.el.offsetHeight - 200) + 'px';
+
+  app.updateFrameListMarker();
+  app.render();
 }
 
 app.setModal = function(value) {
@@ -429,13 +468,7 @@ app.setModal = function(value) {
     app.ui.modal.style.visibility = app.modal ? 'visible' : 'hidden';
 
     if (app.modal) {
-      // document.body.style.filter = 'brightness(90%)';
       app.ui.modal.style.cursor = app.cursors[app.cursor];
-      // console.log(app.cursor);
-      // console.log('modal-on');
-    } else {
-      // document.body.style.filter = '';
-      // console.log('modal-off');
     }
   }
 }
@@ -465,7 +498,7 @@ app.release = (captor) => {
   }
 }
 
-app.defaultEventHandler = () => {
+function defaultEventHandler(event) {
   if (app.captureTarget) {
     app.captureTarget.handleEvent(event);
   } else {
@@ -475,9 +508,9 @@ app.defaultEventHandler = () => {
   }
 }
 
-app.mouseEventHandler = (event) => {
-  app.cursorX = event.clientX;
-  app.cursorY = event.clientY;
+function mouseEventHandler(event) {
+  // app.cursorX = event.clientX;
+  // app.cursorY = event.clientY;
 
   if (app.captureTarget) {
     app.captureTarget.handleEvent(event);
@@ -492,19 +525,19 @@ app.mouseEventHandler = (event) => {
   }
 }
 
-window.onclick = (event) => {
-  app.mouseEventHandler(event);
+function onClick(event) {
+  mouseEventHandler(event);
 }
 
-window.onmousedown = (event) => {
+function onMouseDown(event) {
   app.mouseLeft = event.buttons & 1;
   if (app.mode === 'pan') {
   } else {
-    app.mouseEventHandler(event);
+    mouseEventHandler(event);
   }
 }
 
-window.onmouseup = (event) => {
+function onMouseUp(event) {
   app.mouseLeft = event.buttons & 1;
   if (app.mode === 'pan') {
     // if (!app.keys[' '] && event.button === 0) {
@@ -515,33 +548,61 @@ window.onmouseup = (event) => {
       app.setMode(null);
     }
   } else {
-    app.mouseEventHandler(event);
+    mouseEventHandler(event);
   }
 }
 
-window.onmousemove = (event) => {
-  if (app.mode === 'pan' && app.mouseLeft) {
+function fadeComponent(component) {
+  if (component.fadeTimerId != null && component.fadeTimerId != undefined) {
+    clearTimeout(component.fadeTimerId);
+  }
+  component.fadeTimerId = setTimeout(() => {
+    if (component.isMouseOver() && app.captureTarget instanceof Tool) {
+      fadeComponent(component);
+    } else {
+      component.el.style.opacity = 1;
+      component.el.style.pointerEvents = 'auto';
+      component.fadeTimerId = null;
+    }
+  }, 100);
+  component.el.style.pointerEvents = 'none';
+  component.el.style.opacity = 0.1;
+}
+
+function onMouseMove(event) {
+  app.cursorX = event.clientX;
+  app.cursorY = event.clientY;
+
+  if (app.mode === 'pan' && event.buttons & 1) {
     app.paper.panCameraBy(-event.movementX / app.paper.scale, -event.movementY / app.paper.scale);
-    app.render();
-    // console.log('panning');
   } else {
-    app.mouseEventHandler(event);
+    if (app.captureTarget instanceof Tool) {
+      if (app.ui.settings.isMouseOver()) {
+        fadeComponent(app.ui.settings);
+      } else if (app.ui.controls.isMouseOver()) {
+        fadeComponent(app.ui.controls);
+      } else if (app.ui.tools.isMouseOver()) {
+        fadeComponent(app.ui.tools);
+      }
+    }
+
+    mouseEventHandler(event);
   }
 }
 
-window.onmouseout = (event) => {
-  app.mouseEventHandler(event);
+function onMouseOut(event) {
+  mouseEventHandler(event);
 }
 
-window.onmouseover = (event) => {
-  app.mouseEventHandler(event);
+function onMouseOver(event) {
+  mouseEventHandler(event);
 }
 
-window.onwheel = (event) => {
-  app.defaultEventHandler(event);
+function onWheel(event) {
+  defaultEventHandler(event);
 }
 
-window.onkeydown = (event) => {
+function onKeyDown(event) {
   app.keys[event.key] = true;
 
   if (this.mode === 'pan') {
@@ -554,7 +615,7 @@ window.onkeydown = (event) => {
       if (event.key == 'b' && !event.repeat) {
         app.setTool('pencil');
       }
-      if (event.key == 'p' && !event.repeat) {
+      else if (event.key == 'p' && !event.repeat) {
         app.setTool('polygon');
       }
       else if (event.key == 'q' && !event.repeat) {
@@ -576,26 +637,41 @@ window.onkeydown = (event) => {
         app.setTool('hand');
       }
       else if (event.key === '.' && !event.repeat) {
-        app.go(app.sequence.position + 1);
+        app.go(app.position + 1);
         // app.sequence.next();
-        // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
+        // app.ui.frameList.render({ cmd: 'select', index: app.position });
         // app.render();
       }
       else if (event.key === ',' && !event.repeat) {
-        app.go(app.sequence.position - 1);
+        app.go(app.position - 1);
         // app.sequence.previous();
-        // app.ui.frameList.render({ cmd: 'select', index: app.sequence.position });
+        // app.ui.frameList.render({ cmd: 'select', index: app.position });
         // app.render();
       }
       else if (event.key === 'n' && !event.repeat) {
         app.newFrame();
 
       } else if (event.key === ' ' && !event.repeat) {
-        // this.mode = 'pan';
         app.setMode('pan');
 
-      // } else if (event.key == 'e' && !event.repeat) {
-        // ipcRenderer.send('export');
+      } else if (event.key === 'Backspace' && !event.repeat) {
+        if (event.ctrlKey) {
+          // app.setMode('pan');
+          app.removeFrame();
+        }
+      } else if (event.key === 'Delete' && !event.repeat) {
+        app.deleteSelected();
+
+      } else if (event.key === 't' && !event.repeat) {
+        console.log('theme');
+        if (app.ui.main.el.classList.contains('light')){
+          app.ui.main.el.classList.remove('light');
+          app.ui.main.el.classList.add('dark');
+        } else {
+          app.ui.main.el.classList.remove('dark');
+          app.ui.main.el.classList.add('light');
+        }
+        // app.deleteSelected();
 
       } else {
         app.paper.handleEvent(event);
@@ -604,7 +680,7 @@ window.onkeydown = (event) => {
   }
 }
 
-window.onkeyup = (event) => {
+function onKeyUp(event) {
   app.keys[event.key] = false;
   // app.rerouteEvent(event);
   if (app.mode === 'pan') {
@@ -635,22 +711,21 @@ window.onkeyup = (event) => {
 
 }
 
-window.onresize = () => {
+function onResize() {
   if (!window.resizeTimeoutId) {
     window.resizeTimeoutId = setTimeout(function() {
       app.reposition();
       window.resizeTimeoutId = 0;
-      app.render();
     }, 66);
   }
 }
 
-window.onfocus = (event) => {
+function onFocus(event) {
   if (app.captureTarget) app.release();
   app.paper.handleEvent(event);
 }
 
-window.onblur = (event) => {
+function onBlur(event) {
   if (app.captureTarget) app.release();
   app.paper.handleEvent(event);
   // app.rerouteEvent(event);
@@ -661,42 +736,47 @@ window.onblur = (event) => {
   // app.setCaptureTarget(null);
 }
 
-window.onpaste = (event) => {
+function onPaste(event) {
   // var target = tags[mouseTargetTag];
   // if (target) {
   //   target.handleEvent(event);
   // }
 }
 
-window.oncopy = (event) => {
+function onCopy(event) {
   // var target = tags[mouseTargetTag];
   // if (target) {
   //   target.handleEvent(event);
   // }
 }
 
-// initEventListeners = function() {
-//   window.addEventListener('click', this);
-//   window.addEventListener('mousedown', this);
-//   window.addEventListener('mousemove', this);
-//   window.addEventListener('mouseup', this);
-//   window.addEventListener('mouseover', this);
-//   window.addEventListener('mouseout', this);
-//   window.addEventListener('keydown', this);
-//   window.addEventListener('keyup', this);
-//   window.addEventListener('resize', this);
-//   window.addEventListener('copy', this);
-//   window.addEventListener('paste', this);
-// }
+function initEventListeners() {
+  window.addEventListener('click', onClick);
+  window.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('mouseover', onMouseOver);
+  window.addEventListener('mouseout', onMouseOut);
+  window.addEventListener('wheel', onWheel);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
+  window.addEventListener('resize', onResize);
+  window.addEventListener('copy', onCopy);
+  window.addEventListener('paste', onPaste);
+}
 
 window.onload = () => {
   console.log('startup');
+
+  window.app = app;
+
+  app.name = 'Scribbler';
+  app.setDocumentName('untitled.scribble');
 
   app.width = window.innerWidth;
   app.height = window.innerHeight;
 
   app.sequence = new Sequence();
-  window.sequence = app.sequence;
   app.selection = new Selection();
 
   // bitmap cursors
@@ -707,14 +787,15 @@ window.onload = () => {
   app.cursors['zoomin'] = 'url(./images/cursor_zoomin.png) 7 7, auto';
   app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
-  app.ui.main = new Container(document.getElementById('main'));
+  app.ui.main = new Container();
+  app.ui.main.el = document.getElementById('main');
 
-  app.ui.tools = new Tools(document.getElementById('tools'));
+  app.ui.tools = new Tools();
   app.ui.tools.on('tool-change', (params) => {
     app.setTool(params.tool);
   });
 
-  app.paper = new Paper(document.getElementById('paper'));
+  app.paper = new Paper();
   app.paper.on('zoom', (params) => {
     // status.setZoom(params.scale)
   });
@@ -723,15 +804,15 @@ window.onload = () => {
   app.paper.on('change-mode', (params) => {
     app.setMode(params.mode);
   });
-  app.paper.on('request-capture', (params) => {
-    // setMode(params.mode);
-    if (params.state)
-      app.setCaptureTarget(app.paper);
-    else
-      app.setCaptureTarget(null);
-  });
+  // app.paper.on('request-capture', (params) => {
+    // // setMode(params.mode);
+    // if (params.state)
+    //   app.setCaptureTarget(app.paper);
+    // else
+    //   app.setCaptureTarget(null);
+  // });
 
-  app.ui.frameList = new FrameList(document.getElementById('frame-list'));
+  app.ui.frameList = new FrameList();
   app.ui.frameList.setThumbnailSize(128, 80);
   app.ui.frameList.on('select', (params) => {
     app.go(params.index);
@@ -739,23 +820,41 @@ window.onload = () => {
   app.ui.frameList.on('new-frame', (params) => {
     app.newFrame();
   });
+  app.ui.frameList.on('scroll', () => {
+    app.updateFrameListMarker();
+  });
 
-  app.ui.controls = new Controls(document.getElementById('controls'));
-  app.ui.settings = new Settings(document.getElementById('settings'));
+  app.ui.frameListMarker = new FrameListMarker({ id: 'frame-list-marker', fromDOMElement: true });
+
+  app.ui.controls = new Controls();
+  app.ui.controls.on('onion', (state) => {
+    app.onion = state;
+    app.render();
+  });
+  app.ui.controls.on('frame-change', (value) => {
+    if (value > 0 && value <= app.sequence.size()) {
+      app.go(value - 1);
+      // app.ui.controls.setFrame(value);
+    } else {
+      app.ui.controls.setFrame(app.position + 1, app.sequence.size());
+    }
+  });
+
+  app.ui.controls.setFps(app.fps);
+
+  app.ui.settings = new Settings();
+  // console.log(app.ui.settings);
 
   app.ui.modal = document.getElementById('modal');
 
   app.ui.main.setVisible(true);
 
-
-  app.reposition();
   app.setTool('pencil');
-
   app.newFrame();
+
+  initEventListeners();
+  app.reposition();
 }
-
-window.app = app;
-
 
 function saveAnimatedGIF(filename) {
   let canvas = document.createElement('canvas');
@@ -769,21 +868,23 @@ function saveAnimatedGIF(filename) {
   encoder.createReadStream().pipe(fs.createWriteStream(filename));
   encoder.start();
   encoder.setRepeat(0);
-  encoder.setDelay(500);
+  encoder.setDelay(1000/12);
+
+  let displayList = new DisplayList();
 
   for (let i = 0; i < app.sequence.frames.length; i++) {
     let frame = app.sequence.frames[i];
-
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    app.paper.clearDisplayList();
+
+    displayList.clear();
 
     for (let i = 0; i < frame.strokes.length; i++) {
       let stroke = frame.strokes[i];
-      app.paper.addDisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH });
+      displayList.add({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH });
     }
 
-    app.paper.renderToCanvas(canvas, transform);
+    app.paper.renderDisplayListToCanvas(canvas, displayList, transform);
     encoder.addFrame(ctx);
   }
 
@@ -800,29 +901,26 @@ function saveAnimatedGIF(filename) {
 }
 
 ipcRenderer.on('export', (event, filename) => {
-  console.log(filename);
   let extension = filename.substring(filename.lastIndexOf('.') + 1);
-  console.log(extension);
 
   if (extension === 'gif') {
     saveAnimatedGIF(filename);
 
   } else {
-    let data = '1234567890';
-
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
-    svg.setAttribute('width', app.paper.width);
-    svg.setAttribute('height', app.paper.height);
-    svg.appendChild(document.createTextNode('\n'));
-
-    let node = document.createElement('polygon');
-    node.setAttribute('points', '50 160, 55 180, 70 180, 60 190, 65 205, 50 195, 35 205, 40 190, 30 180, 45 180');
-    node.setAttribute('fill', 'black');
-    svg.appendChild(node);
-    svg.appendChild(document.createTextNode('\n'));
-
-    fs.writeFileSync(filename, svg.outerHTML);
+    // let data = '1234567890';
+    // var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    // svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+    // svg.setAttribute('width', app.paper.width);
+    // svg.setAttribute('height', app.paper.height);
+    // svg.appendChild(document.createTextNode('\n'));
+    //
+    // let node = document.createElement('polygon');
+    // node.setAttribute('points', '50 160, 55 180, 70 180, 60 190, 65 205, 50 195, 35 205, 40 190, 30 180, 45 180');
+    // node.setAttribute('fill', 'black');
+    // svg.appendChild(node);
+    // svg.appendChild(document.createTextNode('\n'));
+    //
+    // fs.writeFileSync(filename, svg.outerHTML);
   }
 
 })

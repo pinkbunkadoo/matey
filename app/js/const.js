@@ -5,8 +5,9 @@ var Const = {
   HEIGHT: 400,
 
   COLOR_STROKE: new Color(100, 100, 100),
-  COLOR_SELECTION: new Color(30, 144, 255),
-  COLOR_ONION: new Color(128, 255, 128),
+  COLOR_SELECTION: Color.fromHexString('#2db9f0'),
+  // COLOR_ONION: new Color(120, 240, 120),
+  COLOR_ONION: new Color(160, 240, 160),
   COLOR_PAPER: new Color(255, 255, 255),
   COLOR_WORKSPACE: new Color(255, 255, 255),
 

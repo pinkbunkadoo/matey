@@ -1,26 +1,26 @@
 const EventEmitter = require('events').EventEmitter;
 const Const = require('../../const');
 const Container = require('../container');
+const Tray = require('../tray');
 const ToolButton = require('../tool_button');
 const Color = require('../../color');
 const ColorSwatch = require('../color_swatch');
 const Spacer = require('../spacer');
 const Divider = require('../divider');
-// const PointerTool = require('../../tools/pointer_tool');
-// const PencilTool = require('../../tools/pencil_tool');
 
+class Tools extends Tray {
+  constructor() {
+    super();
 
-class Tools extends Container {
-  constructor(el) {
-    super(el);
+    this.el = document.getElementById('tools');
 
     this.buttons = [];
-    this.buttons['pointer'] = new ToolButton(this.el.querySelector('#tools-pointer'));
-    this.buttons['pencil'] = new ToolButton(this.el.querySelector('#tools-pencil'));
-    this.buttons['line'] = new ToolButton(this.el.querySelector('#tools-line'));
-    this.buttons['polygon'] = new ToolButton(this.el.querySelector('#tools-polygon'));
-    this.buttons['hand'] = new ToolButton(this.el.querySelector('#tools-hand'));
-    this.buttons['zoom'] = new ToolButton(this.el.querySelector('#tools-zoom'));
+    this.buttons['pointer'] = new ToolButton({id: 'tools-pointer', fromDOMElement:true});
+    this.buttons['pencil'] = new ToolButton({id: 'tools-pencil', fromDOMElement:true});
+    this.buttons['line'] = new ToolButton({id: 'tools-line', fromDOMElement:true});
+    this.buttons['polygon'] = new ToolButton({id: 'tools-polygon', fromDOMElement:true});
+    this.buttons['hand'] = new ToolButton({id: 'tools-hand', fromDOMElement:true});
+    this.buttons['zoom'] = new ToolButton({id: 'tools-zoom', fromDOMElement:true});
 
     this.tools = null;
 
@@ -32,14 +32,18 @@ class Tools extends Container {
     this.buttons['zoom'].on('pressed', () => { this.onToolSelect('zoom'); });
 
     for (let name in this.buttons) {
-      this.buttons[name].el.style.width = '4em';
-      this.buttons[name].el.style.height = '4em';
-      this.buttons[name].el.style.paddingLeft = '1.5em';
-      this.buttons[name].el.style.paddingRight = '1.5em';
+      this.buttons[name].el.style.width = (32 * app.unit) + 'px';
+      this.buttons[name].el.style.height = (32 * app.unit) + 'px';
+      this.buttons[name].el.style.paddingLeft = (12 * app.unit) + 'px';
+      this.buttons[name].el.style.paddingRight = (12 * app.unit) + 'px';
     }
 
-    this.colorSwatch = new ColorSwatch(this.el.querySelector('#tools-color'));
-    this.fillSwatch = new ColorSwatch(this.el.querySelector('#tools-fill'));
+    this.colorsContainer = new Container({id: 'tools-colors', fromDOMElement:true});
+
+    this.colorSwatch = new ColorSwatch({id: 'tools-color', fromDOMElement:true});
+    this.fillSwatch = new ColorSwatch({id: 'tools-fill', fromDOMElement:true});
+    this.colorsContainer.add(this.colorSwatch);
+    this.colorsContainer.add(this.fillSwatch);
 
     this.colorSwatch.setColor(Const.COLOR_STROKE);
     // this.colorSwatch.setColor(Const.COLOR_STROKE);

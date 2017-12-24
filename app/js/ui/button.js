@@ -3,8 +3,40 @@ const Icon = require('./icon');
 const Label = require('./label');
 
 class Button extends Container {
-  constructor(el) {
-    super(el);
+  constructor(params={}) {
+    super(params);
+
+    this.text = null;
+    this.type = null;
+    this.svg = null;
+
+    if (params.fromDOMElement) {
+      if (this.el.firstElementChild === null) {
+        this.text = this.el.innerHTML;
+        this.type = 'text';
+      } else {
+        if (this.el.firstElementChild instanceof SVGSVGElement) {
+          this.svg = this.el.firstElementChild;
+          this.type = 'svg';
+        }
+      }
+    } else {
+      this.type = params.type;
+      this.text = params.text;
+      this.svg = params.svg;
+
+      // let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      // svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+      // svg.classList.add('icon');
+      //
+      // let svguse = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      // svguse.setAttributeNS('http://www.w3.org/1999/xlink', 'href', './images/icons.svg#' + this.resource);
+      // svg.appendChild(svguse);
+    }
+
+    if (this.text) {
+      this.addClass('text');
+    }
 
     this.state = false;
     // this.callback = undefined;
@@ -68,6 +100,25 @@ class Button extends Container {
     else if (event.type === 'blur') {
       this.onBlur(event);
     }
+  }
+
+  static fromDOMElement(el) {
+    // let type = null;
+    // let text = null;
+    // let svg = null;
+    // if (el.firstElementChild === null) {
+    //   text = el.innerHTML;
+    // } else {
+    //   if (el.firstElementChild instanceof SVGElement) {
+    //     type = 'svg';
+    //     svg = el.firstElementChild;
+    //   }
+    // }
+    // let button = new Button({ type: type, text: text, svg: svg, el: el });
+    // // button.el = el;
+    // // console.log('Button.fromDOMElement', type);
+    // return button;
+    return null;
   }
 }
 

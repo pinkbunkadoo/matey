@@ -2,38 +2,18 @@
 const EventEmitter = require('events').EventEmitter;
 
 class Base extends EventEmitter {
-  constructor(el) {
+  constructor(params={}) {
     super();
-
-    // this.name = params.name;
-
-    this.el = el ? el : document.createElement('div');
-
-    // if (params.tag) {
-    //   this.tag = params.tag;
-    //   this.el.dataset.tag = this.tag;
-    //   // app.registerTag({ tag: this.tag, control: this });
-    //
-    // } else if (params.id) {
-    //   this.tag = params.id;
-    //   this.el.dataset.tag = this.tag;
-    //   this.el.id = this.tag;
-    //   // app.registerTag({ tag: this.tag, control: this });
-    // }
-
-    this.addClass('ui');
-
-    // if (params.style) {
-    //   for (var i in params.style) {
-    //     this.el.style[i] = params.style[i];
-    //   }
-    // }
-    //
-    // if (params.classes) {
-    //   for(var i in params.classes) {
-    //     this.addClass(params.classes[i]);
-    //   }
-    // }
+    if (params.fromDOMElement) {
+        this.el = document.getElementById(params.id);
+    } else {
+      this.el = document.createElement('div');
+      if (params.id) {
+        this.id = params.id;
+        this.el.id = this.id;
+      }
+      this.addClass('ui');
+    }
   }
 
   addClass(className) {
@@ -58,6 +38,7 @@ class Base extends EventEmitter {
 
   handleEvent(event) {
   }
+
 }
 
 module.exports = Base;

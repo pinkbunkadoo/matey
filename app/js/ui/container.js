@@ -1,9 +1,9 @@
 const Base = require('./base');
 
 class Container extends Base {
-  constructor(el) {
+  constructor(params={}) {
     // Base.call(this, params);
-    super(el);
+    super(params);
 
     this.addClass('container');
     this.children = [];
@@ -72,6 +72,7 @@ class Container extends Base {
     }
     this.children = [];
   }
+
 }
 
 module.exports = Container;

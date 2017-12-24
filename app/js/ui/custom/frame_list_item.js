@@ -17,20 +17,24 @@ class FrameListItem extends Container {
     this.canvas.height = this.height;
     this.canvas.style.pointerEvents = 'none';
 
-    this.graphic = new Graphic(this.canvas);
-    this.graphic.el.style.pointerEvents = 'none';
-    this.add(this.graphic);
-
     this.numberContainer = new Container();
     this.numberContainer.addClass('frame-list-item-number');
-    this.number = new Label({ title: '' });
+    this.number = new Label({ text: '' });
     this.numberContainer.add(this.number);
     this.add(this.numberContainer);
+
+    this.space = new Container();
+    this.space.el.style.width = (this.width+1) + 'px';
+    this.space.el.style.height = (this.height+2) + 'px';
+    this.space.el.style.background = 'cyan';
+
+    this.el.appendChild(this.canvas);
+    // this.add(this.space);
   }
 
   setNumber(data) {
     this.el.dataset.index = data;
-    this.number.setTitle(data);
+    this.number.set(data);
   }
 
   select() {

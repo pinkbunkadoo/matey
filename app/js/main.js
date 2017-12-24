@@ -102,13 +102,13 @@ function createWindow () {
 function showExportDialog() {
   if (mainWindow) {
     dialog.showSaveDialog(mainWindow, {
-      title: "Export animation...",
-      message: "Hello Mr. Export",
+      title: "Export GIF...",
+      // message: "Hello Mr. Export",
       buttonLabel: "Export",
       filters: [
-        { name: 'Animated GIF', extensions: [ 'gif' ] },
-        { name: 'SVG (SMIL)', extensions: [ 'svg' ] },
-        { name: 'PNG Sequence', extensions: [ 'png' ] }
+        { name: 'Animated GIF', extensions: [ 'gif' ] }
+        // { name: 'SVG (SMIL)', extensions: [ 'svg' ] },
+        // { name: 'PNG Sequence', extensions: [ 'png' ] }
       ]
       },
       filename => {
