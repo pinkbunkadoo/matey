@@ -29,8 +29,8 @@ class FrameList extends Container {
     this.container.el = document.getElementById('frame-list-container');
 
     this.frameListNew = new Container();
-    this.frameListNew.addClass('frame-list-item');
-    this.frameListNew.addClass('new');
+    this.frameListNew.addClass('frame-list-new');
+    // this.frameListNew.addClass('new');
     // this.frameListNew.el.onclick = () => {
       // this.emit('new-frame');
     // };
@@ -56,6 +56,7 @@ class FrameList extends Container {
     // this.marker.addDomElement(e);
 
     this.el.addEventListener('mousedown', this);
+    this.el.addEventListener('wheel', this);
   }
 
   refreshFrameNumbers() {
@@ -248,6 +249,7 @@ class FrameList extends Container {
     let deltaX = event.deltaX;
     this.el.scrollLeft += deltaX;
     this.emit('scroll');
+    // console.log('onwheel');
   }
 
   handleEvent(event) {

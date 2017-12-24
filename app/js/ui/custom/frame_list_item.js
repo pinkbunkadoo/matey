@@ -23,10 +23,10 @@ class FrameListItem extends Container {
     this.numberContainer.add(this.number);
     this.add(this.numberContainer);
 
-    this.space = new Container();
-    this.space.el.style.width = (this.width+1) + 'px';
-    this.space.el.style.height = (this.height+2) + 'px';
-    this.space.el.style.background = 'cyan';
+    // this.space = new Container();
+    // this.space.el.style.width = (this.width+1) + 'px';
+    // this.space.el.style.height = (this.height+2) + 'px';
+    // this.space.el.style.background = 'cyan';
 
     this.el.appendChild(this.canvas);
     // this.add(this.space);
