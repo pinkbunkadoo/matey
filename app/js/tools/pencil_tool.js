@@ -11,6 +11,7 @@ class PencilTool extends Tool {
   constructor() {
     super('pencil');
     this.cursor = 'pencil';
+    this.cursorInverted = 'pencil_inverted';
   }
 
   reset() {

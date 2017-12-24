@@ -66,15 +66,14 @@ class Button extends Container {
   }
 
   onMouseDown(event) {
-    app.capture(this);
+    app.capture(this, true);
   }
 
   onMouseUp(event) {
-    if (event.target === this.el) {
+    if (this.getBounds().containsPoint(app.cursorX, app.cursorY)) {
       this.emit('pressed');
     }
     app.release(this);
-
     this.update();
   }
 

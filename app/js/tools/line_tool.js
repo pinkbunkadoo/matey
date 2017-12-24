@@ -11,6 +11,7 @@ class LineTool extends Tool {
   constructor() {
     super('line');
     this.cursor = 'line';
+    this.cursorInverted = 'line_inverted';
     this.reset();
   }
 

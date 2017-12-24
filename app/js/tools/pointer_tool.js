@@ -49,23 +49,10 @@ class PointerTool extends Tool {
   }
 
   endDrag() {
-    // var state = app.sequence.frame.history.get();
-    // var action = state.action;
-
-    // this.moveSelected(this.dx, this.dy);
-
-    // if ((!(action instanceof MoveAction) && !(action instanceof NudgeAction)) ||  this.selectionChanged) {
-    //   action = new MoveAction();
-    //   app.sequence.addAction(action);
-    //   this.selectionChanged = false;
-    // } else {
-    //   app.sequence.updateState();
-    // }
-
     this.dx = 0;
     this.dy = 0;
     this.mode = null;
-    // app.release();
+    app.setFrameDirty();
   }
 
 
@@ -75,29 +62,16 @@ class PointerTool extends Tool {
     this.xmax = Number.NEGATIVE_INFINITY;
     this.ymax = Number.NEGATIVE_INFINITY;
     this.mode = 'select';
-    // app.capture(this);
-    // console.log('select');
   }
 
   endSelection() {
     this.mode = null;
-    // this.emit('marquee', { xmin: this.xmin, ymin: this.ymin, xmax: this.xmax, ymax: this.ymax });
-    // this.emit('change');
-
     let p1 = app.paper.screenToWorld(this.xmin, this.ymin);
     let p2 = app.paper.screenToWorld(this.xmax, this.ymax);
-
     app.marqueeSelect(p1, p2);
-    app.render();
-    // app.release();
-    // app.marqueeSelect();
   }
 
   render(ctx) {
-    // ctx.lineCap = 'round';
-    // ctx.lineJoin = 'round';
-    // ctx.lineWidth = Const.LINE_WIDTH * 2;
-
     if (this.mode === 'select') {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
@@ -222,6 +196,7 @@ class PointerTool extends Tool {
       app.render();
 
     } else if (this.mode == 'drag') {
+      // console.log(mx, my);
       var dx = event.movementX, dy = event.movementY;
       app.moveSelected(dx, dy);
       app.render();

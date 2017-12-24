@@ -10,6 +10,7 @@ class PolygonTool extends Tool {
     super('polygon');
 
     this.cursor = 'line';
+    this.cursorInverted = 'line_inverted';
   }
 
   reset() {
@@ -160,14 +161,10 @@ class PolygonTool extends Tool {
 
   onMouseMove(event) {
     if (this.drawing) {
-      this.mx = app.cursorX; //mx;
-      this.my = app.cursorY; //my;
+      this.mx = app.cursorX;
+      this.my = app.cursorY;
 
       app.render();
-
-      // // console.log(app.mouseX);
-      //
-      //
       // // var mx = app.mouseX;
       // // var my = app.mouseY;
       //

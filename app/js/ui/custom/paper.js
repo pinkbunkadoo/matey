@@ -73,6 +73,11 @@ class Paper extends Base {
     this.ty = y;
   }
 
+  setCursor(name) {
+    this.el.style.cursor = app.cursors[name];
+    this.cursor = name;
+  }
+
   center() {
     this.setCameraPosition((this.width / 2) >> 0, (this.height / 2) >> 0);
     this.setZoom(1);
@@ -164,9 +169,9 @@ class Paper extends Base {
     }
   }
 
-  setCursor(name) {
-    app.setCursor(name);
-  }
+  // setCursor(name) {
+  //   app.setCursor(name);
+  // }
 
   renderDots(stroke) {
     // var ctx = this.canvas.getContext('2d');
@@ -188,8 +193,9 @@ class Paper extends Base {
 
   clear() {
     var ctx = this.canvas.getContext('2d');
-    // ctx.fillStyle = Const.COLOR_WORKSPACE.toHexString();
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.fillStyle = app.theme === 'light' ? Const.COLOR_WORKSPACE_LIGHT.toHexString() : Const.COLOR_WORKSPACE_DARK.toHexString();
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.save();
     var p1 = this.worldToScreen(0, 0);
     ctx.fillStyle = Const.COLOR_PAPER.toHexString();
@@ -214,10 +220,11 @@ class Paper extends Base {
   renderPath(ctx, points, params) {
     if (points.length) {
       let transform = params.transform;
+      let scale = transform ? transform.scale : 1;
 
       ctx.save();
       // ctx.globalCompositeOperation = 'difference';
-      ctx.lineWidth = params.thickness ? params.thickness : Const.LINE_WIDTH;
+      ctx.lineWidth = params.thickness ? params.thickness * scale : Const.LINE_WIDTH * scale;
       ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
       ctx.strokeStyle = params.color ? params.color.toHexString() : Const.COLOR_STROKE.toHexString();
 
@@ -278,11 +285,25 @@ class Paper extends Base {
   }
 
   renderDisplayListToCanvas(canvas, displayList, transform=null) {
-    // console.log(canvas, displayList, transform);
     let ctx = canvas.getContext('2d');
     for (let i = 0; i < displayList.items.length; i++) {
       let item = displayList.items[i];
       this.renderDisplayItem(ctx, item, transform);
+    }
+  }
+
+  updateCursor() {
+    let x = app.cursorX;
+    let y = app.cursorY;
+    let ctx = this.canvas.getContext('2d');
+    let imageData = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    let data = imageData.data;
+    let index = (y * this.canvas.width + x) * 4;
+    let avg = (data[index] + data[index + 1] + data[index + 2]) / 3;
+    if (avg <= 128) {
+      this.setCursor(this.tool.cursorInverted);
+    } else {
+      this.setCursor(this.tool.cursor);
     }
   }
 
@@ -318,13 +339,24 @@ class Paper extends Base {
   }
 
   onMouseMove(event) {
-    if (document.pointerLockElement === this.canvas) {
-      this.cursorX += event.movementX;
-      this.cursorY += event.movementY;
-    } else {
-      this.cursorX = event.clientX;
-      this.cursorY = event.clientY;
-    }
+    this.cursorX = event.clientX;
+    this.cursorY = event.clientY;
+
+    this.updateCursor();
+
+    // let x = this.cursorX;
+    // let y = this.cursorY;
+    // let ctx = this.canvas.getContext('2d');
+    // let imageData = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    // let pixel = imageData.data[(y * this.canvas.width + x) * 4];
+    // // console.log(pixel);
+    // if (pixel === 0) {
+    //   // console.log('cursorinvert', pixel);
+    //   this.setCursor(this.tool.cursorInverted);
+    // } else {
+    //   this.setCursor(this.tool.cursor);
+    //   // this.el.style.cursor = this.tool.cursor;
+    // }
   }
 
   onKeyDown(event) {

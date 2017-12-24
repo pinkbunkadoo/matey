@@ -45,16 +45,6 @@ class FrameList extends Container {
 
     this.add(this.container);
 
-    // this.marker = new Container({ id: 'frame-list-marker', fromDOMElement:true });
-    // this.add(this.marker);
-
-    // this.nodule = new Container({ id: 'frame-list-nodule' });
-    // this.marker.add(this.nodule);
-
-    // let e = document.createElement('div');
-    // e.id = 'frame-list-nodule';
-    // this.marker.addDomElement(e);
-
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('wheel', this);
   }
@@ -111,7 +101,7 @@ class FrameList extends Container {
 
     let item = this.selection;
     let width = this.container.el.scrollWidth;
-    let margin = 8;
+    let margin = 0; //8;
 
     if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
       this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth + margin;
@@ -130,7 +120,7 @@ class FrameList extends Container {
   setThumbnailSize(width, height) {
     this.thumbnailWidth = width;
     this.thumbnailHeight = height;
-    this.frameListNew.el.style.width = this.thumbnailWidth + 'px';
+    // this.frameListNew.el.style.width = this.thumbnailWidth + 'px';
     // this.frameListNew.el.style.height = this.thumbnailHeight + 'px';
   }
 
@@ -150,7 +140,10 @@ class FrameList extends Container {
     else if (params.cmd === 'removeAll') {
       this.removeAll();
     }
-    else if (params.cmd === 'update') {
+    else if (params.cmd === 'updateThumbnail') {
+      let frameListItem = this.items[params.index];
+      let ctx = frameListItem.canvas.getContext('2d');
+      ctx.drawImage(params.canvas, 0, 0);
     }
     if (this.selection) {
       // this.nodule.el.style.left = (this.selection.offsetLeft / this.container.offsetWidth) + 'px';
@@ -161,7 +154,9 @@ class FrameList extends Container {
   }
 
   beginCapture() {
-    app.capture(this);
+    window.removeEventListener('mouseup', this);
+    window.removeEventListener('mousemove', this);
+    app.capture(this, true);
   }
 
   endCapture() {
@@ -171,7 +166,8 @@ class FrameList extends Container {
   onMouseDown(event) {
     var target = event.target;
     this.dragAmount = 0;
-    this.beginCapture();
+    window.addEventListener('mouseup', this);
+    window.addEventListener('mousemove', this);
   }
 
   onMouseUp(event) {
@@ -181,9 +177,10 @@ class FrameList extends Container {
     if (this.grab) {
       this.clearVelocityTimeout();
       if (Math.abs(this.velocity) > 1) this.startMomentumTimer();
+      this.endCapture();
     } else {
+      // console.log('up');
       if (event.target !== this.el) {
-        // console.log(event.target, this.frameListNew.el);
         if (event.target === this.frameListNew.el) {
           this.emit('new-frame');
         } else {
@@ -194,7 +191,8 @@ class FrameList extends Container {
         }
       }
     }
-    this.endCapture();
+    window.removeEventListener('mouseup', this);
+    window.removeEventListener('mousemove', this);
     this.grab = false;
   }
 
@@ -230,16 +228,16 @@ class FrameList extends Container {
       let deltaX = -event.movementX;
       this.velocity = deltaX;
       this.el.scrollLeft += deltaX;
-
       this.emit('scroll');
-
       clearTimeout(this.velocityTimeoutId);
       this.velocityTimeoutId = setTimeout(() => { this.velocity = 0; }, 100);
     } else {
       if (event.buttons & 1) {
         this.dragAmount += event.movementX;
         if (Math.abs(this.dragAmount) > 3) {
+          // console.log('grab');
           this.grab = true;
+          this.beginCapture();
         }
       }
     }

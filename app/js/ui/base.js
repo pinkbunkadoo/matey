@@ -1,4 +1,5 @@
 // const Emitter = require('../emitter');
+const Rectangle = require('../geom/rectangle');
 const EventEmitter = require('events').EventEmitter;
 
 class Base extends EventEmitter {
@@ -14,6 +15,15 @@ class Base extends EventEmitter {
       }
       this.addClass('ui');
     }
+
+    this.bounds = new Rectangle();
+
+    // this.el.onresize = (event) => {
+    //   this.bounds.x = this.el.offsetLeft;
+    //   this.bounds.y = this.el.offsetTop;
+    //   this.bounds.width = this.el.offsetWidth;
+    //   this.bounds.height = this.el.offsetHeight;
+    // }
   }
 
   addClass(className) {
@@ -32,12 +42,18 @@ class Base extends EventEmitter {
     this.el.style.visibility = value ? 'visible' : 'hidden';
   }
 
+  getBounds() {
+    let rect = this.el.getBoundingClientRect();
+    return new Rectangle(rect.left, rect.top, rect.width, rect.height);
+  }
+
   isVisible() {
     return (this.el.style.visibility === 'visible');
   }
 
   handleEvent(event) {
   }
+
 
 }
 

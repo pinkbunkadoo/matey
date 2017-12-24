@@ -4,8 +4,8 @@ const Color = require('../color');
 const Icon = require('./icon');
 
 class ColorSwatch extends Container {
-  constructor(el) {
-    super(el);
+  constructor(params={}) {
+    super(params);
 
     this.addClass('color-swatch');
 
@@ -37,6 +37,7 @@ class ColorSwatch extends Container {
       this.removeClass('none');
       this.color = color.copy();
       this.el.style.background = this.color.toHexString();
+      // this.el.style.backgroundClip = 'content-box';
       this.nullColorIcon.setVisible(false);
     } else {
       this.addClass('none');

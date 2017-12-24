@@ -9,7 +9,9 @@ var Const = {
   // COLOR_ONION: new Color(120, 240, 120),
   COLOR_ONION: new Color(160, 240, 160),
   COLOR_PAPER: new Color(255, 255, 255),
-  COLOR_WORKSPACE: new Color(255, 255, 255),
+
+  COLOR_WORKSPACE_LIGHT: new Color(128, 128, 128),
+  COLOR_WORKSPACE_DARK: new Color(52, 52, 52),
 
   KEY_PAN: ' ',
   // LINE_WIDTH: 1.5,

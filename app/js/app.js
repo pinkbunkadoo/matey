@@ -29,11 +29,10 @@ const {ipcRenderer} = require('electron');
 const fs = require('fs');
 const GIFEncoder = require('gifencoder');
 
-var app = {
+let app = {
   width: 0, height: 0,
   unit: 1.0,
   settings: [],
-  cursors: [],
   ui: [],
   mouseX: 0, mouseY: 0, mouseDownX: 0, mouseDownY: 0,
   mouseLeft: false,
@@ -50,8 +49,21 @@ var app = {
   fps: 12,
   selection: null,
   captureTarget: null,
-  modal: false
-}
+  modal: false,
+  theme: 'light',
+  thumbnails: [],
+  cursors: {
+    pointer: 'url(./images/cursor_pointer.png) 1 1, auto',
+    pencil: 'url(./images/cursor_pencil.png) 1 1, auto',
+    pencil_inverted: 'url(./images/cursor_pencil_inverted.png) 1 1, auto',
+    line: 'url(./images/cursor_line.png) 3 3, auto',
+    line_inverted: 'url(./images/cursor_line_inverted.png) 3 3, auto',
+    hand: 'url(./images/cursor_hand.png) 12 12, auto',
+    zoomin: 'url(./images/cursor_zoomin.png) 7 7, auto',
+    zoomout: 'url(./images/cursor_zoomout.png) 7 7, auto'
+  }
+};
+
 
 app.getOverlayContext = () => {
   return app.paper.overlayCanvas.getContext('2d');
@@ -106,7 +118,7 @@ app.setMode = (desired) => {
     if (app.mode === 'pan') {
       app.setCursor('hand');
     } else {
-      if (app.paper.tool) app.setCursor(app.paper.tool.cursor);
+      if (app.paper.tool) app.setCursor(app.paper.cursor);
     }
   }
 }
@@ -129,9 +141,9 @@ app.setTool = (name) => {
 }
 
 app.setCursor = (name) => {
-  app.paper.el.style.cursor = app.cursors[name];
-  app.cursor = name;
-  // console.log('cursor', name);
+  app.paper.setCursor(name);
+  // app.paper.el.style.cursor = app.cursors[name];
+  // app.cursor = name;
 }
 
 app.getColor = () => {
@@ -246,6 +258,7 @@ app.marqueeSelect = (p1, p2) => {
   app.selection.clear();
   app.selection.add(candidates);
   // return selection;
+  app.render();
 }
 
 app.deleteSelected = () => {
@@ -253,8 +266,18 @@ app.deleteSelected = () => {
   let result = app.frame.strokes.filter(element => !set.includes(element));
   app.selection.clear();
   app.frame.strokes = result;
-  app.updateFrameListThumbnail(app.frame);
+  app.updateFrameListThumbnail(app.position);
   app.render();
+}
+
+app.setFrameDirty = () => {
+  let position = app.position;
+  if (!app.thumbnails[position]) {
+    app.thumbnails[position] = setTimeout(() => {
+      app.thumbnails[position] = null;
+      app.updateFrameListThumbnail(position);
+    }, 100);
+  }
 }
 
 app.moveSelected = (dx, dy) => {
@@ -282,60 +305,29 @@ app.updateFrameListMarker = () => {
   app.ui.frameListMarker.render({ cmd: 'update', size: size, offset: offset });
 }
 
-app.updateFrameListThumbnail = (frame) => {
-  var index = app.sequence.frames.indexOf(frame);
-  // var frame = sequence.frames[index];
-  var scale = app.ui.frameList.thumbnailWidth / Const.WIDTH;
-  var width = app.ui.frameList.thumbnailWidth;
-  var height = app.ui.frameList.thumbnailHeight;
-  var frameListItem = app.ui.frameList.get(index);
+app.updateFrameListThumbnail = (index) => {
+  let frame = app.sequence.getFrame(index);
+  let scale = 128 / Const.WIDTH;
+  let canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 80;
+  let displayList = new DisplayList();
+  let transform = new Transform(0, 0, scale);
 
-  if (frameListItem) {
-    let canvas = frameListItem.canvas;
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillRect(0, 0, width, height);
-    // ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  let ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    let displayList = new DisplayList();
-
-    let transform = new Transform(0, 0, scale);
-
-    for (var i = 0; i < frame.strokes.length; i++) {
-      let stroke = frame.strokes[i];
-      displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH * scale});
-    }
-    // console.log(displayList);
-    app.paper.renderDisplayListToCanvas(canvas, displayList, transform);
-
-    // var ctx = frameListItem.canvas.getContext('2d')
-    // ctx.fillStyle = 'white';
-    // ctx.clearRect(0, 0, width, height);
-    // ctx.fillRect(0, 0, width, height);
-    // ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    //
-    // ctx.lineWidth = 2;
-    // ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
-    //
-    // for (var i = 0; i < frame.strokes.length; i++) {
-    //   var stroke = frame.strokes[i];
-    //   ctx.beginPath();
-    //   ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-    //   for (var j = 0; j < stroke.points.length; j++) {
-    //     var point = stroke.points[j];
-    //     ctx.lineTo(point.x, point.y);
-    //   }
-    //   ctx.stroke();
-    // }
-    //
-    // ctx.setTransform(1, 0, 0, 1, 0, 0);
+  for (var i = 0; i < frame.strokes.length; i++) {
+    let stroke = frame.strokes[i];
+    displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH * 2});
   }
+  app.paper.renderDisplayListToCanvas(canvas, displayList, transform);
+
+  app.ui.frameList.render({ cmd: 'updateThumbnail', canvas: canvas, index: index });
 }
 
 app.go = (index) => {
-  // console.log('go', index, app.sequence.size());
-  // app.sequence.go(index);
   let frame = app.sequence.getFrame(index);
   if (frame) {
     app.position = index;
@@ -381,7 +373,7 @@ app.newFrame = () => {
   app.ui.frameList.render({ cmd: 'frameAdd' });
   app.go(app.sequence.size() - 1);
   app.updateFrameListMarker();
-  app.updateFrameListThumbnail(app.frame);
+  app.updateFrameListThumbnail(app.position);
   app.updateFrameLabel();
 }
 
@@ -431,7 +423,7 @@ app.createStroke = (points, color, fill) => {
   stroke.setColor(color);
   stroke.setFill(fill);
   app.frame.addStroke(stroke);
-  app.updateFrameListThumbnail(app.frame);
+  app.updateFrameListThumbnail(app.position);
   app.render();
   // console.log('createStroke', app.frame.strokes.length, stroke.points);
 }
@@ -455,7 +447,7 @@ app.reposition = () => {
   app.ui.tools.el.style.top = (((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
   app.ui.controls.el.style.left = (((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
 
-  app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMarker.el.offsetHeight - 4) + 'px';
+  app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMarker.el.offsetHeight - 8) + 'px';
   // app.ui.controls.el.style.top = (app.paper.el.offsetTop + app.paper.el.offsetHeight - 200) + 'px';
 
   app.updateFrameListMarker();
@@ -466,17 +458,17 @@ app.setModal = function(value) {
   if (app.modal !== value) {
     app.modal = value ? true : false;
     app.ui.modal.style.visibility = app.modal ? 'visible' : 'hidden';
-
-    if (app.modal) {
-      app.ui.modal.style.cursor = app.cursors[app.cursor];
-    }
   }
 }
 
 app.capture = (captor, modal=false) => {
   if (captor) {
     app.captureTarget = captor;
+    // let cursor = (captor instanceof Tool ? app.paper.cursor : 'pointer');
     app.setModal(modal);
+    if (app.modal) {
+      app.ui.modal.style.cursor = captor instanceof Tool ? app.cursors[app.paper.cursor] : 'default';
+    }
   }
   // document.body.style.filter = 'blur(1px)';
   // document.body.style.filter = 'hue-rotate(90deg)';
@@ -509,18 +501,11 @@ function defaultEventHandler(event) {
 }
 
 function mouseEventHandler(event) {
-  // app.cursorX = event.clientX;
-  // app.cursorY = event.clientY;
-
   if (app.captureTarget) {
     app.captureTarget.handleEvent(event);
   } else {
     if (app.paper && event.target === app.paper.el) {
       app.paper.handleEvent(event);
-    } else {
-      // if (app.handler[event.target.id]) {
-      //   app.handler[event.target.id]
-      // }
     }
   }
 }
@@ -557,16 +542,19 @@ function fadeComponent(component) {
     clearTimeout(component.fadeTimerId);
   }
   component.fadeTimerId = setTimeout(() => {
-    if (component.isMouseOver() && app.captureTarget instanceof Tool) {
+    if (component.getBounds().containsPoint(app.cursorX, app.cursorY, 8) && app.captureTarget instanceof Tool) {
       fadeComponent(component);
     } else {
       component.el.style.opacity = 1;
       component.el.style.pointerEvents = 'auto';
+      // component.el.style.display = 'block';
       component.fadeTimerId = null;
     }
   }, 100);
   component.el.style.pointerEvents = 'none';
-  component.el.style.opacity = 0.1;
+  // component.el.style.display = 'none';
+  // component.el.style.cursor = 'none';
+  component.el.style.opacity = 0;
 }
 
 function onMouseMove(event) {
@@ -577,16 +565,17 @@ function onMouseMove(event) {
     app.paper.panCameraBy(-event.movementX / app.paper.scale, -event.movementY / app.paper.scale);
   } else {
     if (app.captureTarget instanceof Tool) {
-      if (app.ui.settings.isMouseOver()) {
+      if (app.ui.settings.getBounds().containsPoint(app.cursorX, app.cursorY, 8)) {
         fadeComponent(app.ui.settings);
-      } else if (app.ui.controls.isMouseOver()) {
+      } else if (app.ui.controls.getBounds().containsPoint(app.cursorX, app.cursorY, 8)) {
         fadeComponent(app.ui.controls);
-      } else if (app.ui.tools.isMouseOver()) {
+      } else if (app.ui.tools.getBounds().containsPoint(app.cursorX, app.cursorY, 8)) {
         fadeComponent(app.ui.tools);
       }
     }
-
+    // if (event.target === app.paper.el || event.target === app.ui.modal) app.paper.handleEvent(event);
     mouseEventHandler(event);
+    // app.paper.updateCursor();
   }
 }
 
@@ -663,15 +652,17 @@ function onKeyDown(event) {
         app.deleteSelected();
 
       } else if (event.key === 't' && !event.repeat) {
-        console.log('theme');
+        // console.log('theme');
         if (app.ui.main.el.classList.contains('light')){
           app.ui.main.el.classList.remove('light');
           app.ui.main.el.classList.add('dark');
+          app.theme = 'dark';
         } else {
           app.ui.main.el.classList.remove('dark');
           app.ui.main.el.classList.add('light');
+          app.theme = 'light';
         }
-        // app.deleteSelected();
+        app.render();
 
       } else {
         app.paper.handleEvent(event);
@@ -721,12 +712,12 @@ function onResize() {
 }
 
 function onFocus(event) {
-  if (app.captureTarget) app.release();
+  if (app.captureTarget) app.release(app.captureTarget);
   app.paper.handleEvent(event);
 }
 
 function onBlur(event) {
-  if (app.captureTarget) app.release();
+  if (app.captureTarget) app.release(app.captureTarget);
   app.paper.handleEvent(event);
   // app.rerouteEvent(event);
 
@@ -760,9 +751,11 @@ function initEventListeners() {
   window.addEventListener('wheel', onWheel);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
-  window.addEventListener('resize', onResize);
   window.addEventListener('copy', onCopy);
   window.addEventListener('paste', onPaste);
+  window.addEventListener('resize', onResize);
+  window.addEventListener('focus', onFocus);
+  window.addEventListener('blur', onBlur);
 }
 
 window.onload = () => {
@@ -778,14 +771,6 @@ window.onload = () => {
 
   app.sequence = new Sequence();
   app.selection = new Selection();
-
-  // bitmap cursors
-  app.cursors['pointer'] = 'url(./images/cursor_pointer.png) 1 1, auto';
-  app.cursors['pencil'] = 'url(./images/cursor_pencil.png) 1 1, auto';
-  app.cursors['line'] = 'url(./images/cursor_line.png) 3 3, auto';
-  app.cursors['hand'] = 'url(./images/cursor_hand.png) 12 12, auto';
-  app.cursors['zoomin'] = 'url(./images/cursor_zoomin.png) 7 7, auto';
-  app.cursors['zoomout'] = 'url(./images/cursor_zoomout.png) 7 7, auto';
 
   app.ui.main = new Container();
   app.ui.main.el = document.getElementById('main');

@@ -39,13 +39,12 @@ class Tools extends Tray {
     }
 
     this.colorsContainer = new Container({id: 'tools-colors', fromDOMElement:true});
-
     this.colorSwatch = new ColorSwatch({id: 'tools-color', fromDOMElement:true});
     this.fillSwatch = new ColorSwatch({id: 'tools-fill', fromDOMElement:true});
     this.colorsContainer.add(this.colorSwatch);
     this.colorsContainer.add(this.fillSwatch);
-
     this.colorSwatch.setColor(Const.COLOR_STROKE);
+
     // this.colorSwatch.setColor(Const.COLOR_STROKE);
 
     // this.colorSwatch.on('pressed')
