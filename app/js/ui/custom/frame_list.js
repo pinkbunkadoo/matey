@@ -11,16 +11,15 @@ const FrameListItem = require('./frame_list_item');
 // const Frame = require('../../frame');
 
 class FrameList extends Container {
-  constructor() {
-    super();
+  constructor(params={}) {
+    params.el = params.el || document.getElementById('frame-list');
+    super(params);
 
     this.grab = false;
     this.dragAmount = 0;
     this.velocity = 0;
     this.timerId = null;
     this.velocityTimeoutId = null;
-
-    this.el = document.getElementById('frame-list');
 
     this.items = [];
     this.selection = null;
@@ -30,10 +29,7 @@ class FrameList extends Container {
 
     this.frameListNew = new Container();
     this.frameListNew.addClass('frame-list-new');
-    // this.frameListNew.addClass('new');
-    // this.frameListNew.el.onclick = () => {
-      // this.emit('new-frame');
-    // };
+
     let icon = new Icon({ resource: 'plus', invert: true });
     icon.el.style.width = (32 * app.unit) + 'px';
     icon.el.style.height = (32 * app.unit) + 'px';
