@@ -2,18 +2,13 @@ const Base = require('./base');
 
 class Container extends Base {
   constructor(params={}) {
-    // Base.call(this, params);
     super(params);
-
     this.addClass('container');
     this.children = [];
   }
 
-  // Container.prototype = Object.create(Base.prototype);
-  // Container.prototype.constructor = Container;
-
   addDomElement(element) {
-    this.el.appendChild(element);
+    if (!this.el.contains(element)) this.el.appendChild(element);
   }
 
   removeDomElement(element) {
@@ -26,19 +21,13 @@ class Container extends Base {
   }
 
   insert(index, child) {
-    // console.log('insert', index);
     var before = this.children[index];
-    // this.children.push(child);
     this.children.splice(index, 0, child);
-
-    // console.log(index, child, this.children);
-
     if (before) {
       this.el.insertBefore(child.el, before.el);
     } else {
       this.el.appendChild(child.el);
     }
-    // this.addDomElement(child.el);
   }
 
   remove(child) {
@@ -53,15 +42,19 @@ class Container extends Base {
     return this.children[index];
   }
 
-
   getByName(name) {
     for (var i = 0; i < this.children.length; i++) {
-      if (this.children[i].name == name) {
+      if (this.children[i].name === name) {
         return this.children[i];
       }
     }
     return null;
   }
+
+  // getComponentById(id) {
+  //   let component = this.el.querySelector('#' + id);
+  //   return component;
+  // }
 
   removeAll() {
     // console.log('clear', this.children);
@@ -72,7 +65,6 @@ class Container extends Base {
     }
     this.children = [];
   }
-
 }
 
 module.exports = Container;

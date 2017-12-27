@@ -6,10 +6,9 @@ const Tools = require('../../tools/');
 const Stroke = require('../../stroke');
 
 class Paper extends Base {
-  constructor() {
-    super();
-
-    this.el = document.getElementById('paper');
+  constructor(params={}) {
+    params.el = document.getElementById('paper');
+    super(params);
 
     this.canvasWidth = this.el.offsetWidth;
     this.canvasHeight = this.el.offsetHeight;
@@ -17,7 +16,6 @@ class Paper extends Base {
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvasWidth;
     this.canvas.height = this.canvasHeight;
-    this.canvas.style.pointerEvents = 'none';
     this.el.appendChild(this.canvas);
 
     this.overlayCanvas = document.createElement('canvas');
@@ -196,6 +194,7 @@ class Paper extends Base {
     ctx.fillStyle = app.theme === 'light' ? Const.COLOR_WORKSPACE_LIGHT.toHexString() : Const.COLOR_WORKSPACE_DARK.toHexString();
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
     ctx.save();
     var p1 = this.worldToScreen(0, 0);
     ctx.fillStyle = Const.COLOR_PAPER.toHexString();
@@ -342,7 +341,7 @@ class Paper extends Base {
     this.cursorX = event.clientX;
     this.cursorY = event.clientY;
 
-    this.updateCursor();
+    // this.updateCursor();
 
     // let x = this.cursorX;
     // let y = this.cursorY;
@@ -373,13 +372,14 @@ class Paper extends Base {
 
   handleEvent(event) {
     if (event.type === 'mousedown') {
+      // console.log('mousedown');
       this.onMouseDown(event);
-    }
-    else if (event.type === 'mousemove') {
-      this.onMouseMove(event);
     }
     else if (event.type === 'mouseup') {
       this.onMouseUp(event);
+    }
+    else if (event.type === 'mousemove') {
+      this.onMouseMove(event);
     }
     else if (event.type === 'keydown') {
       this.onKeyDown(event);

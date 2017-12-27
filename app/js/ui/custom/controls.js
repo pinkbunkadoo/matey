@@ -2,37 +2,36 @@ const Base = require('../base');
 const Container = require('../container');
 const Label = require('../label');
 const TextField = require('../text_field');
-const Tray = require('../tray');
+const Panel = require('../panel');
 const Button = require('../button');
 
-class Controls extends Tray {
-  constructor() {
-    super();
-
-    this.el = document.getElementById('controls');
+class Controls extends Panel {
+  constructor(params={}) {
+    params.el = document.getElementById('controls');
+    super(params);
 
     this.buttons = [];
-    this.buttons['first'] = new Button({id: 'controls-first', fromDOMElement: true});
-    this.buttons['play'] = new Button({id: 'controls-play', fromDOMElement: true});
-    this.buttons['last'] = new Button({id: 'controls-last', fromDOMElement: true});
-    this.buttons['loop'] = new Button({id: 'controls-loop', fromDOMElement: true});
-    this.buttons['onion'] = new Button({id: 'controls-onion', fromDOMElement: true});
+    this.buttons['first'] = new Button({ el: document.getElementById('controls-first'), name: 'first' });
+    this.buttons['play'] = new Button({ el: document.getElementById('controls-play'), name: 'play' });
+    this.buttons['last'] = new Button({ el: document.getElementById('controls-last'), name: 'last' });
+    this.buttons['loop'] = new Button({ el: document.getElementById('controls-loop'), name: 'loop' });
+    this.buttons['onion'] = new Button({ el: document.getElementById('controls-onion'), name: 'onion' });
 
     this.buttons['first'].on('pressed', () => {
-      app.first();
+      // app.first();
+      this.emit('first');
     });
     this.buttons['play'].on('pressed', () => {  });
     this.buttons['last'].on('pressed', () => {
-      app.last();
+      // app.last();
+      this.emit('last');
     });
     this.buttons['loop'].on('pressed', () => {
       this.buttons['loop'].toggle();
-      console.log('loop', this.buttons['loop'].state);
     });
     this.buttons['onion'].on('pressed', () => {
       this.buttons['onion'].toggle();
       this.emit('onion', this.buttons['onion'].state);
-      console.log('onion', this.buttons['onion'].state);
     });
 
     for (let name in this.buttons) {
@@ -42,7 +41,7 @@ class Controls extends Tray {
 
     this.frameNumber = 1;
 
-    this.frameInput = new TextField({ id: 'controls-frame', fromDOMElement: true });
+    this.frameInput = new TextField({ el: document.getElementById('controls-frame'), name: 'frame' });
     this.frameInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');
@@ -59,7 +58,7 @@ class Controls extends Tray {
 
     this.fps = 1;
 
-    this.fpsInput = new TextField({ id: 'controls-fps', fromDOMElement: true });
+    this.fpsInput = new TextField({ el: document.getElementById('controls-fps'), name: 'fps' });
     this.fpsInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');
@@ -74,13 +73,18 @@ class Controls extends Tray {
       }
     });
 
-    // this.frameLabel = new Label({ id: 'controls-frame-label', fromDOMElement: true });
+    this.frameLabel = new Label({ el: document.getElementById('controls-frame-label'), name: 'frame-label' });
+
+    // this.el.onresize = () => {
+    //   console.log('resize');
+    // };
   }
 
   setFrame(value, total) {
+    // console.log('setframe', value, total);
     this.frameNumber = value;
     this.frameInput.render({ cmd: 'show', value: this.frameNumber });
-    // this.frameLabel.render({ cmd: 'show', value: '&hellip; ' + total });
+    this.frameLabel.render({ cmd: 'show', value: '&nldr; ' + total });
   }
 
   setFps(value) {

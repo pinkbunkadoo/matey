@@ -1,30 +1,33 @@
 const Base = require('../base');
 const Container = require('../container');
-const Tray = require('../tray');
+const Panel = require('../panel');
 const Button = require('../button');
 
-class Settings extends Tray {
-  constructor() {
-    super();
-
-    this.el = document.getElementById('settings');
+class Settings extends Panel {
+  constructor(params={}) {
+    params.el = document.getElementById('settings');
+    super(params);
 
     this.buttons = [];
-    this.buttons['export'] = new Button({ id: 'settings-export', fromDOMElement: true });
-    this.buttons['gif'] = new Button({ id: 'settings-gif', fromDOMElement: true });
-    this.buttons['settings'] = new Button({ id: 'settings-settings', fromDOMElement: true });
+    this.buttons['export'] = new Button({ el: document.getElementById('settings-export'), name: 'export' });
+    this.buttons['gif'] = new Button({ el: document.getElementById('settings-gif'), name: 'gif' });
+    this.buttons['settings'] = new Button({ el: document.getElementById('settings-settings'), name: 'settings' });
 
-    this.buttons['export'].on('pressed', () => {
-      app.export();
-    });
-    this.buttons['settings'].on('pressed', () => {  });
+    for (name in this.buttons) {
+      this.add(this.buttons[name]);
+    }
 
     for (let name in this.buttons) {
-      if (this.buttons[name].svg) {
-        // console.log(this.buttons[name].svg.constructor);
+      if (!this.buttons[name].text) {
         this.buttons[name].el.style.width = (16 * app.unit) + 'px';
       }
       this.buttons[name].el.style.height = (16 * app.unit) + 'px';
+    }
+  }
+
+  updateComponent(params) {
+    if (params.id === 'settings') {
+      this.buttons['settings'].setState(params.value);
     }
   }
 }

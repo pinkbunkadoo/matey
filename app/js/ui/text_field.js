@@ -2,23 +2,24 @@ const Base = require('./base');
 
 class TextField extends Base {
   constructor(params={}) {
+    params.el = params.el || document.createElement('input');
     super(params);
+
+    // this.el.style['-webkit-user-select'] = 'none';
+    // this.el.disabled = 'disabled';
 
     this.el.onchange = (event) => {
       this.emit('change', event.target.value);
       this.el.blur();
-      // console.log('change');
     };
 
     this.el.onfocus = (event) => {
-      // console.log('focus', this.el.tabIndex);
       this.el.select();
-      app.capture(this);
+      // app.capture(this);
     };
 
     this.el.onblur = (event) => {
-      // console.log('blur');
-      app.release(this);
+      // app.release(this);
     };
   }
 

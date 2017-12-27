@@ -4,26 +4,23 @@ const Transform = require('./transform');
 const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
-const Selection = require('./selection');
 const DisplayList = require('./display_list');
+
+const Selection = require('./selection');
 const Sequence = require('./sequence');
 const Tool = require('./tools/tool');
-// const HistoryPanel = require('./ui/panels/history_panel');
-// const PropertiesPanel = require('./ui/panels/properties_panel');
-// const StrokeProperties = require('./ui/panels/properties/stroke_properties');
-// const Panels = require('./ui/panels/');
-// const Options = require('./ui/options');
+const Actions = require('./actions/');
+const Loader = require('./loader');
+
+const Base = require('./ui/base');
 const Container = require('./ui/container');
+const Paper = require('./ui/custom/paper');
 const Tools = require('./ui/custom/tools');
 const Controls = require('./ui/custom/controls');
 const Settings = require('./ui/custom/settings');
-const Paper = require('./ui/custom/paper');
-// const Status = require('./ui/custom/status');
 const FrameList = require('./ui/custom/frame_list');
-const FrameListMarker = require('./ui/custom/frame_list_marker');
-const Actions = require('./actions/');
-// const HistoryState = require('./history_state');
-const Loader = require('./loader');
+const FrameListMap = require('./ui/custom/frame_list_map');
+const SettingsTray = require('./ui/trays/settings_tray');
 
 const {ipcRenderer} = require('electron');
 const fs = require('fs');
@@ -118,7 +115,7 @@ app.setMode = (desired) => {
     if (app.mode === 'pan') {
       app.setCursor('hand');
     } else {
-      if (app.paper.tool) app.setCursor(app.paper.cursor);
+      if (app.paper.tool) app.setCursor(app.paper.tool.cursor);
     }
   }
 }
@@ -295,14 +292,16 @@ app.moveSelected = (dx, dy) => {
 app.updateFrameLabel = () => {
   // app.ui.frameListBar.setFrame(sequence.position + 1, sequence.size());
   // app.ui.frameList.render({ cmd: 'update', index: app.position + 1, total: app.sequence.size() });
+  app.ui.controls.setFrame(app.position + 1, app.sequence.size());
+  app.reposition();
 }
 
-app.updateFrameListMarker = () => {
+app.updateFrameListMap = () => {
   let width = app.ui.frameList.el.offsetWidth;
   let total = app.ui.frameList.container.el.scrollWidth;
   let size = total > width ? ((width / total) * width) >> 0 : width;
   let offset = Math.ceil((app.ui.frameList.el.scrollLeft / app.ui.frameList.el.scrollWidth) * width);
-  app.ui.frameListMarker.render({ cmd: 'update', size: size, offset: offset });
+  app.ui.frameListMap.render({ cmd: 'update', size: size, offset: offset });
 }
 
 app.updateFrameListThumbnail = (index) => {
@@ -333,10 +332,10 @@ app.go = (index) => {
     app.position = index;
     app.frame = frame;
     app.ui.frameList.render({ cmd: 'select', index: app.position });
-    app.ui.controls.setFrame(app.position + 1, app.sequence.size());
     app.selection.clear();
     app.render();
-    app.updateFrameListMarker();
+    app.updateFrameListMap();
+    app.updateFrameLabel();
   }
 }
 
@@ -372,7 +371,7 @@ app.newFrame = () => {
   app.sequence.add();
   app.ui.frameList.render({ cmd: 'frameAdd' });
   app.go(app.sequence.size() - 1);
-  app.updateFrameListMarker();
+  app.updateFrameListMap();
   app.updateFrameListThumbnail(app.position);
   app.updateFrameLabel();
 }
@@ -439,7 +438,7 @@ app.setStrokeFill = (fill) => {
 
 app.reposition = () => {
   app.width = window.innerWidth;
-  app.height = window.innerHeight - app.ui.frameList.el.offsetHeight -  app.ui.frameListMarker.el.offsetHeight;
+  app.height = window.innerHeight - app.ui.frameList.el.offsetHeight -  app.ui.frameListMap.el.offsetHeight;
 
   app.paper.resize(app.width, app.height);
 
@@ -447,10 +446,10 @@ app.reposition = () => {
   app.ui.tools.el.style.top = (((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
   app.ui.controls.el.style.left = (((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
 
-  app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMarker.el.offsetHeight - 8) + 'px';
+  app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMap.el.offsetHeight - 8) + 'px';
   // app.ui.controls.el.style.top = (app.paper.el.offsetTop + app.paper.el.offsetHeight - 200) + 'px';
 
-  app.updateFrameListMarker();
+  app.updateFrameListMap();
   app.render();
 }
 
@@ -463,6 +462,7 @@ app.setModal = function(value) {
 
 app.capture = (captor, modal=false) => {
   if (captor) {
+    // console.log('capture', modal);
     app.captureTarget = captor;
     // let cursor = (captor instanceof Tool ? app.paper.cursor : 'pointer');
     app.setModal(modal);
@@ -470,6 +470,12 @@ app.capture = (captor, modal=false) => {
       app.ui.modal.style.cursor = captor instanceof Tool ? app.cursors[app.paper.cursor] : 'default';
     }
   }
+
+  if (captor instanceof Base) {
+    document.body.style.pointerEvents = 'none';
+    captor.el.style.pointerEvents = 'auto';
+  }
+
   // document.body.style.filter = 'blur(1px)';
   // document.body.style.filter = 'hue-rotate(90deg)';
   // document.body.style.filter = 'brightness(90%)';
@@ -477,6 +483,7 @@ app.capture = (captor, modal=false) => {
 }
 
 app.release = (captor) => {
+  // console.log('release');
   if (captor) {
     if (captor === app.captureTarget) {
       app.captureTarget = null;
@@ -484,6 +491,10 @@ app.release = (captor) => {
       // document.body.style.filter = '';
     } else {
       console.log('app.release', 'mismatch');
+    }
+    if (captor instanceof Base) {
+      document.body.style.pointerEvents = 'initial';
+      captor.el.style.pointerEvents = 'initial';
     }
   } else {
     console.log('app.release', 'null');
@@ -502,6 +513,7 @@ function defaultEventHandler(event) {
 
 function mouseEventHandler(event) {
   if (app.captureTarget) {
+    // if (event.type === 'mousedown') console.log(app.captureTarget);
     app.captureTarget.handleEvent(event);
   } else {
     if (app.paper && event.target === app.paper.el) {
@@ -511,14 +523,24 @@ function mouseEventHandler(event) {
 }
 
 function onClick(event) {
-  mouseEventHandler(event);
+  // console.log('window.onClick', event.target, app.captureTarget);
+  // mouseEventHandler(event);
 }
 
 function onMouseDown(event) {
   app.mouseLeft = event.buttons & 1;
   if (app.mode === 'pan') {
   } else {
-    mouseEventHandler(event);
+    // console.log('window.onMouseDown');
+    if (app.tray) {
+      // console.log(app.tray);
+      app.tray.hide();
+    }
+
+    if (app.paper && event.target === app.paper.el) {
+      app.paper.handleEvent(event);
+    }
+    // mouseEventHandler(event);
   }
 }
 
@@ -530,7 +552,8 @@ function onMouseUp(event) {
     //   app.setMode('pan');
     // }
     if (!app.mouseLeft && !app.keys[' ']) {
-      app.setMode(null);
+      // app.setMode(null);
+      panOff();
     }
   } else {
     mouseEventHandler(event);
@@ -641,7 +664,7 @@ function onKeyDown(event) {
         app.newFrame();
 
       } else if (event.key === ' ' && !event.repeat) {
-        app.setMode('pan');
+        panOn();
 
       } else if (event.key === 'Backspace' && !event.repeat) {
         if (event.ctrlKey) {
@@ -652,16 +675,12 @@ function onKeyDown(event) {
         app.deleteSelected();
 
       } else if (event.key === 't' && !event.repeat) {
-        // console.log('theme');
-        if (app.ui.main.el.classList.contains('light')){
-          app.ui.main.el.classList.remove('light');
-          app.ui.main.el.classList.add('dark');
+        if (app.theme === 'light') {
           app.theme = 'dark';
         } else {
-          app.ui.main.el.classList.remove('dark');
-          app.ui.main.el.classList.add('light');
           app.theme = 'light';
         }
+        document.getElementById('css').href = './css/' + app.theme + '.css';
         app.render();
 
       } else {
@@ -671,6 +690,14 @@ function onKeyDown(event) {
   }
 }
 
+function panOn() {
+  app.setMode('pan');
+}
+
+function panOff() {
+  app.setMode(null);
+}
+
 function onKeyUp(event) {
   app.keys[event.key] = false;
   // app.rerouteEvent(event);
@@ -678,7 +705,8 @@ function onKeyUp(event) {
     if (event.key === ' ') {
       if (!app.mouseLeft) {
         // console.log('pan-off');
-        app.setMode(null);
+        // app.setMode(null);
+        panOff();
         // app.mode = null;
       }
     }
@@ -714,6 +742,7 @@ function onResize() {
 function onFocus(event) {
   if (app.captureTarget) app.release(app.captureTarget);
   app.paper.handleEvent(event);
+  app.render();
 }
 
 function onBlur(event) {
@@ -744,8 +773,8 @@ function onCopy(event) {
 function initEventListeners() {
   window.addEventListener('click', onClick);
   window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('mousemove', onMouseMove);
   window.addEventListener('mouseover', onMouseOver);
   window.addEventListener('mouseout', onMouseOut);
   window.addEventListener('wheel', onWheel);
@@ -789,13 +818,6 @@ window.onload = () => {
   app.paper.on('change-mode', (params) => {
     app.setMode(params.mode);
   });
-  // app.paper.on('request-capture', (params) => {
-    // // setMode(params.mode);
-    // if (params.state)
-    //   app.setCaptureTarget(app.paper);
-    // else
-    //   app.setCaptureTarget(null);
-  // });
 
   app.ui.frameList = new FrameList();
   app.ui.frameList.setThumbnailSize(128, 80);
@@ -806,12 +828,18 @@ window.onload = () => {
     app.newFrame();
   });
   app.ui.frameList.on('scroll', () => {
-    app.updateFrameListMarker();
+    app.updateFrameListMap();
   });
 
-  app.ui.frameListMarker = new FrameListMarker({ id: 'frame-list-marker', fromDOMElement: true });
+  app.ui.frameListMap = new FrameListMap({ el: document.getElementById('frame-list-map'), name: 'frame-list-map' });
 
   app.ui.controls = new Controls();
+  app.ui.controls.on('first', (state) => {
+    app.first();
+  });
+  app.ui.controls.on('last', (state) => {
+    app.last();
+  });
   app.ui.controls.on('onion', (state) => {
     app.onion = state;
     app.render();
@@ -819,7 +847,6 @@ window.onload = () => {
   app.ui.controls.on('frame-change', (value) => {
     if (value > 0 && value <= app.sequence.size()) {
       app.go(value - 1);
-      // app.ui.controls.setFrame(value);
     } else {
       app.ui.controls.setFrame(app.position + 1, app.sequence.size());
     }
@@ -828,7 +855,41 @@ window.onload = () => {
   app.ui.controls.setFps(app.fps);
 
   app.ui.settings = new Settings();
-  // console.log(app.ui.settings);
+  app.ui.settings.getByName('settings').on('pressed', (component) => {
+    if (component.state) {
+      // console.log('true');
+      app.ui.settingsTray.hide();
+      app.ui.settings.updateComponent({ id: 'settings', value: false });
+    } else {
+      // console.log('false');
+      app.ui.settingsTray.show();
+      app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2  - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
+      app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2 - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
+      app.ui.settingsTray.el.style.top = (component.el.offsetTop + component.el.offsetHeight + 16) + 'px';
+      app.ui.settings.updateComponent({ id: 'settings', value: true });
+    }
+    // if (app.ui.settingsTray.isVisible()) {
+    //   // console.log('hide');
+    //   app.tray = null;
+    //   app.ui.settingsTray.hide();
+    //   app.ui.settings.updateComponent({ id: 'settings', value: false });
+    // } else {
+    //   // console.log('show');
+    //   app.tray = app.ui.settingsTray;
+    //   app.ui.settingsTray.show();
+    //   app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2  - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
+    //   app.ui.settingsTray.el.style.top = (component.el.offsetTop + component.el.offsetHeight + 36) + 'px';
+    //   app.ui.settings.updateComponent({ id: 'settings', value: true });
+    // }
+  });
+  app.ui.settings.getByName('export').on('pressed', (component) => {
+    app.export();
+  });
+
+  app.ui.settingsTray = new SettingsTray();
+  app.ui.settingsTray.setVisible(false);
+  app.ui.settings.add(app.ui.settingsTray);
+
 
   app.ui.modal = document.getElementById('modal');
 

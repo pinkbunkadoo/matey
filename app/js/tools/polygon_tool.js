@@ -41,7 +41,7 @@ class PolygonTool extends Tool {
     this.mx = x;
     this.my = y;
 
-    app.capture(this, true);
+    app.capture(this);
 
     // console.log('poly-begin');
 

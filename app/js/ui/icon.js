@@ -2,8 +2,8 @@ const Base = require('./base');
 
 class Icon extends Base {
   constructor(params = {}) {
-    super();
-    
+    super(params);
+
     this.resource = params.resource;
 
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

@@ -2,18 +2,19 @@ const Base = require('./base');
 
 class Label extends Base {
   constructor(params = {}) {
+    params.el = params.el || document.createElement('label');
     super(params);
-    // this.addClass('label');
-    if (params.text) {
-      // this.text = params.text;
-      this.set(params.text);
-    } else {
 
+    if (params.text) {
+      this.set(params.text);
+    }
+    if (params.forElement) {
+      this.el.forElement = params.forElement;
     }
   }
 
-  set(text) {
-    this.el.innerHTML = text;
+  set(value) {
+    this.el.innerHTML = value;
   }
 
   render(params) {

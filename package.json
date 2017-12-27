@@ -4,8 +4,17 @@
   "description": "",
   "main": "./app/js/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "less": "lessc ./app/css/default.less ./app/css/default.css"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "gifencoder": "^1.1.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-less": "^3.4.0",
+    "less": "^2.7.3"
+  }
 }

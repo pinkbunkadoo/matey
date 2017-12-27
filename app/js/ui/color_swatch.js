@@ -3,7 +3,7 @@ const Container = require('./container');
 const Color = require('../color');
 const Icon = require('./icon');
 
-class ColorSwatch extends Container {
+class ColorSwatch extends Base {
   constructor(params={}) {
     super(params);
 
@@ -15,10 +15,10 @@ class ColorSwatch extends Container {
     // this.color = params.color ? params.color.copy() : new Color()
     // this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });
 
-    this.nullColorIcon = new Icon({ resource: 'checker', invert: false });
-    this.nullColorIcon.el.style.width = '2em';
-    this.nullColorIcon.el.style.height = '2em';
-    this.add(this.nullColorIcon);
+    this.nullColorIcon = new Icon({ resource: 'checker' });
+    // this.nullColorIcon.el.style.width = (16 * app.unit) + 'px';
+    // this.nullColorIcon.el.style.height = (16 * app.unit) + 'px';
+    // this.add(this.nullColorIcon);
 
     this.setColor(null);
 
@@ -34,16 +34,20 @@ class ColorSwatch extends Container {
 
   setColor(color) {
     if (color instanceof Color) {
-      this.removeClass('none');
+      this.removeClass('null');
       this.color = color.copy();
-      this.el.style.background = this.color.toHexString();
+      this.el.style.backgroundColor = this.color.toHexString();
+      this.el.innerHTML = '';
       // this.el.style.backgroundClip = 'content-box';
-      this.nullColorIcon.setVisible(false);
+      // this.nullColorIcon.setVisible(false);
     } else {
-      this.addClass('none');
+      this.addClass('null');
       this.color = null;
-      this.nullColorIcon.setVisible(true);
-      this.el.style.background = 'transparent';
+      this.el.style.backgroundColor = 'transparent';
+      this.el.innerHTML = '<svg class="icon"><use xlink:href="./images/icons.svg#checker"></svg>'
+      // this.nullColorIcon.setVisible(true);
+      // this.el.style.backgroundImage = 'url("./images/icons.svg")';
+      // this.el.style.fill = 'white';
     }
   }
 

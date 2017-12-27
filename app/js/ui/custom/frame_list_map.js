@@ -1,11 +1,11 @@
 const Base = require('../base');
 const Container = require('../container');
 
-class FrameListMarker extends Container {
+class FrameListMap extends Container {
   constructor(params={}) {
     super(params);
-
-    this.nodule = new Base({ id: 'marker-nodule' });
+    this.nodule = new Base();
+    this.nodule.addClass('frame-list-map-nodule');
     this.add(this.nodule);
   }
 
@@ -18,4 +18,4 @@ class FrameListMarker extends Container {
   }
 }
 
-module.exports = FrameListMarker;
+module.exports = FrameListMap;
