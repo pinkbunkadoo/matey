@@ -12,10 +12,10 @@ class FrameListItem extends Container {
     this.width = width;
     this.height = height;
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
-    this.canvas.style.pointerEvents = 'none';
+    // this.canvas = document.createElement('canvas');
+    // this.canvas.width = this.width;
+    // this.canvas.height = this.height;
+    // this.canvas.style.pointerEvents = 'none';
 
     this.numberContainer = new Container();
     this.numberContainer.addClass('frame-list-item-number');
@@ -32,8 +32,8 @@ class FrameListItem extends Container {
     this.imageContainer.el.style.width = this.width + 'px';
     this.imageContainer.el.style.height = this.height + 'px';
     this.imageContainer.el.style.background = 'yellow';
+    this.imageContainer.el.style.pointerEvents = 'none';
     this.add(this.imageContainer);
-
 
     // this.el.appendChild(this.canvas);
     // this.add(this.space);
@@ -64,7 +64,11 @@ class FrameListItem extends Container {
   }
 
   setImage(image) {
-
+    // this.imageContainer.clear();
+    // this.imageContainer.add(image);
+    if (this.imageContainer.el.firstChild)
+      this.imageContainer.el.removeChild(this.imageContainer.el.firstChild);
+    this.imageContainer.el.appendChild(image);
   }
 
   handleEvent(event) {

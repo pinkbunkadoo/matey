@@ -138,8 +138,11 @@ class FrameList extends Container {
     }
     else if (params.cmd === 'updateThumbnail') {
       let frameListItem = this.items[params.index];
-      let ctx = frameListItem.canvas.getContext('2d');
-      ctx.drawImage(params.canvas, 0, 0);
+      // let ctx = frameListItem.canvas.getContext('2d');
+      // ctx.drawImage(params.canvas, 0, 0);
+      let image = new Image();
+      image.src = params.canvas.toDataURL();
+      frameListItem.setImage(image);
     }
     if (this.selection) {
       // this.nodule.el.style.left = (this.selection.offsetLeft / this.container.offsetWidth) + 'px';

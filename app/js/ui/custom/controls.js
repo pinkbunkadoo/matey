@@ -84,7 +84,7 @@ class Controls extends Panel {
     // console.log('setframe', value, total);
     this.frameNumber = value;
     this.frameInput.render({ cmd: 'show', value: this.frameNumber });
-    this.frameLabel.render({ cmd: 'show', value: '&nldr; ' + total });
+    this.frameLabel.render({ cmd: 'show', value: 'o\' ' + total });
   }
 
   setFps(value) {
