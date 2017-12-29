@@ -5,6 +5,7 @@ const Label = require('./label');
 
 class Button extends Container {
   constructor(params={}) {
+    params.el = params.el || document.createElement('button');
     super(params);
 
     if (params.id) {
@@ -26,13 +27,20 @@ class Button extends Container {
       }
     }
 
-    this.addClass('button');
+    this.el.style.width = params.width || this.el.style.width;
+    this.el.style.height = params.height || this.el.style.height;
+
+    // this.el.draggable = "true";
+
+    // this.addClass('button');
 
     this.state = false;
 
     this.el.addEventListener('click', this);
     this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('mouseup', this);
+    // this.el.addEventListener('drag', () => {
+    //   console.log('drag');
+    // });
   }
 
   setState(state) {
@@ -54,22 +62,17 @@ class Button extends Container {
   }
 
   onClick(event) {
-    // console.log('onClick', event.target);
-    this.emit('pressed', this);
+    this.emit('click', this);
     this.update();
   }
 
   onMouseDown(event) {
-    // console.log('onMouseDown', event.target);
-    app.capture(this);
-    // document.body.style.pointerEvents = 'none';
-    // this.el.style.pointerEvents = 'auto';
+    // app.capture(this);
+    this.emit('down', this);
   }
 
   onMouseUp(event) {
-    // console.log('onMouseUp', event.target);
-    // document.body.style.pointerEvents = 'initial';
-    app.release(this);
+    // app.release(this);
   }
 
   handleEvent(event) {

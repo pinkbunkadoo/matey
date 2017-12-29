@@ -28,7 +28,14 @@ class FrameListItem extends Container {
     // this.space.el.style.height = (this.height+2) + 'px';
     // this.space.el.style.background = 'cyan';
 
-    this.el.appendChild(this.canvas);
+    this.imageContainer = new Container();
+    this.imageContainer.el.style.width = this.width + 'px';
+    this.imageContainer.el.style.height = this.height + 'px';
+    this.imageContainer.el.style.background = 'yellow';
+    this.add(this.imageContainer);
+
+
+    // this.el.appendChild(this.canvas);
     // this.add(this.space);
   }
 
@@ -54,6 +61,10 @@ class FrameListItem extends Container {
     this.numberContainer.removeClass('selected');
     this.removeClass('selected');
     // this.highlight.el.style.opacity = 1;
+  }
+
+  setImage(image) {
+
   }
 
   handleEvent(event) {

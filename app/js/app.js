@@ -27,8 +27,9 @@ const fs = require('fs');
 const GIFEncoder = require('gifencoder');
 
 let app = {
-  width: 0, height: 0,
-  unit: 1.0,
+  width: 0,
+  height: 0,
+  unit: 1,
   settings: [],
   ui: [],
   mouseX: 0, mouseY: 0, mouseDownX: 0, mouseDownY: 0,
@@ -72,7 +73,6 @@ app.setDocumentName = (name) => {
 }
 
 app.render = () => {
-  // console.log('app.render');
   app.paper.displayList.clear();
 
   if (app.onion) {
@@ -93,14 +93,6 @@ app.render = () => {
     let color = stroke.selected ? Const.COLOR_SELECTION : stroke.color;
     app.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
-
-  // if (!app.selection.isEmpty()) {
-  //   // console.log('render', app.selection.items);
-  //   for (let i = 0; i < app.selection.items.length; i++) {
-  //     let stroke = app.selection.items[i];
-  //     app.paper.addDisplayItem({ points: stroke.points, color: Const.COLOR_SELECTION, thickness: Const.LINE_WIDTH * 2 });
-  //   }
-  // }
 
   app.paper.render();
 }
@@ -123,24 +115,10 @@ app.setMode = (desired) => {
 app.setTool = (name) => {
   app.paper.setTool(name);
   app.ui.tools.setTool(name);
-
-  // if (app.tool !== app.tools[name]) {
-    // if (app.tool) {
-    //   app.tool.blur();
-    //   app.previousTool = app.tool;
-    // }
-    // app.tool = app.tools[name];
-    // app.tool.focus();
-    // app.setCursor(app.tool.cursor);
-    // app.ui.tools.setTool(name);
-    // app.paper.tool = app.tool;
-  // }
 }
 
 app.setCursor = (name) => {
   app.paper.setCursor(name);
-  // app.paper.el.style.cursor = app.cursors[name];
-  // app.cursor = name;
 }
 
 app.getColor = () => {
@@ -161,13 +139,10 @@ app.redo = () => {
 }
 
 app.hitTest = (x, y) => {
-  // console.log('app.hitTest', x, y);
   var p = app.paper.screenToWorld(x, y);
   var selection = null;
   var radius = 4 / app.paper.scale;
-
   var strokes = app.frame.strokes;
-
   for (var i = 0; i < strokes.length; i++) {
     var stroke = strokes[i];
     if (stroke.hitTest(p.x, p.y, radius)) {
@@ -175,7 +150,6 @@ app.hitTest = (x, y) => {
       break;
     }
   }
-
   return selection;
 }
 
@@ -290,8 +264,6 @@ app.moveSelected = (dx, dy) => {
 }
 
 app.updateFrameLabel = () => {
-  // app.ui.frameListBar.setFrame(sequence.position + 1, sequence.size());
-  // app.ui.frameList.render({ cmd: 'update', index: app.position + 1, total: app.sequence.size() });
   app.ui.controls.setFrame(app.position + 1, app.sequence.size());
   app.reposition();
 }
@@ -305,11 +277,13 @@ app.updateFrameListMap = () => {
 }
 
 app.updateFrameListThumbnail = (index) => {
+  let width = 128 * app.unit;
+  let height = 80 * app.unit;
   let frame = app.sequence.getFrame(index);
-  let scale = 128 / Const.WIDTH;
+  let scale = (width) / Const.WIDTH;
   let canvas = document.createElement('canvas');
-  canvas.width = 128;
-  canvas.height = 80;
+  canvas.width = width;
+  canvas.height = height;
   let displayList = new DisplayList();
   let transform = new Transform(0, 0, scale);
 
@@ -353,6 +327,33 @@ app.next = () => {
 
 app.previous = () => {
   app.go(app.position - 1);
+}
+
+app.showTray = (tray, component) => {
+  if (component && tray) {
+    setTimeout(() => {
+      if (!app.tray) {
+        document.body.appendChild(tray.el);
+        tray.show();
+
+        let rect = component.el.getBoundingClientRect();
+        let x = rect.left - tray.el.offsetWidth / 2 + rect.width / 2;
+        let y = rect.top + rect.height + (4 * app.unit);
+
+        tray.el.style.left = x + 'px';
+        tray.el.style.top = y + 'px';
+
+        app.tray = tray;
+      }
+    });
+  }
+}
+
+app.hideTray = () => {
+  if (app.tray) {
+    app.tray.hide();
+    app.tray = null;
+  }
 }
 
 app.showProperties = (object) => {
@@ -454,32 +455,30 @@ app.reposition = () => {
 }
 
 app.setModal = function(value) {
-  if (app.modal !== value) {
-    app.modal = value ? true : false;
-    app.ui.modal.style.visibility = app.modal ? 'visible' : 'hidden';
-  }
+  console.log('setModal');
+  // if (app.modal !== value) {
+  //   app.modal = value ? true : false;
+  //   app.ui.modal.style.visibility = app.modal ? 'visible' : 'hidden';
+  // }
 }
 
 app.capture = (captor, modal=false) => {
   if (captor) {
     // console.log('capture', modal);
     app.captureTarget = captor;
+
     // let cursor = (captor instanceof Tool ? app.paper.cursor : 'pointer');
-    app.setModal(modal);
-    if (app.modal) {
-      app.ui.modal.style.cursor = captor instanceof Tool ? app.cursors[app.paper.cursor] : 'default';
+    // app.setModal(modal);
+
+    // if (app.modal) {
+    //   app.ui.modal.style.cursor = captor instanceof Tool ? app.cursors[app.paper.cursor] : 'default';
+    // }
+
+    if (captor instanceof Base) {
+      captor.el.style.pointerEvents = 'auto';
+      document.body.style.pointerEvents = 'none';
     }
   }
-
-  if (captor instanceof Base) {
-    document.body.style.pointerEvents = 'none';
-    captor.el.style.pointerEvents = 'auto';
-  }
-
-  // document.body.style.filter = 'blur(1px)';
-  // document.body.style.filter = 'hue-rotate(90deg)';
-  // document.body.style.filter = 'brightness(90%)';
-  // console.log('capture', modal);
 }
 
 app.release = (captor) => {
@@ -487,18 +486,35 @@ app.release = (captor) => {
   if (captor) {
     if (captor === app.captureTarget) {
       app.captureTarget = null;
-      if (app.modal) app.setModal(false);
-      // document.body.style.filter = '';
+      // if (app.modal) app.setModal(false);
+
+      if (captor instanceof Base) {
+        captor.el.style.pointerEvents = 'auto';
+      }
+      document.body.style.pointerEvents = 'auto';
     } else {
       console.log('app.release', 'mismatch');
-    }
-    if (captor instanceof Base) {
-      document.body.style.pointerEvents = 'initial';
-      captor.el.style.pointerEvents = 'initial';
     }
   } else {
     console.log('app.release', 'null');
   }
+}
+
+function fadeComponent(component) {
+  if (component.fadeTimerId != null && component.fadeTimerId != undefined) {
+    clearTimeout(component.fadeTimerId);
+  }
+  component.fadeTimerId = setTimeout(() => {
+    if (component.getBounds().containsPoint(app.cursorX, app.cursorY, 8) && app.captureTarget instanceof Tool) {
+      fadeComponent(component);
+    } else {
+      component.el.style.opacity = 1;
+      component.el.style.pointerEvents = 'auto';
+      component.fadeTimerId = null;
+    }
+  }, 100);
+  component.el.style.pointerEvents = 'none';
+  component.el.style.opacity = 0;
 }
 
 function defaultEventHandler(event) {
@@ -531,12 +547,13 @@ function onMouseDown(event) {
   app.mouseLeft = event.buttons & 1;
   if (app.mode === 'pan') {
   } else {
-    // console.log('window.onMouseDown');
     if (app.tray) {
       // console.log(app.tray);
-      app.tray.hide();
+      if (!app.tray.getBounds().containsPoint(app.cursorX, app.cursorY)) {
+        // if(app.tray === app.ui.settingsTray) app.ui.settings.updateComponent({ id: 'settings', value: false });
+        app.hideTray();
+      }
     }
-
     if (app.paper && event.target === app.paper.el) {
       app.paper.handleEvent(event);
     }
@@ -558,26 +575,6 @@ function onMouseUp(event) {
   } else {
     mouseEventHandler(event);
   }
-}
-
-function fadeComponent(component) {
-  if (component.fadeTimerId != null && component.fadeTimerId != undefined) {
-    clearTimeout(component.fadeTimerId);
-  }
-  component.fadeTimerId = setTimeout(() => {
-    if (component.getBounds().containsPoint(app.cursorX, app.cursorY, 8) && app.captureTarget instanceof Tool) {
-      fadeComponent(component);
-    } else {
-      component.el.style.opacity = 1;
-      component.el.style.pointerEvents = 'auto';
-      // component.el.style.display = 'block';
-      component.fadeTimerId = null;
-    }
-  }, 100);
-  component.el.style.pointerEvents = 'none';
-  // component.el.style.display = 'none';
-  // component.el.style.cursor = 'none';
-  component.el.style.opacity = 0;
 }
 
 function onMouseMove(event) {
@@ -700,14 +697,11 @@ function panOff() {
 
 function onKeyUp(event) {
   app.keys[event.key] = false;
-  // app.rerouteEvent(event);
+
   if (app.mode === 'pan') {
     if (event.key === ' ') {
       if (!app.mouseLeft) {
-        // console.log('pan-off');
-        // app.setMode(null);
         panOff();
-        // app.mode = null;
       }
     }
   } else {
@@ -717,17 +711,6 @@ function onKeyUp(event) {
       app.paper.handleEvent(event);
     }
   }
-
-  // delete keys[event.key];
-  //
-  // if (event.key === Const.KEY_PAN) {
-  //    if (!mouseLeft) {
-  //      setMode('tool');
-  //    }
-  // } else {
-  //   if (tool) tool.handleEvent(event);
-  // }
-
 }
 
 function onResize() {
@@ -737,6 +720,7 @@ function onResize() {
       window.resizeTimeoutId = 0;
     }, 66);
   }
+  if (app.tray) app.hideTray();
 }
 
 function onFocus(event) {
@@ -748,12 +732,6 @@ function onFocus(event) {
 function onBlur(event) {
   if (app.captureTarget) app.release(app.captureTarget);
   app.paper.handleEvent(event);
-  // app.rerouteEvent(event);
-
-  // if (app.captureTarget) {
-  //   app.captureTarget.handleEvent(event);
-  // }
-  // app.setCaptureTarget(null);
 }
 
 function onPaste(event) {
@@ -801,6 +779,8 @@ window.onload = () => {
   app.sequence = new Sequence();
   app.selection = new Selection();
 
+  document.body.style.fontSize = (10 * app.unit) + 'px';
+
   app.ui.main = new Container();
   app.ui.main.el = document.getElementById('main');
 
@@ -820,7 +800,7 @@ window.onload = () => {
   });
 
   app.ui.frameList = new FrameList();
-  app.ui.frameList.setThumbnailSize(128, 80);
+  app.ui.frameList.setThumbnailSize(128*app.unit, 80*app.unit);
   app.ui.frameList.on('select', (params) => {
     app.go(params.index);
   });
@@ -855,41 +835,26 @@ window.onload = () => {
   app.ui.controls.setFps(app.fps);
 
   app.ui.settings = new Settings();
-  app.ui.settings.getByName('settings').on('pressed', (component) => {
-    if (component.state) {
-      // console.log('true');
-      app.ui.settingsTray.hide();
-      app.ui.settings.updateComponent({ id: 'settings', value: false });
+  app.ui.settings.getByName('settings').on('down', (component) => {
+    if (app.tray === app.ui.settingsTray) {
+      app.hideTray();
+      // app.ui.settings.updateComponent({ id: 'settings', value: false });
     } else {
-      // console.log('false');
-      app.ui.settingsTray.show();
-      app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2  - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
-      app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2 - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
-      app.ui.settingsTray.el.style.top = (component.el.offsetTop + component.el.offsetHeight + 16) + 'px';
-      app.ui.settings.updateComponent({ id: 'settings', value: true });
+      app.showTray(app.ui.settingsTray, component);
+      // app.ui.settings.updateComponent({ id: 'settings', value: true });
     }
-    // if (app.ui.settingsTray.isVisible()) {
-    //   // console.log('hide');
-    //   app.tray = null;
-    //   app.ui.settingsTray.hide();
-    //   app.ui.settings.updateComponent({ id: 'settings', value: false });
-    // } else {
-    //   // console.log('show');
-    //   app.tray = app.ui.settingsTray;
-    //   app.ui.settingsTray.show();
-    //   app.ui.settingsTray.el.style.left = (component.el.offsetLeft + component.el.offsetWidth / 2  - app.ui.settingsTray.el.offsetWidth / 2) + 'px';
-    //   app.ui.settingsTray.el.style.top = (component.el.offsetTop + component.el.offsetHeight + 36) + 'px';
-    //   app.ui.settings.updateComponent({ id: 'settings', value: true });
-    // }
   });
-  app.ui.settings.getByName('export').on('pressed', (component) => {
+  app.ui.settings.getByName('export').on('click', (component) => {
     app.export();
   });
 
   app.ui.settingsTray = new SettingsTray();
-  app.ui.settingsTray.setVisible(false);
-  app.ui.settings.add(app.ui.settingsTray);
-
+  app.ui.settingsTray.on('show', () => {
+    app.ui.settings.updateComponent({ id: 'settings', value: true });
+  });
+  app.ui.settingsTray.on('hide', () => {
+    app.ui.settings.updateComponent({ id: 'settings', value: false });
+  });
 
   app.ui.modal = document.getElementById('modal');
 
@@ -900,6 +865,8 @@ window.onload = () => {
 
   initEventListeners();
   app.reposition();
+
+  // console.log(app.tray);
 }
 
 function saveAnimatedGIF(filename) {

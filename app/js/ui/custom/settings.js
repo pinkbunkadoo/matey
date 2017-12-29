@@ -18,10 +18,10 @@ class Settings extends Panel {
     }
 
     for (let name in this.buttons) {
-      if (!this.buttons[name].text) {
-        this.buttons[name].el.style.width = (16 * app.unit) + 'px';
+      if (this.buttons[name].text) {
+        this.buttons[name].el.style.width = 'auto';
       }
-      this.buttons[name].el.style.height = (16 * app.unit) + 'px';
+      // this.buttons[name].el.style.height = (20 * app.unit) + 'px';
     }
   }
 

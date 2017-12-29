@@ -5,8 +5,12 @@ class TextField extends Base {
     params.el = params.el || document.createElement('input');
     super(params);
 
+    // this.el.style.fontSize = (12 * app.unit) + 'px';
+    this.el.style.width = (params.width || (16 * app.unit) + 'px');
+
     // this.el.style['-webkit-user-select'] = 'none';
     // this.el.disabled = 'disabled';
+    // this.el.style.cursor = 'text';
 
     this.el.onchange = (event) => {
       this.emit('change', event.target.value);
@@ -14,12 +18,10 @@ class TextField extends Base {
     };
 
     this.el.onfocus = (event) => {
-      this.el.select();
-      // app.capture(this);
+      // this.el.select();
     };
 
     this.el.onblur = (event) => {
-      // app.release(this);
     };
   }
 

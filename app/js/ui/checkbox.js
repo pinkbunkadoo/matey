@@ -13,8 +13,8 @@ class Checkbox extends Base {
     // this.el.type = 'checkbox';
     this.addClass('checkbox');
 
-    this.el.style.width = (params.width ? params.width * app.unit : 12 * app.unit) + 'px';
-    this.el.style.height = (params.height ? params.height * app.unit : 12 * app.unit) + 'px';
+    // this.el.style.width = (params.width ? params.width * app.unit : 12 * app.unit) + 'px';
+    // this.el.style.height = (params.height ? params.height * app.unit : 12 * app.unit) + 'px';
 
     this.state = false;
 

@@ -7,15 +7,8 @@ class Tray extends Container {
     super(params);
     this.addClass('tray');
 
-    // this.tagIcon = new Icon({ resource: 'tag' });
     this.tagIcon = new Base();
     this.tagIcon.addClass('tray-tag');
-
-    // this.tagIcon.el.style.width = (16 * app.unit) + 'px';
-    // this.tagIcon.el.style.height = (16 * app.unit) + 'px';
-    // this.tagIcon.el.style.marginTop = (-0 * app.unit) + 'px';
-
-    // this.tagIcon.el.style.left = (100 - 8 * app.unit) + 'px';
     this.add(this.tagIcon);
 
     this.container = new Container();
@@ -23,6 +16,28 @@ class Tray extends Container {
     this.add(this.container);
 
     this.addClass('invert');
+
+    this.el.addEventListener('focus', () => {
+      console.log('tray focus');
+    });
+  }
+
+  show() {
+    super.show();
+    this.emit('show');
+  }
+
+  hide() {
+    super.hide();
+    this.emit('hide');
+  }
+
+  onFocus(event) {
+    // console.log('tray focus');
+  }
+
+  onFocus(event) {
+    // console.log('tray blur');
   }
 
   handleEvent(event) {
@@ -32,7 +47,12 @@ class Tray extends Container {
       this.onMouseUp(event);
     } else if (event.type == 'mousemove') {
       this.onMouseMove(event);
+    } else if (event.type == 'focus') {
+      // this.onFocus(event);
+    } else if (event.type == 'blur') {
+      // this.onBlur(event);
     }
+
   }
 }
 

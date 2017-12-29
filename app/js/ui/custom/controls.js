@@ -17,31 +17,31 @@ class Controls extends Panel {
     this.buttons['loop'] = new Button({ el: document.getElementById('controls-loop'), name: 'loop' });
     this.buttons['onion'] = new Button({ el: document.getElementById('controls-onion'), name: 'onion' });
 
-    this.buttons['first'].on('pressed', () => {
+    this.buttons['first'].on('click', () => {
       // app.first();
       this.emit('first');
     });
-    this.buttons['play'].on('pressed', () => {  });
-    this.buttons['last'].on('pressed', () => {
+    this.buttons['play'].on('click', () => {  });
+    this.buttons['last'].on('click', () => {
       // app.last();
       this.emit('last');
     });
-    this.buttons['loop'].on('pressed', () => {
+    this.buttons['loop'].on('click', () => {
       this.buttons['loop'].toggle();
     });
-    this.buttons['onion'].on('pressed', () => {
+    this.buttons['onion'].on('click', () => {
       this.buttons['onion'].toggle();
       this.emit('onion', this.buttons['onion'].state);
     });
 
     for (let name in this.buttons) {
-      this.buttons[name].el.style.width = (16 * app.unit) + 'px';
-      this.buttons[name].el.style.height = (16 * app.unit) + 'px';
+      // this.buttons[name].el.style.width = (25 * app.unit) + 'px';
+      // this.buttons[name].el.style.height = (20 * app.unit) + 'px';
     }
 
     this.frameNumber = 1;
 
-    this.frameInput = new TextField({ el: document.getElementById('controls-frame'), name: 'frame' });
+    this.frameInput = new TextField({ el: document.getElementById('controls-frame'), name: 'frame', width: '2em' });
     this.frameInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');
@@ -58,7 +58,7 @@ class Controls extends Panel {
 
     this.fps = 1;
 
-    this.fpsInput = new TextField({ el: document.getElementById('controls-fps'), name: 'fps' });
+    this.fpsInput = new TextField({ el: document.getElementById('controls-fps'), name: 'fps', width: '1.4em' });
     this.fpsInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');

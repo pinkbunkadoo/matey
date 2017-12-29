@@ -36,10 +36,10 @@ class Tools extends Panel {
     this.buttons['zoom'].on('pressed', () => { this.onToolSelect('zoom'); });
 
     for (let name in this.buttons) {
-      this.buttons[name].el.style.width = (32 * app.unit) + 'px';
-      this.buttons[name].el.style.height = (32 * app.unit) + 'px';
-      this.buttons[name].el.style.paddingLeft = (12 * app.unit) + 'px';
-      this.buttons[name].el.style.paddingRight = (12 * app.unit) + 'px';
+      // this.buttons[name].el.style.width = (20 * app.unit) + 'px';
+      // this.buttons[name].el.style.height = (20 * app.unit) + 'px';
+      // this.buttons[name].el.style.paddingLeft = (12 * app.unit) + 'px';
+      // this.buttons[name].el.style.paddingRight = (12 * app.unit) + 'px';
     }
 
     this.colorsContainer = new Container({ el: document.getElementById('tools-colors'), name: 'colors' });

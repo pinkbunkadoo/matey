@@ -9,8 +9,8 @@ class ColorSwatch extends Base {
 
     this.addClass('color-swatch');
 
-    // this.el.style.width = '18px';
-    // this.el.style.height = '18px';
+    // this.el.style.width = (16 * app.unit) + 'px';
+    // this.el.style.height = (16 * app.unit) + 'px';
 
     // this.color = params.color ? params.color.copy() : new Color()
     // this.nullColorIcon = new Icon({ resource: 'nullcolor', width: app.icons['nullcolor'].width, height: app.icons['nullcolor'].height });

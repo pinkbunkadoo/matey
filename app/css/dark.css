@@ -2,8 +2,8 @@ html,
 body {
   user-select: none;
   -webkit-user-select: none;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   min-height: 100vh;
   font-family: 'Fira', sans-serif;
@@ -14,32 +14,33 @@ body {
   -webkit-user-select: none;
 }
 label {
-  font-size: 12px;
+  font-size: 1.2em;
 }
 input[type=text] {
-  font-size: 12px;
-  text-align: center;
-  margin-left: 4px;
-  margin-right: 4px;
-  padding-right: 2px;
-  padding-left: 2px;
+  margin: 0;
+  padding: 0;
+  /* top | right | bottom | left */
+  margin: .1em .2em 0 .2em;
+  padding: 0 .2em 0 .2em;
   outline: none;
-  border-width: 0px 0px 1px 0px;
+  border-width: 0 0 .1em 0;
   border-style: solid;
   background: transparent;
-  color: #c0c0c0;
   border-color: #c0c0c0;
-}
-input[type=text]:disabled {
-  background: purple;
+  color: inherit;
+  font-size: 1.2em;
 }
 input[type=text]:focus {
   text-align: left;
 }
 .checkbox {
-  background: #505050;
-  border: 1px solid #c0c0c0;
-  border-radius: 3px;
+  background: #606060;
+  border: 0.1em solid #c0c0c0;
+  border-radius: .3em;
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
+  min-height: 1em;
 }
 .icon {
   display: flex;
@@ -63,33 +64,57 @@ input[type=text]:focus {
 }
 .divider.horizontal {
   width: 100%;
-  height: 1px;
-  min-height: 1px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  height: .1em;
+  min-height: .1em;
+  margin-top: .8em;
+  margin-bottom: .8em;
 }
 .divider.vertical {
-  width: 1px;
-  min-width: 1px;
-  height: 24px;
-  margin-left: 8px;
-  margin-right: 8px;
+  width: .1em;
+  min-width: .1em;
+  height: 2.4em;
+  margin-left: .8em;
+  margin-right: .8em;
+}
+button {
+  font-size: 1em;
+  -webkit-appearance: none;
+  border: .1em solid transparent;
+  box-sizing: content-box;
+  padding: .6em;
+  margin: .1em;
+  width: 2.4em;
+  height: 2.4em;
+  outline: none;
+  background: transparent;
+  border-radius: .3em;
+}
+button:hover {
+  border: 0.1em solid #404040;
+}
+button:active {
+  background: #404040;
+}
+button.tool {
+  padding-left: 1.2em;
+  padding-right: 1.2em;
+  width: 3.2em;
+  height: 3.2em;
+}
+button.pressed {
+  background: #404040;
 }
 .button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  box-sizing: content-box;
-  border-radius: 3px;
-  padding: 6px;
-  margin: 1px;
-  border: 1px solid transparent;
+  border-radius: .3em;
+  padding: .6em;
+  margin: .1em;
+  width: 2.4em;
+  height: 2.4em;
+  border: .1em solid transparent;
   cursor: default;
-  font-size: 12px;
 }
 .button:hover {
-  border: 1px solid #404040;
+  border: 0.1em solid #404040;
 }
 .button.pressed {
   background: #404040;
@@ -97,18 +122,24 @@ input[type=text]:focus {
 .button:active {
   background: #404040;
 }
+.button.tool {
+  width: 3.2em !important;
+  height: 3.2em !important;
+  padding-left: 1.2em;
+  padding-right: 1.2em;
+}
 .color-swatch {
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin: 1px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  padding: 2px;
+  width: 1.6em;
+  height: 1.6em;
+  margin: .2em;
+  border-radius: .4em;
+  border: .1em solid transparent;
+  padding: 0.4em;
 }
 .color-swatch.null {
-  border: 1px solid #404040;
+  border: 0.1em solid #404040;
 }
 .list {
   display: flex;
@@ -128,38 +159,41 @@ input[type=text]:focus {
 }
 .tray {
   display: flex;
+  position: absolute;
   flex-direction: column;
   align-items: center;
-  position: absolute;
   z-index: 50;
 }
+.tray:focus {
+  background: red;
+}
 .tray-container {
-  padding: 8px;
-  border-radius: 6px;
-  box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.4);
-  background: #505050;
+  padding: 2em;
+  border-radius: .6em;
+  background: rgba(0, 0, 0, 0.9);
+  box-shadow: 0.1em 0.2em 0.4em 0 rgba(0, 0, 0, 0.4);
 }
 .tray-tag {
-  width: 16px;
-  height: 16px;
+  width: 1.6em;
+  height: 1.6em;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-  background: #505050;
+  background: rgba(0, 0, 0, 0.9);
 }
 .panel {
-  border-radius: 4px;
-  padding: 8px;
+  border-radius: .4em;
+  padding: .8em;
   box-sizing: border-box;
   transition: opacity 0.2s;
   z-index: 4;
-  background: #505050;
+  background: #606060;
 }
 #tools {
   display: flex;
   flex-direction: column;
   position: fixed;
   align-items: center;
-  left: -8px;
-  padding-left: 16px;
+  left: -0.8em;
+  padding-left: 1.6em;
 }
 #tools-colors {
   display: flex;
@@ -170,8 +204,8 @@ input[type=text]:focus {
   position: absolute;
   box-sizing: border-box;
   overflow: hidden;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   z-index: 1;
 }
 #paper > canvas {
@@ -182,21 +216,22 @@ input[type=text]:focus {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
-  bottom: 0px;
+  bottom: 0;
   width: 100vw;
   z-index: 5;
-  background: #505050;
+  background: #606060;
 }
 #frame-list-container {
   display: flex;
   position: relative;
   flex-direction: row;
-  padding-top: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 .frame-list-item {
   flex-direction: column;
   overflow: hidden;
-  border-top: 4px solid transparent;
+  border-top: .8em solid transparent;
   transition: filter 0.5s;
 }
 .frame-list-item:hover {
@@ -211,35 +246,36 @@ input[type=text]:focus {
 .frame-list-item-number {
   position: absolute;
   pointer-events: none;
-  padding: 4px;
-  font-size: 11px;
+  padding: .4em;
   color: #404040;
 }
 .frame-list-new {
   align-items: center;
   justify-content: center;
-  margin-top: 5px;
-  padding-left: 20px;
-  padding-right: 20px;
+  margin-top: .8em;
+  padding-left: 2.0em;
+  padding-right: 2.0em;
   transition: background-color 0.2s;
 }
 .frame-list-new:hover {
-  background-color: #434343;
+  background-color: #535353;
+}
+.frame-list-new .icon {
+  fill: #cacaca;
 }
 #frame-list-map {
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: 6px;
-  min-height: 6px;
+  height: .8em;
   z-index: 5;
-  background: #404040;
+  background: #202020;
 }
 .frame-list-map-nodule {
   position: relative;
-  height: 6px;
-  top: 0px;
-  background: #505050;
+  height: 100%;
+  top: 0;
+  background: #606060;
 }
 #controls {
   position: fixed;
@@ -247,15 +283,15 @@ input[type=text]:focus {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding-bottom: 16px;
-  bottom: 0px;
+  padding-bottom: 1.6em;
+  bottom: 0;
 }
 #settings {
   position: fixed;
   display: flex;
   flex-direction: row;
-  top: -8px;
-  padding-top: 16px;
+  top: -0.8em;
+  padding-top: 1.6em;
   align-items: center;
   justify-content: center;
 }

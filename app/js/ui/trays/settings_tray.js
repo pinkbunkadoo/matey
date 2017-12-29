@@ -12,11 +12,11 @@ class SettingsTray extends Tray {
     this.label = new Label({ id: 'temp', text: 'This is the label text.' });
     this.container.add(this.label);
 
-    this.button = new Button({ id: 'button', text: 'Button' });
+    this.button = new Button({ id: 'button', text: 'Button', width: 'auto', height: 'auto' });
     this.container.add(this.button);
 
-    this.container.el.style.width = '200px'
-    this.container.el.style.height = '200px'
+    // this.container.el.style.width = '100px';
+    // this.container.el.style.height = '100px';
 
     this.checkbox = new Checkbox();
     this.container.add(this.checkbox);

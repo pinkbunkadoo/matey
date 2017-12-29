@@ -1,10 +1,9 @@
-@font-size: 12px;
 
 html, body {
   user-select: none;
   -webkit-user-select: none;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
   min-height: 100vh;
   font-family: @standard-font-face;
@@ -16,34 +15,32 @@ html, body {
   -webkit-user-select: none;
 }
 
+
+
 label {
-  font-size: @font-size;
+  font-size: 1.2em;
 }
 
 input[type=text] {
-  font-size: @font-size;
-  text-align: center;
-  margin-left: 4px;
-  margin-right: 4px;
-  padding-right: 2px;
-  padding-left: 2px;
+  margin: 0;
+  padding: 0;
+  /* top | right | bottom | left */
+  margin: .1em .2em 0 .2em;
+  padding: 0 .2em 0 .2em;
   outline: none;
-  border-width: 0px 0px 1px 0px;
+  border-width: 0 0 .1em 0;
   border-style: solid;
   background: transparent;
-  color: @input-text-color;
   border-color: @border-color;
+  // color: @input-text-color;
+  color: inherit;
+  font-size: 1.2em;
 
   &:enabled {
-    // background: @shade-color;
   }
 
   &:disabled {
-    // cursor: text;
-    background: purple;
   }
-  // user-select: none;
-  // -webkit-user-select: none;
 }
 
 input[type=text]:focus {
@@ -52,8 +49,13 @@ input[type=text]:focus {
 
 .checkbox {
   background: @background-color;
-  border: 1px solid @border-color;
-  border-radius: 3px;
+  border: .1em solid @border-color;
+  border-radius: .3em;
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
+  min-height: 1em;
+  // flex-wrap:nowrap;
 }
 
 .icon {
@@ -73,24 +75,6 @@ input[type=text]:focus {
   display: flex;
 }
 
-// .checkbox {
-// }
-//
-// .checkbox {
-//   display: flex;
-//   flex-direction: row;
-//   align-items: center;
-//   justify-content: center;
-//   width: 1.6em;
-//   height: 1.6em;
-//   border-radius: 2px;
-//   box-sizing: border-box;
-// }
-//
-// .checkbox.selected {
-//   background: white;
-// }
-
 .spacer {
   pointer-events: none;
 }
@@ -101,38 +85,65 @@ input[type=text]:focus {
 
 .divider.horizontal {
   width: 100%;
-  height: 1px;
-  min-height: 1px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  height: .1em;
+  min-height: .1em;
+  margin-top: .8em;
+  margin-bottom: .8em;
 }
 
 .divider.vertical {
-  width: 1px;
-  min-width: 1px;
-  height: 24px;
-  margin-left: 8px;
-  margin-right: 8px;
+  width: .1em;
+  min-width: .1em;
+  height: 2.4em;
+  margin-left: .8em;
+  margin-right: .8em;
+}
+
+button {
+  font-size: 1em;
+  -webkit-appearance: none;
+  border: .1em solid transparent;
+  box-sizing: content-box;
+  padding: .6em;
+  margin: .1em;
+  width: 2.4em;
+  height: 2.4em;
+  outline: none;
+  background: transparent;
+  border-radius: .3em;
+
+  &:hover {
+    border: .1em solid @shade-color;
+  }
+
+  &:active {
+    background: @shade-color;
+  }
+
+  &.tool {
+    padding-left: 1.2em;
+    padding-right: 1.2em;
+    width: 3.2em;
+    height: 3.2em;
+  }
+
+  &.pressed {
+    background: @shade-color;
+  }
+
 }
 
 .button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  box-sizing: content-box;
-
-  border-radius: 3px;
-  padding: 6px;
-  margin: 1px;
-
-  border: 1px solid transparent;
+  border-radius: .3em;
+  padding: .6em;
+  margin: .1em;
+  width: 2.4em;
+  height: 2.4em;
+  border: .1em solid transparent;
   cursor: default;
 
-  font-size: @font-size;
-
   &:hover {
-    border: 1px solid @shade-color;
+    border: .1em solid @shade-color;
   }
 
   &.pressed {
@@ -141,22 +152,28 @@ input[type=text]:focus {
 
   &:active {
     background: @shade-color;
-    // border-color: transparent;
+  }
+
+  &.tool {
+    width: 3.2em !important;
+    height: 3.2em !important;
+    padding-left: 1.2em;
+    padding-right: 1.2em;
   }
 }
 
 .color-swatch {
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin: 1px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  padding: 2px;
+  width: 1.6em;
+  height: 1.6em;
+  margin: .2em;
+  border-radius: .4em;
+  border: .1em solid transparent;
+  padding: 0.4em;
 
   &.null {
-    border: 1px solid @shade-color;
+    border: .1em solid @shade-color;
   }
 }
 
@@ -181,29 +198,39 @@ input[type=text]:focus {
 
 .tray {
   display: flex;
+  position: absolute;
+
   flex-direction: column;
   align-items: center;
-  position: absolute;
   z-index: 50;
+
+  &:focus {
+    background: red;
+  }
 }
 
 .tray-container {
-  padding: 8px;
-  border-radius: 6px;
-  box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.4);
-  background: @background-color;
+  padding: 2em;
+  border-radius: .6em;
+  background: @tray-background-color;
+  box-shadow: .1em .2em .4em 0 rgba(0, 0, 0, 0.4);
+  // background: @tray-background-color;
+}
+
+.tray-container {
+  // color: red;
 }
 
 .tray-tag {
-  width: 16px;
-  height: 16px;
+  width: 1.6em;
+  height: 1.6em;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-  background: @background-color;
+  background: @tray-background-color;
 }
 
 .panel {
-  border-radius: 4px;
-  padding: 8px;
+  border-radius: .4em;
+  padding: .8em;
   box-sizing: border-box;
   transition: opacity 0.2s;
   z-index: 4;
@@ -215,8 +242,8 @@ input[type=text]:focus {
   flex-direction: column;
   position: fixed;
   align-items: center;
-  left: -8px;
-  padding-left: 16px;
+  left: -.8em;
+  padding-left: 1.6em;
 }
 
 #tools-colors {
@@ -229,8 +256,8 @@ input[type=text]:focus {
   position: absolute;
   box-sizing: border-box;
   overflow: hidden;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   z-index: 1;
   & > canvas {
     pointer-events: none;
@@ -242,7 +269,7 @@ input[type=text]:focus {
   display: flex;
   box-sizing: border-box;
   overflow: hidden;
-  bottom: 0px;
+  bottom: 0;
   width: 100vw;
   z-index: 5;
   background: @background-color;
@@ -252,13 +279,14 @@ input[type=text]:focus {
   display: flex;
   position: relative;
   flex-direction: row;
-  padding-top: 4px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .frame-list-item {
   flex-direction: column;
   overflow: hidden;
-  border-top: 4px solid transparent;
+  border-top: .8em solid transparent;
   transition: filter 0.5s;
 
   &:hover {
@@ -276,17 +304,17 @@ input[type=text]:focus {
 .frame-list-item-number {
   position: absolute;
   pointer-events: none;
-  padding: 4px;
-  font-size: 11px;
+  padding: .4em;
+  // font-size: 1.1em;
   color: @frame-text-color;
 }
 
 .frame-list-new {
   align-items: center;
   justify-content: center;
-  margin-top: 5px;
-  padding-left: 20px;
-  padding-right: 20px;
+  margin-top: .8em;
+  padding-left: 2.0em;
+  padding-right: 2.0em;
   transition: background-color 0.2s;
 
   &:hover {
@@ -294,6 +322,7 @@ input[type=text]:focus {
   }
 
   .icon {
+    fill: @text-color;
   }
 }
 
@@ -301,16 +330,15 @@ input[type=text]:focus {
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: 6px;
-  min-height: 6px;
+  height: .8em;
   z-index: 5;
-  background: @shade-color;
+  background: @gutter-color;
 }
 
 .frame-list-map-nodule {
   position: relative;
-  height: 6px;
-  top: 0px;
+  height: 100%;
+  top: 0;
   background: @background-color;
 }
 
@@ -320,16 +348,16 @@ input[type=text]:focus {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding-bottom: 16px;
-  bottom: 0px;
+  padding-bottom: 1.6em;
+  bottom: 0;
 }
 
 #settings {
   position: fixed;
   display: flex;
   flex-direction: row;
-  top: -8px;
-  padding-top: 16px;
+  top: -.8em;
+  padding-top: 1.6em;
   align-items: center;
   justify-content: center;
 }

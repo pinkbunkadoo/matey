@@ -7,6 +7,7 @@ class ToolButton extends Button {
   constructor(params={}) {
     // Button.call(this, params);
     super(params);
+    this.addClass('tool');
   }
 
   // ToolButton.prototype = Object.create(Button.prototype);
