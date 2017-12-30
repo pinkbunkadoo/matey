@@ -23,8 +23,8 @@ class Paper extends Base {
     this.overlayCanvas.height = this.canvasHeight;
 
     this.scale = 1.0;
-    this.width = Const.WIDTH;
-    this.height = Const.HEIGHT;
+    this.width = app.WIDTH;
+    this.height = app.HEIGHT;
 
     this.bitmap = document.createElement('canvas');
     this.bitmap.width = this.width;
@@ -99,7 +99,7 @@ class Paper extends Base {
 
   zoomIn() {
     var self = this;
-    var level = Const.ZOOM_LEVELS.find(function(element) {
+    var level = app.ZOOM_LEVELS.find(function(element) {
       return element > self.scale;
     });
     if (level) this.setZoom(level);
@@ -108,8 +108,8 @@ class Paper extends Base {
 
   zoomOut() {
     var level;
-    for (var i = Const.ZOOM_LEVELS.length - 1; i >= 0; i--) {
-      level = Const.ZOOM_LEVELS[i]
+    for (var i = app.ZOOM_LEVELS.length - 1; i >= 0; i--) {
+      level = app.ZOOM_LEVELS[i]
       if (level < this.scale) break;
     }
     if (level) this.setZoom(level);
@@ -191,13 +191,13 @@ class Paper extends Base {
 
   clear() {
     var ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = app.theme === 'light' ? Const.COLOR_WORKSPACE_LIGHT.toHexString() : Const.COLOR_WORKSPACE_DARK.toHexString();
+    ctx.fillStyle = app.theme === 'light' ? app.colors.WORKSPACE_LIGHT.toHexString() : app.colors.WORKSPACE_DARK.toHexString();
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     // ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     ctx.save();
     var p1 = this.worldToScreen(0, 0);
-    ctx.fillStyle = Const.COLOR_PAPER.toHexString();
+    ctx.fillStyle = app.colors.PAPER.toHexString();
     ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
     ctx.restore();
   }
@@ -207,25 +207,20 @@ class Paper extends Base {
     ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
   }
 
-  // clearDisplayList() {
-  //   this.displayList = [];
-  // }
-  //
-  // addDisplayItem(item) {
-  //   this.displayList.push(item);
-  //   // console.log('display item', item);
-  // }
-
   renderPath(ctx, points, params) {
     if (points.length) {
       let transform = params.transform;
       let scale = transform ? transform.scale : 1;
 
       ctx.save();
-      // ctx.globalCompositeOperation = 'difference';
-      ctx.lineWidth = params.thickness ? params.thickness * scale : Const.LINE_WIDTH * scale;
+
+      ctx.lineWidth = params.thickness ? params.thickness * scale : app.LINE_WIDTH * scale;
       ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
-      ctx.strokeStyle = params.color ? params.color.toHexString() : Const.COLOR_STROKE.toHexString();
+      ctx.strokeStyle = params.color ? params.color.toHexString() : app.colors.STROKE_NULL.toHexString();
+
+      if (!params.color && !params.fill) {
+        ctx.setLineDash([3, 4]);
+      }
 
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';

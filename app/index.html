@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <title>Scribbler</title>
     <link rel="stylesheet" type="text/css" href="./css/light.css" id="css">
-    <link href="https://fonts.googleapis.com/css?family=Fira+Sans|Roboto" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i" rel="stylesheet"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <div id="main" class="ui" hidden>
+    <div id="main" class="ui">
       <div id="content">
         <div id="paper" tabindex="3"></div>
         <div id="settings" class="panel">
@@ -25,10 +25,11 @@
           <button id="tools-pointer" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#pointer"></use></svg></button>
           <button id="tools-hand" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#hand"></use></svg></button>
           <button id="tools-zoom" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#zoom"></use></svg></button>
-          <div class="divider horizontal"></div>
-          <div id="tools-colors">
-            <div id="tools-color" class="color-swatch"></div>
-            <div id="tools-fill" class="color-swatch"></div>
+        </div>
+        <div id="colors" class="panel">
+          <div id="colors-container">
+            <div id="colors-color" class="color-swatch"></div>
+            <div id="colors-fill" class="color-swatch"></div>
           </div>
         </div>
         <div id="controls" class="panel">
@@ -36,10 +37,10 @@
           <button id="controls-play"><svg class="icon"><use xlink:href="./images/icons.svg#play"></use></svg></button>
           <button id="controls-last"><svg class="icon"><use xlink:href="./images/icons.svg#last"></use></svg></button>
           <div class="divider vertical"></div>
-          <input type="text" id="controls-frame" maxlength="3" style="text-align: center" tabindex="1"></input>
+          <input type="text" id="controls-frame" maxlength="3" tabindex="1"></input>
           <label id="controls-frame-label" for="controls-frame">&nldr; 1</label>
           <div class="divider vertical"></div>
-          <input type="text" id="controls-fps" maxlength="2" style="text-align: center" tabindex="2"></input>
+          <input type="text" id="controls-fps" maxlength="2" tabindex="2"></input>
           <label id="controls-fps-label" for="controls-fps">fps</label>
           <div class="divider vertical"></div>
           <button id="controls-loop"><svg class="icon"><use xlink:href="./images/icons.svg#loop"></use></svg></button>

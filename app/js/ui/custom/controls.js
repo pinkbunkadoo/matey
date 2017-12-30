@@ -34,14 +34,10 @@ class Controls extends Panel {
       this.emit('onion', this.buttons['onion'].state);
     });
 
-    for (let name in this.buttons) {
-      // this.buttons[name].el.style.width = (25 * app.unit) + 'px';
-      // this.buttons[name].el.style.height = (20 * app.unit) + 'px';
-    }
-
     this.frameNumber = 1;
 
     this.frameInput = new TextField({ el: document.getElementById('controls-frame'), name: 'frame', width: '2em' });
+    this.frameInput.setStyle({ fontWeight: 700, fontSize: '1.6em', textAlign: 'right' });
     this.frameInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');
@@ -59,6 +55,7 @@ class Controls extends Panel {
     this.fps = 1;
 
     this.fpsInput = new TextField({ el: document.getElementById('controls-fps'), name: 'fps', width: '1.4em' });
+    this.fpsInput.setStyle({ fontWeight: 700, fontSize: '1.6em', textAlign: 'center' });
     this.fpsInput.on('change', (value) => {
       if (isNaN(value)) {
         console.log(value, 'isn\'t a number.');
@@ -84,7 +81,7 @@ class Controls extends Panel {
     // console.log('setframe', value, total);
     this.frameNumber = value;
     this.frameInput.render({ cmd: 'show', value: this.frameNumber });
-    this.frameLabel.render({ cmd: 'show', value: 'o\' ' + total });
+    this.frameLabel.render({ cmd: 'show', value: '/ ' + total });
   }
 
   setFps(value) {

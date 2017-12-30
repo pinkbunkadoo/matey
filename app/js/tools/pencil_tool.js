@@ -1,4 +1,4 @@
-const Const = require('../const');
+// const Const = require('../const');
 const Util = require('../util');
 const Point = require('../geom/point');
 const Stroke = require('../stroke');
@@ -82,8 +82,8 @@ class PencilTool extends Tool {
 
       // ctx.lineTo(app.paper.cursorX, app.paper.cursorY);
 
-      ctx.lineWidth = Const.LINE_WIDTH;
-      ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
+      ctx.lineWidth = app.LINE_WIDTH;
+      ctx.strokeStyle = app.colors.STROKE.toHexString();
       ctx.stroke();
     }
   }

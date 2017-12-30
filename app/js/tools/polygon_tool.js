@@ -1,4 +1,3 @@
-const Const = require('../const');
 const Util = require('../util');
 const Point = require('../geom/point');
 const Vector = require('../geom/vector');
@@ -99,8 +98,8 @@ class PolygonTool extends Tool {
     ctx.lineJoin = 'round';
 
     if (this.drawing && this.points.length) {
-      ctx.lineWidth = Const.LINE_WIDTH;
-      ctx.strokeStyle = Const.COLOR_STROKE.toHexString();
+      ctx.lineWidth = app.LINE_WIDTH;
+      ctx.strokeStyle = app.colors.STROKE.toHexString();
 
       if (this.points.length >= 1) {
         // console.log('poly.render');

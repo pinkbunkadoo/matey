@@ -1,4 +1,3 @@
-const Const = require('../const');
 const Util = require('../util');
 const Point = require('../geom/point');
 const Vector = require('../geom/vector');
@@ -72,22 +71,17 @@ class LineTool extends Tool {
   render(ctx) {
 
     if (this.drawing) {
-      // app.paper.renderPath(this.points, { screen: true });
-      // console.log('render');
       ctx.beginPath();
-
+      ctx.strokeStyle = app.colors.STROKE.toHexString();
       for (let i = 0; i < this.points.length; i++) {
         let point = this.points[i];
         let x = point.x, y = point.y;
-
         if (i == 0)
           ctx.moveTo(x, y);
         else
           ctx.lineTo(x, y);
       }
-
       ctx.stroke();
-
     }
   }
 

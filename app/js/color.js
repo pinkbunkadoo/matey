@@ -45,7 +45,7 @@ Color.prototype.toHexString = function() {
 Color.Black = new Color();
 Color.White = new Color(255, 255, 255);
 Color.Red = new Color(255, 0, 0);
-Color.Blue = new Color(0, 0, 255);
 Color.Green = new Color(0, 255, 0);
+Color.Blue = new Color(0, 0, 255);
 
 module.exports = Color;

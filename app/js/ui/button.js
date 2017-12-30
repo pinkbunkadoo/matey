@@ -27,11 +27,14 @@ class Button extends Container {
       }
     }
 
+    if (this.text) {
+      this.addClass('text');
+    }
+
     this.el.style.width = params.width || this.el.style.width;
     this.el.style.height = params.height || this.el.style.height;
 
     // this.el.draggable = "true";
-
     // this.addClass('button');
 
     this.state = false;

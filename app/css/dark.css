@@ -6,8 +6,9 @@ body {
   margin: 0;
   overflow: hidden;
   min-height: 100vh;
-  font-family: 'Fira', sans-serif;
+  font-family: sans-serif;
   color: #cacaca;
+  background: white;
 }
 .ui {
   user-select: none;
@@ -27,8 +28,9 @@ input[type=text] {
   border-style: solid;
   background: transparent;
   border-color: #c0c0c0;
-  color: inherit;
-  font-size: 1.2em;
+  color: #cacaca;
+  font-size: inherit;
+  font-family: inherit;
 }
 input[type=text]:focus {
   text-align: left;
@@ -78,6 +80,7 @@ input[type=text]:focus {
 }
 button {
   font-size: 1em;
+  font-family: inherit;
   -webkit-appearance: none;
   border: .1em solid transparent;
   box-sizing: content-box;
@@ -88,12 +91,14 @@ button {
   outline: none;
   background: transparent;
   border-radius: .3em;
+  color: #cacaca;
 }
 button:hover {
   border: 0.1em solid #404040;
 }
 button:active {
-  background: #404040;
+  background: #272727;
+  border: .1em solid transparent;
 }
 button.tool {
   padding-left: 1.2em;
@@ -103,6 +108,9 @@ button.tool {
 }
 button.pressed {
   background: #404040;
+}
+button.text {
+  font-size: 1em;
 }
 .button {
   border-radius: .3em;
@@ -131,21 +139,33 @@ button.pressed {
 .color-swatch {
   align-items: center;
   justify-content: center;
-  width: 1.6em;
-  height: 1.6em;
+  width: 2.8em;
+  height: 2.8em;
   margin: .2em;
   border-radius: .4em;
-  border: .1em solid transparent;
+  border: 0.2em solid #c0c0c0;
   padding: 0.4em;
+  background-color: transparent;
+  box-sizing: border-box;
 }
 .color-swatch.null {
-  border: 0.1em solid #404040;
+  border-color: #c0c0c0;
 }
 .list {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
+}
+.color-palette {
+  display: grid;
+  overflow: hidden;
+}
+.color-palette-item {
+  width: 2.5em;
+  height: 2.5em;
+  min-width: 2.5em;
+  min-height: 2.5em;
 }
 #main {
   display: flex;
@@ -276,6 +296,15 @@ button.pressed {
   height: 100%;
   top: 0;
   background: #606060;
+}
+#colors {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 1.6em;
+  right: -0.8em;
 }
 #controls {
   position: fixed;

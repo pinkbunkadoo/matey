@@ -6,18 +6,14 @@ class Spacer extends Base {
 
     this.addClass('spacer');
 
-    if (params.width != undefined) {
-      this.width = params.width;
-      this.el.style.width = this.width + 'px';
-      this.el.style.minWidth = this.width + 'px';
+    if (params.width !== undefined) {
+      this.el.style.minWidth = this.el.style.width = params.width + 'em';
     } else {
       this.el.style.flex = 'auto';
     }
 
-    if (params.height != undefined) {
-      this.height = params.height;
-      this.el.style.height = this.height + 'px';
-      this.el.style.minHeight = this.height + 'px';
+    if (params.height !== undefined) {
+      this.el.style.minHeight = this.el.style.height = params.height + 'em';
     } else {
       // this.el.style.flex = 'auto';
     }

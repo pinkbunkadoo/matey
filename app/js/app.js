@@ -1,4 +1,4 @@
-const Const = require('./const');
+// const Const = require('./const');
 const Geom = require('./geom/');
 const Transform = require('./transform');
 const Util = require('./util');
@@ -16,6 +16,7 @@ const Base = require('./ui/base');
 const Container = require('./ui/container');
 const Paper = require('./ui/custom/paper');
 const Tools = require('./ui/custom/tools');
+const Colors = require('./ui/custom/colors');
 const Controls = require('./ui/custom/controls');
 const Settings = require('./ui/custom/settings');
 const FrameList = require('./ui/custom/frame_list');
@@ -27,6 +28,30 @@ const fs = require('fs');
 const GIFEncoder = require('gifencoder');
 
 let app = {
+  WIDTH: 640,
+  HEIGHT: 400,
+
+  colors: {
+    STROKE: new Color(100, 100, 100),
+    STROKE_NULL: new Color(192, 192, 192),
+    SELECTION: Color.fromHexString('#2db9f0'),
+    ONION: new Color(160, 240, 160),
+    PAPER: new Color(255, 255, 255),
+    WORKSPACE_LIGHT: new Color(128, 128, 128),
+    WORKSPACE_DARK: new Color(52, 52, 52),
+  },
+
+  LINE_WIDTH: 1.2,
+  ZOOM_LEVELS: [ 0.25, 0.5, 0.75, 1.0, 1.5, 2, 3, 5 ],
+
+  shortcuts: {
+    pan: ' ',
+    pencil: 'p',
+    line: 'l',
+    pointer: 'q',
+    newFrame: 'n'
+  },
+
   width: 0,
   height: 0,
   unit: 1,
@@ -80,17 +105,17 @@ app.render = () => {
       let frame = app.sequence.frames[app.position - 1];
       for (let i = 0; i < frame.strokes.length; i++) {
         let stroke = frame.strokes[i];
-        let thickness = stroke.selected ? Const.LINE_WIDTH*2 : Const.LINE_WIDTH;
-        let color = Const.COLOR_ONION; //stroke.selected ? Const.COLOR_SELECTION : stroke.color;
-        app.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+        let thickness = stroke.selected ? app.LINE_WIDTH*2 : app.LINE_WIDTH;
+        let color = app.colors.ONION; //stroke.selected ? app.COLOR_SELECTION : stroke.color;
+        app.paper.displayList.add({ points: stroke.points, color: color, fill: null, thickness: thickness });
       }
     }
   }
 
   for (let i = 0; i < app.frame.strokes.length; i++) {
     let stroke = app.frame.strokes[i];
-    let thickness = stroke.selected ? Const.LINE_WIDTH*2 : Const.LINE_WIDTH;
-    let color = stroke.selected ? Const.COLOR_SELECTION : stroke.color;
+    let thickness = stroke.selected ? app.LINE_WIDTH*2 : app.LINE_WIDTH;
+    let color = stroke.selected ? app.colors.SELECTION : stroke.color;
     app.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
 
@@ -122,11 +147,13 @@ app.setCursor = (name) => {
 }
 
 app.getColor = () => {
-  return app.ui.tools.getColor();
+  // return app.ui.tools.getColor();
+  return app.strokeColor;
 }
 
 app.getFill = () => {
-  return app.ui.tools.getFill();
+  return app.strokeFill;
+  // return app.ui.tools.getFill();
 }
 
 app.undo = () => {
@@ -280,7 +307,7 @@ app.updateFrameListThumbnail = (index) => {
   let width = 128 * app.unit;
   let height = 80 * app.unit;
   let frame = app.sequence.getFrame(index);
-  let scale = (width) / Const.WIDTH;
+  let scale = (width) / app.WIDTH;
   let canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -293,7 +320,7 @@ app.updateFrameListThumbnail = (index) => {
 
   for (var i = 0; i < frame.strokes.length; i++) {
     let stroke = frame.strokes[i];
-    displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH * 2});
+    displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: app.LINE_WIDTH * 2});
   }
   app.paper.renderDisplayListToCanvas(canvas, displayList, transform);
 
@@ -445,10 +472,9 @@ app.reposition = () => {
 
   app.ui.settings.el.style.left = (((app.width / 2) - (app.ui.settings.el.offsetWidth/2)) >> 0) + 'px';
   app.ui.tools.el.style.top = (((app.height / 2) - (app.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
+  app.ui.colors.el.style.top = (((app.height / 2) - (app.ui.colors.el.offsetHeight/2)) >> 0) + 'px';
   app.ui.controls.el.style.left = (((app.width / 2) - (app.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
-
   app.ui.controls.el.style.bottom = (app.ui.frameList.el.offsetHeight + app.ui.frameListMap.el.offsetHeight - 8) + 'px';
-  // app.ui.controls.el.style.top = (app.paper.el.offsetTop + app.paper.el.offsetHeight - 200) + 'px';
 
   app.updateFrameListMap();
   app.render();
@@ -776,6 +802,9 @@ window.onload = () => {
   app.width = window.innerWidth;
   app.height = window.innerHeight;
 
+  app.strokeColor = app.colors.STROKE;
+  app.strokeFill = null;
+
   app.sequence = new Sequence();
   app.selection = new Selection();
 
@@ -799,8 +828,20 @@ window.onload = () => {
     app.setMode(params.mode);
   });
 
+  app.ui.colors = new Colors();
+  app.ui.colors.on('color-change', (params) => {
+    // app.setTool(params.tool);
+    app.strokeColor = params.color;
+  });
+  app.ui.colors.on('fill-change', (params) => {
+    app.fillColor = params.color;
+    // app.setTool(params.tool);
+  });
+  app.ui.colors.setColor(app.strokeColor);
+  app.ui.colors.setFill(app.strokeFill);
+
   app.ui.frameList = new FrameList();
-  app.ui.frameList.setThumbnailSize(128*app.unit, 80*app.unit);
+  app.ui.frameList.setThumbnailSize(128 * app.unit, 80 * app.unit);
   app.ui.frameList.on('select', (params) => {
     app.go(params.index);
   });
@@ -858,15 +899,13 @@ window.onload = () => {
 
   app.ui.modal = document.getElementById('modal');
 
-  app.ui.main.setVisible(true);
+  app.ui.main.show();
 
   app.setTool('pencil');
   app.newFrame();
 
   initEventListeners();
   app.reposition();
-
-  // console.log(app.tray);
 }
 
 function saveAnimatedGIF(filename) {
@@ -894,7 +933,7 @@ function saveAnimatedGIF(filename) {
 
     for (let i = 0; i < frame.strokes.length; i++) {
       let stroke = frame.strokes[i];
-      displayList.add({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: Const.LINE_WIDTH });
+      displayList.add({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: app.LINE_WIDTH });
     }
 
     app.paper.renderDisplayListToCanvas(canvas, displayList, transform);

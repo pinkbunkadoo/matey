@@ -8,7 +8,7 @@ class TextField extends Base {
     // this.el.style.fontSize = (12 * app.unit) + 'px';
     this.el.style.width = (params.width || (16 * app.unit) + 'px');
 
-    this.el.style.fontSize = '1.6em';
+    // this.el.style.fontSize = '1.6em';
 
     // this.el.style['-webkit-user-select'] = 'none';
     // this.el.disabled = 'disabled';

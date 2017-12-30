@@ -6,16 +6,16 @@ html, body {
   margin: 0;
   overflow: hidden;
   min-height: 100vh;
-  font-family: @standard-font-face;
+  // font-family: 'Roboto', sans-serif;
+  font-family: sans-serif;
   color: @text-color;
+  background: white;
 }
 
 .ui {
   user-select: none;
   -webkit-user-select: none;
 }
-
-
 
 label {
   font-size: 1.2em;
@@ -32,9 +32,9 @@ input[type=text] {
   border-style: solid;
   background: transparent;
   border-color: @border-color;
-  // color: @input-text-color;
-  color: inherit;
-  font-size: 1.2em;
+  color: @input-text-color;
+  font-size: inherit;
+  font-family: inherit;
 
   &:enabled {
   }
@@ -101,6 +101,7 @@ input[type=text]:focus {
 
 button {
   font-size: 1em;
+  font-family: inherit;
   -webkit-appearance: none;
   border: .1em solid transparent;
   box-sizing: content-box;
@@ -111,13 +112,15 @@ button {
   outline: none;
   background: transparent;
   border-radius: .3em;
+  color: @text-color;
 
   &:hover {
     border: .1em solid @shade-color;
   }
 
   &:active {
-    background: @shade-color;
+    background: darken(@shade-color, 10%);
+    border: .1em solid transparent;
   }
 
   &.tool {
@@ -129,6 +132,10 @@ button {
 
   &.pressed {
     background: @shade-color;
+  }
+
+  &.text {
+    font-size: 1em;
   }
 
 }
@@ -165,15 +172,18 @@ button {
 .color-swatch {
   align-items: center;
   justify-content: center;
-  width: 1.6em;
-  height: 1.6em;
+  width: 2.8em;
+  height: 2.8em;
   margin: .2em;
   border-radius: .4em;
-  border: .1em solid transparent;
+  border: .2em solid @border-color;
   padding: 0.4em;
+  background-color: transparent;
+  box-sizing: border-box;
 
   &.null {
-    border: .1em solid @shade-color;
+    border-color: @border-color;
+    // background: white;
   }
 }
 
@@ -182,6 +192,28 @@ button {
   flex-direction: column;
   overflow: hidden;
   position: relative;
+}
+
+.color-palette {
+  display: grid;
+  // grid-gap: .1em;
+  // background: @gutter-color;
+  // padding: .1em;
+  // border: 2px solid @gutter-color;
+  // border-radius: .4em;
+  overflow: hidden;
+  // padding: 3px;
+  // box-sizing: border-box;
+  // background-clip: padding-box;
+}
+
+.color-palette-item {
+  // border-radius: .4em;
+  width: 2.5em;
+  height: 2.5em;
+  min-width: 2.5em;
+  min-height: 2.5em;
+  // background-clip: padding-box;
 }
 
 #main {
@@ -340,6 +372,16 @@ button {
   height: 100%;
   top: 0;
   background: @background-color;
+}
+
+#colors {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 1.6em;
+  right: -.8em;
 }
 
 #controls {

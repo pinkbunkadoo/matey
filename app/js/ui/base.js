@@ -29,6 +29,13 @@ class Base extends EventEmitter {
     if (this.el) this.el.classList.remove(className);
   }
 
+  setStyle(options) {
+    for (let property in options) {
+      // this.el.style[property] = options[property];
+      this.el.style[property] = options[property];
+    }
+  }
+
   getDOMElement() {
     if (this.el) return this.el;
   }
