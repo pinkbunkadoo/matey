@@ -19,21 +19,35 @@ class Colors extends Panel {
     this.add(this.colorsContainer);
     this.add(new Spacer({ width: 1, height: 0.5 }));
 
+    this.paletteContainer = new Container();
+    this.paletteContainer.setStyle({
+      width: '100%',
+      flexDirection: 'column',
+      alignItems: 'center'
+    });
+
     this.palette = new ColorPalette();
     // this.palette.setStyle({ flexWrap: 'wrap', width: '4.5em' });
     this.palette.setStyle({
-      // display: 'grid',
+      // background: 'pink',
+      display: 'flex',
+      // alignItems: 'center',
+      // justifyContent: 'center',
+      flexWrap: 'wrap',
       // borderRadius: '4px',
       // backgroundClip: 'padding-box',
-      width: '100%',
-      gridTemplateColumns: 'repeat(1, 1fr)',
+      // width: '100%',
+      // gridTemplateColumns: 'repeat(1, 1fr)',
       // gridGap: '1px',
       // background: 'gray',
       // padding: '1px'
+      width: '5em'
 
     });
     this.palette.addEntries([ Color.White, Color.Black, Color.Red, Color.Green, Color.Blue ]);
-    this.add(this.palette);
+
+    this.paletteContainer.add(this.palette);
+    this.add(this.paletteContainer);
   }
 
   setColor(color) {

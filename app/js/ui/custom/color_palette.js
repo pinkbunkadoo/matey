@@ -18,11 +18,8 @@ class ColorPalette extends Container {
       let swatch = new Base();
       swatch.addClass('color-palette-item');
       swatch.setStyle({
-        // flexWrap: 'nowrap',
-        width: '100%',
-        height: '3em',
-        // width: '3em', minWidth: '3em', minHeight: '3em', height: '3em',
-        // border: '1px solid gray',
+        // width: '100%',
+        // height: '3em',
         background: color.toHexString()
       });
       this.add(swatch);
