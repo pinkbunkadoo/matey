@@ -500,17 +500,17 @@ app.setState = (state) => {
 }
 
 app.updateHistoryPanel = () => {
-  app.ui.history.innerHTML = '';
-  for (var i = 0; i < app.history.items.length; i++) {
-    let action = app.history.items[i];
-    let div = document.createElement('div');
-    div.innerHTML = action.type + ' ' + (action.undoState ? 'undo' : 'null');
-    if (app.history.marker === i + 1) {
-      div.innerHTML += '<br>x<br>';
-    } else {
-    }
-    app.ui.history.appendChild(div);
-  }
+  // app.ui.history.innerHTML = '';
+  // for (var i = 0; i < app.history.items.length; i++) {
+  //   let action = app.history.items[i];
+  //   let div = document.createElement('div');
+  //   div.innerHTML = action.type + ' ' + (action.undoState ? 'undo' : 'null');
+  //   if (app.history.marker === i + 1) {
+  //     div.innerHTML += '<br>x<br>';
+  //   } else {
+  //   }
+  //   app.ui.history.appendChild(div);
+  // }
 }
 
 app.undo = () => {
@@ -960,12 +960,12 @@ window.onload = () => {
 
   app.ui.settings = new Settings();
   app.ui.settings.getByName('settings').on('down', (component) => {
-    let tray = app.ui.settingsTray;
-    if (app.tray === tray) {
-      app.hideTray();
-    } else {
-      app.showTray(tray, 0, 0);
-    }
+    // let tray = app.ui.settingsTray;
+    // if (app.tray === tray) {
+    //   app.hideTray();
+    // } else {
+    //   app.showTray(tray, 0, 0);
+    // }
   });
   app.ui.settings.getByName('export').on('click', (component) => {
     app.export();
