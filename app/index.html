@@ -12,39 +12,38 @@
       <div id="content">
         <div id="paper" tabindex="3"></div>
         <div id="settings" class="panel">
-          <button id="settings-export"><svg class="icon"><use xlink:href="./images/icons.svg#export"></use></svg></button>
-          <button id="settings-gif">Export GIF</button>
+          <button id="settings-export"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#export"></use></svg></div></button>
           <div class="divider vertical"></div>
-          <button id="settings-settings"><svg class="icon"><use xlink:href="./images/icons.svg#settings"></use></svg></button>
+          <button id="settings-settings"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#settings"></use></svg></div></button>
         </div>
         <div id="tools" class="panel">
-          <button id="tools-pencil" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#pencil"></use></svg></button>
-          <button id="tools-line" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#line"></use></svg></button>
-          <button id="tools-polygon" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#polygon"></use></svg></button>
+          <button id="tools-pencil" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#pencil"></use></svg></div></button>
+          <button id="tools-line" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#line"></use></svg></div></button>
+          <button id="tools-polygon" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#polygon"></use></svg></div></button>
           <div class="divider horizontal"></div>
-          <button id="tools-pointer" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#pointer"></use></svg></button>
-          <button id="tools-hand" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#hand"></use></svg></button>
-          <button id="tools-zoom" class="tool"><svg class="icon"><use xlink:href="./images/icons.svg#zoom"></use></svg></button>
+          <button id="tools-pointer" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#pointer"></use></div></svg></button>
+          <button id="tools-hand" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#hand"></use></svg></div></button>
+          <button id="tools-zoom" class="tool"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#zoom"></use></svg></div></button>
         </div>
         <div id="colors" class="panel">
           <div id="colors-container">
-            <div id="colors-color" class="color-swatch"></div>
+            <div id="colors-stroke" class="color-swatch"></div>
             <div id="colors-fill" class="color-swatch"></div>
           </div>
         </div>
         <div id="controls" class="panel">
-          <button id="controls-first"><svg class="icon"><use xlink:href="./images/icons.svg#first"></use></svg></button>
-          <button id="controls-play"><svg class="icon"><use xlink:href="./images/icons.svg#play"></use></svg></button>
-          <button id="controls-last"><svg class="icon"><use xlink:href="./images/icons.svg#last"></use></svg></button>
+          <button id="controls-loop" title="Loop"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#loop"></use></svg></div></button>
+          <button id="controls-onion" title="Onion skinning"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#onion"></use></svg></div></button>
+          <div class="divider vertical"></div>
+          <button id="controls-first"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#first"></use></svg></div></button>
+          <button id="controls-play"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#play"></use></svg></div></button>
+          <button id="controls-last"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#last"></use></svg></div></button>
           <div class="divider vertical"></div>
           <input type="text" id="controls-frame" maxlength="3" tabindex="1"></input>
           <label id="controls-frame-label" for="controls-frame">&nldr; 1</label>
           <div class="divider vertical"></div>
           <input type="text" id="controls-fps" maxlength="2" tabindex="2"></input>
           <label id="controls-fps-label" for="controls-fps">fps</label>
-          <div class="divider vertical"></div>
-          <button id="controls-loop"><svg class="icon"><use xlink:href="./images/icons.svg#loop"></use></svg></button>
-          <button id="controls-onion"><svg class="icon"><use xlink:href="./images/icons.svg#onion"></use></svg></button>
         </div>
       </div>
       <div id="frame-list">
@@ -53,9 +52,11 @@
       <div id="frame-list-map"></div>
     </div>
     <div id="modal"></div>
+    <div id="overlay"></div>
+    <div id="history" style="overflow: hidden; z-index: 500; background: yellow; position: fixed; right: 0; bottom: 0; width: 256px; height: 256px">History</div>
   </body>
   <script>
-    require('./js/app');
+    require('./src/app');
   </script>
 
 </html>

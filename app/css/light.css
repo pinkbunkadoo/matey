@@ -44,12 +44,17 @@ input[type=text]:focus {
   height: 1em;
   min-height: 1em;
 }
+.svg-icon {
+  width: 100%;
+  height: 100%;
+  fill: inherit;
+}
 .icon {
   display: flex;
   align-items: center;
-  pointer-events: none;
   width: 100%;
   height: 100%;
+  fill: inherit;
   fill: #404040;
 }
 .icon.invert {
@@ -62,7 +67,7 @@ input[type=text]:focus {
   pointer-events: none;
 }
 .divider {
-  background: #b0b0b0;
+  background: #a0a0a0;
 }
 .divider.horizontal {
   width: 100%;
@@ -94,10 +99,10 @@ button {
   color: #404040;
 }
 button:hover {
-  border: 0.1em solid #b0b0b0;
+  border: 0.1em solid #a0a0a0;
 }
 button:active {
-  background: #979797;
+  background: #878787;
   border: .1em solid transparent;
 }
 button.tool {
@@ -107,49 +112,14 @@ button.tool {
   height: 3.2em;
 }
 button.pressed {
-  background: #b0b0b0;
+  background: #a0a0a0;
 }
 button.text {
-  font-size: 1em;
+  border: 0.1em solid #a0a0a0;
 }
-.button {
-  border-radius: .3em;
-  padding: .6em;
+.color-ramp {
+  border: 1px solid #a0a0a0;
   margin: .1em;
-  width: 2.4em;
-  height: 2.4em;
-  border: .1em solid transparent;
-  cursor: default;
-}
-.button:hover {
-  border: 0.1em solid #b0b0b0;
-}
-.button.pressed {
-  background: #b0b0b0;
-}
-.button:active {
-  background: #b0b0b0;
-}
-.button.tool {
-  width: 3.2em !important;
-  height: 3.2em !important;
-  padding-left: 1.2em;
-  padding-right: 1.2em;
-}
-.color-swatch {
-  align-items: center;
-  justify-content: center;
-  width: 2.8em;
-  height: 2.8em;
-  margin: .2em;
-  border-radius: .4em;
-  border: 0.2em solid #505050;
-  padding: 0.4em;
-  background-color: transparent;
-  box-sizing: border-box;
-}
-.color-swatch.null {
-  border-color: #505050;
 }
 .list {
   display: flex;
@@ -157,15 +127,46 @@ button.text {
   overflow: hidden;
   position: relative;
 }
+#overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 200;
+  visibility: hidden;
+}
+.color-wheel {
+  align-items: center;
+  justify-content: center;
+}
 .color-palette {
-  display: grid;
+  position: relative;
   overflow: hidden;
 }
+.color-palette-marker {
+  position: absolute;
+  border-radius: 1em;
+  top: 0;
+  left: 0;
+  border: 1px solid gray;
+  box-sizing: border-box;
+  background: white;
+  pointer-events: none;
+}
+.color-palette-null {
+  width: 3em;
+  height: 3em;
+  fill: #404040;
+  box-sizing: border-box;
+  padding: 1px;
+}
 .color-palette-item {
-  width: 2.5em;
-  height: 2.5em;
-  min-width: 2.5em;
-  min-height: 2.5em;
+  width: 3em;
+  height: 3em;
 }
 #main {
   display: flex;
@@ -179,25 +180,34 @@ button.text {
 }
 .tray {
   display: flex;
-  position: absolute;
   flex-direction: column;
+  position: absolute;
   align-items: center;
   z-index: 50;
+  overflow: hidden;
+  background: #cacaca;
+  box-shadow: 0.1em 0.2em 0.4em 0 rgba(0, 0, 0, 0.4);
+  border-radius: .6em;
 }
 .tray:focus {
   background: red;
 }
 .tray-container {
-  padding: 2em;
-  border-radius: .6em;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0.1em 0.2em 0.4em 0 rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+}
+.tray-title {
+  padding: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #a0a0a0;
 }
 .tray-tag {
   width: 1.6em;
   height: 1.6em;
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-  background: rgba(255, 255, 255, 0.9);
+  background: #cacaca;
 }
 .panel {
   border-radius: .4em;
@@ -276,12 +286,10 @@ button.text {
   padding-left: 2.0em;
   padding-right: 2.0em;
   transition: background-color 0.2s;
+  fill: #404040;
 }
 .frame-list-new:hover {
   background-color: #bdbdbd;
-}
-.frame-list-new .icon {
-  fill: #404040;
 }
 #frame-list-map {
   display: flex;
@@ -305,6 +313,18 @@ button.text {
   justify-content: center;
   padding-right: 1.6em;
   right: -0.8em;
+}
+.color-swatch {
+  width: 3.2em;
+  height: 3.2em;
+  padding: .7em;
+  fill: #404040;
+}
+.color-swatch-layer {
+  position: absolute;
+  width: 3.2em;
+  height: 3.2em;
+  pointer-events: none;
 }
 #controls {
   position: fixed;
