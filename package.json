@@ -12,6 +12,7 @@
     "gifencoder": "^1.1.0"
   },
   "devDependencies": {
+    "electron": "^1.7.10",
     "gulp": "^3.9.1",
     "gulp-less": "^3.4.0",
     "less": "^2.7.3"

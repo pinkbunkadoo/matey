@@ -10,3 +10,5 @@ gulp.task('css', function() {
 gulp.task('watch', function() {
   gulp.watch(['app/css/less/*.less'], ['css']);
 });
+
+gulp.task('default', ['css']);
