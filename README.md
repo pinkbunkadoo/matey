@@ -1,7 +1,7 @@
 ## What is this?
 
-Matey is a basic 2d animation tool intended for quickly roughing out animation
-ideas. No fancy pens or brushes. Just simple lines.
+Matey is a basic 2d animation tool intended for quickly roughing out ideas. No
+fancy pens or brushes. Just simple lines.
 
 Pen strokes are vector based, allowing for a reduced memory footprint and file
 size, as well as the ability to manipulate them after they have been put to
