@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>Matey</title>
     <link rel="stylesheet" type="text/css" href="./css/light.css" id="css">
-    <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,500,500i,700,700i" rel="stylesheet"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
@@ -12,7 +11,7 @@
       <div id="content">
         <div id="paper" tabindex="3"></div>
         <div id="settings" class="panel">
-          <button id="settings-export"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#export"></use></svg></div></button>
+          <button id="settings-export" title="Export GIF"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#export"></use></svg></div></button>
           <div class="divider vertical"></div>
           <button id="settings-settings"><div class="icon"><svg class="svg-icon"><use xlink:href="./images/icons.svg#settings"></use></svg></div></button>
         </div>
@@ -53,10 +52,10 @@
     </div>
     <div id="modal"></div>
     <div id="overlay"></div>
-    <div id="history" style="overflow: hidden; z-index: 500; background: yellow; position: fixed; right: 0; bottom: 0; width: 256px; height: 256px" hidden>History</div>
+    <div id="history">History</div>
   </body>
   <script>
-    require('./src/app');
+    require('./js/app');
   </script>
 
 </html>

@@ -1,4 +1,17 @@
-Please keep in mind that Matey is a work in progress, and some features are not yet functional.
+## What is this?
+
+Matey is a basic 2d animation tool intended for quickly roughing out animation
+ideas. No fancy pens or brushes. Just simple lines.
+
+Pen strokes are vector based, allowing for a reduced memory footprint and file
+size, as well as the ability to manipulate them after they have been put to
+paper.
+
+As it stands you are able export your animation as an animated GIF - more
+formats are coming.
+
+Please keep in mind that Matey is a work in progress and as such, some features
+are not yet functional.
 
 ## Installation
 
@@ -13,3 +26,8 @@ npm install
 ```sh
 electron .
 ```
+
+## Possible future features
+
+ - SVG support (loading and exporting)
+ - Export to video (MPEG-4 etc. via ffmpeg)

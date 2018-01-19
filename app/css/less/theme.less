@@ -23,7 +23,6 @@ label {
 input[type=text] {
   margin: 0;
   padding: 0;
-  /* top | right | bottom | left */
   margin: .1em .2em 0 .2em;
   padding: 0 .2em 0 .2em;
   outline: none;
@@ -145,46 +144,6 @@ button {
   }
 }
 
-.button {
-  // border-radius: .3em;
-  // padding: .6em;
-  // margin: .1em;
-  // width: 2.4em;
-  // height: 2.4em;
-  // border: .1em solid transparent;
-  // cursor: default;
-  //
-  // &:hover {
-  //   border: .1em solid @shade-color;
-  // }
-  //
-  // &.pressed {
-  //   background: @shade-color;
-  // }
-  //
-  // &:active {
-  //   background: @shade-color;
-  // }
-  //
-  // &.tool {
-  //   width: 3.2em !important;
-  //   height: 3.2em !important;
-  //   padding-left: 1.2em;
-  //   padding-right: 1.2em;
-  // }
-}
-
-// .color-swatch {
-//   align-items: center;
-//   justify-content: center;
-//   width: 3.6em;
-//   height: 3.6em;
-//   margin: .1em;
-//   border-radius: .4em;
-//   border: .2em solid @border-color;
-//   box-sizing: border-box;
-// }
-
 .color-ramp {
   border: 1px solid @shade-color;
   margin: .1em;
@@ -219,19 +178,10 @@ button {
 .color-palette {
   position: relative;
   overflow: hidden;
-  // padding: .2em;
-  // box-sizing:
-  // border: .2em solid @border-color;
-  // border-radius: .4em;
 }
 
 .color-palette-marker {
   position: absolute;
-  // opacity: 0.5;
-  // width: 1em;
-  // height: 1em;
-  // min-width: 1em;
-  // min-height: 1em;
   border-radius: 1em;
   top: 0;
   left: 0;
@@ -247,22 +197,11 @@ button {
   fill: @text-color;
   box-sizing: border-box;
   padding: 1px;
-  // border: 1px solid @border-color;
-  // width: 6em;
-  // height: 3em;
-  // min-width: 6em;
-  // min-height: 3em;
-  // padding: 1px;
-  // box-sizing: border-box;
-  // background-clip: content-box;
-  // background-image: repeating-linear-gradient(-45deg, transparent, transparent 0.5em, @shade-color 0.5em, @shade-color 1em);
 }
 
 .color-palette-item {
   width: 3em;
   height: 3em;
-  // min-width: 3em;
-  // min-height: 3em;
 }
 
 #main {
@@ -353,16 +292,12 @@ button {
 
 #frame-list {
   display: flex;
-  // position: fixed;
-  // top: 0;
-  // left: 0;
   box-sizing: border-box;
   overflow: hidden;
   bottom: 0;
   width: 100vw;
   z-index: 5;
   background: @background-color;
-  // border: 1px solid red;
 }
 
 #frame-list-container {
@@ -482,4 +417,15 @@ button {
   height: 100%;
   visibility: hidden;
   z-index: 99;
+}
+
+#history {
+  overflow: hidden;
+  z-index: 500;
+  background: yellow;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  width: 256px;
+  height: 256px;
 }
