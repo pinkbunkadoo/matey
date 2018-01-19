@@ -10,8 +10,10 @@ paper.
 As it stands you are able export your animation as an animated GIF - more
 formats are coming.
 
+## Important
+
 Please keep in mind that Matey is a work in progress and as such, some features
-are not yet functional.
+are not yet functional. There will also be bugs. Lots of them.
 
 ## Installation
 
