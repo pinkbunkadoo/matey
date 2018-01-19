@@ -893,8 +893,8 @@ function ready() {
 
   window.App = App;
 
-  App.name = 'Scribbler';
-  App.setDocumentName('untitled.scribble');
+  App.name = 'Matey';
+  App.setDocumentName('untitled.matey');
 
   App.width = window.innerWidth;
   App.height = window.innerHeight;
