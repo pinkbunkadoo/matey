@@ -1,7 +1,8 @@
 ## What is this?
 
-Matey is a basic 2d animation tool intended for quickly roughing out ideas. No
-fancy pens or brushes. Just simple lines.
+Matey is a bare-bones 2d animation tool intended for quickly roughing out your
+ideas with as few obstacles and bewildering choices as possible. No fancy pens
+or brushes. Just simple lines.
 
 Pen strokes are vector based, allowing for a reduced memory footprint and file
 size, as well as the ability to manipulate them after they have been put to
@@ -17,7 +18,7 @@ are not yet functional. There will also be bugs. Lots of them.
 
 ## Installation
 
-Electron (https://electronjs.org/) and Node.js are required.
+Electron and Node.js are required.
 
 ```sh
 npm install
@@ -29,7 +30,7 @@ npm install
 electron .
 ```
 
-## Possible future features
+## Planned features
 
  - SVG support (loading and exporting)
  - Export to video (MPEG-4 etc. via ffmpeg)
