@@ -233,12 +233,14 @@ App.marqueeSelect = (p1, p2) => {
 }
 
 App.deleteSelected = () => {
-  let undoState = App.frame.getState();
-  App.frame.strokes = App.frame.strokes.filter(element => !App.selection.items.includes(element));
-  App.selection.clear();
-  App.addPaperAction(PaperActionType.DELETE_STROKE, undoState);
-  App.updateFrameListThumbnail(App.position);
-  App.render();
+  if (!App.selection.isEmpty()) {
+    let undoState = App.frame.getState();
+    App.frame.strokes = App.frame.strokes.filter(element => !App.selection.items.includes(element));
+    App.selection.clear();
+    App.addPaperAction(PaperActionType.DELETE_STROKE, undoState);
+    App.updateFrameListThumbnail(App.position);
+    App.render();
+  }
 }
 
 App.setFrameDirty = () => {
@@ -728,6 +730,9 @@ function onKeyDown(event) {
       else if (event.key == 'p' && !event.repeat) {
         App.setTool('polygon');
       }
+      else if (event.key == 'l' && !event.repeat) {
+        App.setTool('line');
+      }
       else if (event.key == 'q' && !event.repeat) {
         App.setTool('pointer');
       }
@@ -759,10 +764,8 @@ function onKeyDown(event) {
       else if (event.key === ' ' && !event.repeat) {
         panOn();
       }
-      else if (event.key === 'Backspace' && !event.repeat) {
-        if (event.ctrlKey) {
-          App.removeFrame();
-        }
+      else if (event.key === 'Backspace' && event.ctrlKey && !event.repeat) {
+        App.removeFrame();
       }
       else if (event.key === 't' && !event.repeat) {
         App.toggleTheme();
