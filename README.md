@@ -30,6 +30,11 @@ npm install
 electron .
 ```
 
+## Usage instructions
+
+
+
+
 ## Planned features
 
  - SVG support (loading and exporting)
