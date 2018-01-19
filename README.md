@@ -32,7 +32,21 @@ electron .
 
 ## Usage instructions
 
+### Shortcut keys
 
+| shortcut | description |
+| ------------- |:-------------:|
+| N      | create a new frame |
+| B      | Pen tool |
+| L      | Line tool |
+| P      | Polygon tool |
+| Q      | Pointer tool |
+| H      | Hand tool |
+| Z      | Zoom tool |
+| Space + Drag | Pan the canvas |
+| Ctrl + Backspace | delete current frame |
+| Ctrl + Z | Undo last action |
+| Ctrl + Shift + Z | Redo last action |
 
 
 ## Planned features
