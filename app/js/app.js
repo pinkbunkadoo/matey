@@ -736,6 +736,9 @@ function onKeyDown(event) {
       else if (event.key == 'q' && !event.repeat) {
         App.setTool('pointer');
       }
+      else if (event.key == 'u' && !event.repeat) {
+        App.ui.history.hidden = !App.ui.history.hidden;
+      }
       else if (event.key == 'Z' && !event.repeat) {
         if (event.ctrlKey) App.redo();
       }
@@ -1038,7 +1041,7 @@ function ready() {
   });
 
   App.ui.history = document.getElementById('history');
-  App.ui.history.style.visibility = 'visible';
+  // App.ui.history.style.visibility = 'visible';
 
   App.setStrokeColor(App.colors.stroke);
   App.setFillColor(null);
