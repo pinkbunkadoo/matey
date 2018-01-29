@@ -45,7 +45,7 @@ class Base extends EventEmitter {
   }
 
   isVisible() {
-    if (this.el) return (this.el.style.visibility === 'visible');
+    if (this.el) return (this.el.style.visibility == 'visible' || this.el.style.visibility == '');
   }
 
   show() {

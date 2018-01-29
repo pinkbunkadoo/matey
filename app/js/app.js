@@ -4,10 +4,12 @@ const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
 const DisplayList = require('./display_list');
+const DisplayItem = require('./display_item');
 const Selection = require('./selection');
 const Sequence = require('./sequence');
 const Tool = require('./tools/tool');
 const History = require('./history');
+const Frame = require('./frame');
 
 const SequenceAction = require('./actions/sequence_action');
 const SequenceActionType = require('./actions/sequence_action_type');
@@ -18,30 +20,35 @@ const Base = require('./ui/base');
 const Container = require('./ui/container');
 const Paper = require('./ui/custom/paper');
 const Tools = require('./ui/custom/tools');
+const ToolsTray = require('./ui/custom/tools_tray');
 const Colors = require('./ui/custom/colors');
+const ColorsTray = require('./ui/custom/colors_tray');
 const Controls = require('./ui/custom/controls');
+const ControlsTray = require('./ui/custom/controls_tray');
 const Settings = require('./ui/custom/settings');
 const FrameList = require('./ui/custom/frame_list');
+const FrameListTray = require('./ui/custom/frame_list_tray');
 const FrameListMap = require('./ui/custom/frame_list_map');
-const SettingsTray = require('./ui/trays/settings_tray');
+const SettingsTray = require('./ui/custom/settings_tray');
 const ColorWheel = require('./ui/custom/color_wheel');
+const PlaybackOptionsTray = require('./ui/custom/playback_options_tray');
+const Overlay = require('./ui/overlay');
+const Menu = require('./ui/menu');
 
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const GIFEncoder = require('gifencoder');
 
 let App = {
-  // WIDTH: 640,
-  // HEIGHT: 400,
-  //
   colors: {
     stroke: new Color(85, 85, 85),
-    selection: Color.fromHexString('#2db9f0'),
+    // selection: new Color(255, 64, 10),
+    // selection: new Color(64, 64, 64),
+    selection: new Color(0, 64, 255),
     onion: new Color(160, 240, 160),
     paper: new Color(255, 255, 255),
     workspace: new Color(128, 128, 128)
   },
-
   cursors: {
     pointer: 'url(./images/cursor_pointer.png) 1 1, auto',
     pencil: 'url(./images/cursor_pencil.png) 1 1, auto',
@@ -52,7 +59,6 @@ let App = {
     zoomin: 'url(./images/cursor_zoomin.png) 7 7, auto',
     zoomout: 'url(./images/cursor_zoomout.png) 7 7, auto'
   },
-
   lineWidth: 1.2,
   zoomLevels: [ 0.25, 0.5, 0.75, 1.0, 1.5, 2, 3, 5 ]
 };
@@ -66,8 +72,9 @@ App.setDocumentName = (name) => {
   document.title = App.name + ' — ' + App.documentName;
 }
 
-App.render = () => {
+App.render = (frameIndex) => {
   App.paper.displayList.clear();
+
   if (App.onion) {
     if (App.position > 0) {
       let frame = App.sequence.frames[App.position - 1];
@@ -75,17 +82,27 @@ App.render = () => {
         let stroke = frame.strokes[i];
         let thickness = stroke.selected ? App.lineWidth*2 : App.lineWidth;
         let color = App.colors.onion; //stroke.selected ? App.COLOR_SELECTION : stroke.color;
-        App.paper.displayList.add({ points: stroke.points, color: color, fill: null, thickness: thickness });
+        let item = new DisplayItem({ points: stroke.points, color: color, fill: null, thickness: thickness });
+        App.paper.displayList.add(item);
       }
     }
   }
 
   for (let i = 0; i < App.frame.strokes.length; i++) {
     let stroke = App.frame.strokes[i];
-    let thickness = stroke.selected ? App.lineWidth*2 : App.lineWidth;
-    let color = stroke.selected ? App.colors.selection : stroke.color;
-    App.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+    let item = new DisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth })
+    App.paper.displayList.add(item);
   }
+
+  for (let i = 0; i < App.frame.strokes.length; i++) {
+    let stroke = App.frame.strokes[i];
+    if (stroke.selected) {
+      let item = new DisplayItem({ points: stroke.points, color: App.colors.selection,
+        fill: stroke.fill, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'difference' });
+      App.paper.displayList.add(item);
+    }
+  }
+
   App.paper.render();
 }
 
@@ -106,7 +123,7 @@ App.setMode = (desired) => {
 
 App.setTool = (name) => {
   App.paper.setTool(name);
-  App.ui.tools.setTool(name);
+  App.ui.toolsTray.setTool(name);
 }
 
 App.setCursor = (name) => {
@@ -115,12 +132,12 @@ App.setCursor = (name) => {
 
 App.setStrokeColor = (color) => {
   App.strokeColor = color ? color.copy() : null;
-  App.ui.colors.setStrokeColor(App.strokeColor);
+  App.ui.colorsTray.setStrokeColor(App.strokeColor);
 }
 
 App.setFillColor = (color) => {
   App.fillColor = color ? color.copy() : null;
-  App.ui.colors.setFillColor(App.fillColor);
+  App.ui.colorsTray.setFillColor(App.fillColor);
 }
 
 App.getStrokeColor = () => {
@@ -167,6 +184,15 @@ App.strokeFromPoints = (sourcePoints, convertToWorld) => {
 
 App.select = (stroke) => {
   App.selection.add(stroke);
+}
+
+App.selectAll = () => {
+  if (App.selection.itemCount == App.frame.strokes.length) {
+    App.selection.clear();
+  } else {
+    App.selection.add(App.frame.strokes);
+  }
+  App.render();
 }
 
 App.deselect = (stroke) => {
@@ -238,7 +264,7 @@ App.deleteSelected = () => {
     App.frame.strokes = App.frame.strokes.filter(element => !App.selection.items.includes(element));
     App.selection.clear();
     App.addPaperAction(PaperActionType.DELETE_STROKE, undoState);
-    App.updateFrameListThumbnail(App.position);
+    updateFrameListThumbnail(App.position);
     App.render();
   }
 }
@@ -248,7 +274,7 @@ App.setFrameDirty = () => {
   if (!App.thumbnails[position]) {
     App.thumbnails[position] = setTimeout(() => {
       App.thumbnails[position] = null;
-      App.updateFrameListThumbnail(position);
+      updateFrameListThumbnail(position);
     }, 100);
   }
 
@@ -301,21 +327,21 @@ App.moveSelected = (dx, dy) => {
 }
 
 App.updateFrameLabel = () => {
-  App.ui.controls.setFrame(App.position + 1, App.sequence.size());
+  // App.ui.controls.setFrame(App.position + 1, App.sequence.size());
   reposition();
 }
 
-App.updateFrameListMap = () => {
-  let width = App.ui.frameList.el.offsetWidth;
-  let total = App.ui.frameList.container.el.scrollWidth;
-  let size = total > width ? ((width / total) * width) >> 0 : width;
-  let offset = Math.ceil((App.ui.frameList.el.scrollLeft / App.ui.frameList.el.scrollWidth) * width);
-  App.ui.frameListMap.render({ cmd: 'update', size: size, offset: offset });
+function updateFrameListMap() {
+  // let width = App.ui.frameList.el.offsetWidth;
+  // let total = App.ui.frameList.container.el.scrollWidth;
+  // let size = total > width ? ((width / total) * width) >> 0 : width;
+  // let offset = Math.ceil((App.ui.frameList.el.scrollLeft / App.ui.frameList.el.scrollWidth) * width);
+  // App.ui.frameListMap.render({ cmd: 'update', size: size, offset: offset });
 }
 
-App.updateFrameListThumbnail = (index) => {
-  let width = 128 * App.unit;
-  let height = 80 * App.unit;
+function updateFrameListThumbnail(index) {
+  let width = App.thumbnailWidth;
+  let height = App.thumbnailHeight;
   let frame = App.sequence.getFrame(index);
   let scale = (width) / App.paperWidth;
   let canvas = document.createElement('canvas');
@@ -338,6 +364,7 @@ App.updateFrameListThumbnail = (index) => {
 }
 
 App.go = (index) => {
+  if (index > App.sequence.size - 1) index = App.sequence.size - 1;
   let frame = App.sequence.getFrame(index);
   if (frame) {
     App.position = index;
@@ -347,9 +374,9 @@ App.go = (index) => {
 
     App.ui.frameList.render({ cmd: 'select', index: App.position });
 
-    App.updateFrameListMap();
+    updateFrameListMap();
     App.updateFrameLabel();
-    App.updateHistoryPanel();
+    updateHistoryPanel();
 
     App.render();
   }
@@ -360,7 +387,7 @@ App.first = () => {
 }
 
 App.last = () => {
-  App.go(App.sequence.size() - 1);
+  App.go(App.sequence.size - 1);
 }
 
 App.next = () => {
@@ -401,41 +428,63 @@ App.previous = () => {
 //   }
 // }
 
-App.hideOverlay = () => {
+function hideOverlay() {
   for (var i = 0; i < App.ui.overlay.children.length; i++) {
     App.ui.overlay.remove(App.ui.overlay.children[i]);
   }
   App.ui.overlay.hide();
 }
 
-App.showColorWheel = (callback) => {
-  App.ui.overlay.show();
+function showColorWheel(el, callback) {
   let colorWheel = new ColorWheel({ callback: callback });
-  App.ui.overlay.add(colorWheel);
+  let bounds = el.getBoundingClientRect();
+  let x = (bounds.left + bounds.width / 2);
+  let y = (bounds.top + bounds.height + 16 * App.unit);
+  colorWheel.show(x, y);
 }
 
-App.hideColorWheel = () => {
-  if (App.ui.colorWheel) App.ui.colorWheel.hide();
+function hideColorWheel(colorWheel) {
+  colorWheel.hide();
+  // if (App.ui.colorWheel) App.ui.colorWheel.hide();
+  // App.ui.overlay.removeAll();
 }
 
-App.newFrame = () => {
-  App.sequence.add();
-  App.ui.frameList.render({ cmd: 'frameAdd' });
-  App.go(App.sequence.size() - 1);
+function showMenu(menu, x, y) {
+  menu.show(x, y);
+}
 
-  // App.addPaperAction(PaperActionType.INITIAL);
+function hideMenu(menu) {
+  menu.hide();
+}
 
-  App.updateFrameListMap();
-  App.updateFrameListThumbnail(App.position);
+function toggleHistoryPanel() {
+  App.ui.history.isVisible() ? App.ui.history.hide() : App.ui.history.show();
+}
+
+
+function newFrame() {
+  insertFrame(new Frame(), App.position + 1);
+}
+
+function insertFrame(frame, position) {
+  App.sequence.insert(frame, position);
+  App.ui.frameList.render({ cmd: 'frameInsert', index: position });
+  App.go(position);
+  updateFrameListMap();
+  updateFrameListThumbnail(App.position);
   App.updateFrameLabel();
 }
 
+App.duplicateFrame = () => {
+  insertFrame(App.frame.copy(), App.position + 1);
+}
+
 App.removeFrame = () => {
-  if (App.sequence.size() > 1) {
+  if (App.sequence.size > 1) {
     App.sequence.remove(App.position);
     App.ui.frameList.render({ cmd: 'frameRemove', index: App.position });
-    if (App.position >= App.sequence.size()) {
-      App.go(App.sequence.size() - 1);
+    if (App.position >= App.sequence.size) {
+      App.go(App.sequence.size - 1);
     } else {
       App.go(App.position);
     }
@@ -448,8 +497,68 @@ App.toggleTheme = () => {
   App.render();
 }
 
-App.export = () => {
-  ipcRenderer.send('export');
+App.renderAnimationFrame = () => {
+  App.paper.displayList.clear();
+  let frame = App.sequence.getFrame(App.animationFrameIndex);
+  for (let i = 0; i < frame.strokes.length; i++) {
+    let stroke = frame.strokes[i];
+    let thickness = stroke.selected ? App.lineWidth * 2 : App.lineWidth;
+    let color = stroke.selected ? App.colors.selection : stroke.color;
+    App.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+  }
+  App.paper.render();
+}
+
+App.step = () => {
+  App.animationTime = performance.now();
+  App.animationDeltaTime = App.animationTime - App.previousAnimationTime;
+  App.animationFrameTime += App.animationDeltaTime;
+
+  if (App.animationFrameTime > 1000 / App.fps) {
+    App.animationFrameIndex++;
+    if (App.animationFrameIndex < App.sequence.size) {
+      App.renderAnimationFrame();
+    }
+    App.animationFrameTime = App.animationFrameTime - (1000 / App.fps);
+  }
+
+  if (App.animationFrameIndex == App.sequence.size) {
+    if (App.loop) {
+      App.animationFrameIndex = 0;
+      App.renderAnimationFrame();
+    } else {
+      App.stop();
+      return;
+    }
+  }
+  App.animationFrameId = requestAnimationFrame(App.step);
+  App.previousAnimationTime = App.animationTime;
+}
+
+App.play = () => {
+  App.playing = true;
+  App.animationTime = performance.now();
+  App.previousAnimationTime = App.animationTime;
+  App.animationFrameTime = 0;
+  App.animationFrameIndex = App.position;
+  App.ui.frameList.render({ cmd: 'select' });
+  App.renderAnimationFrame();
+  App.animationFrameId = requestAnimationFrame(App.step);
+}
+
+App.stop = () => {
+  App.playing = false;
+  window.cancelAnimationFrame(App.animationFrameId);
+  App.ui.controlsTray.setPlaying(false);
+  App.go(App.animationFrameIndex);
+}
+
+App.exportGif = () => {
+  ipcRenderer.send('export', App.documentName);
+}
+
+App.save = () => {
+  ipcRenderer.send('save', App.documentName);
 }
 
 App.setState = (state) => {
@@ -463,8 +572,8 @@ App.setState = (state) => {
   }
 }
 
-App.updateHistoryPanel = () => {
-  App.ui.history.innerHTML = '';
+function updateHistoryPanel() {
+  App.ui.history.el.innerHTML = '';
   for (var i = 0; i < App.history.items.length; i++) {
     let action = App.history.items[i];
     let div = document.createElement('div');
@@ -473,30 +582,26 @@ App.updateHistoryPanel = () => {
       div.innerHTML += '<br>x<br>';
     } else {
     }
-    App.ui.history.appendChild(div);
+    App.ui.history.el.appendChild(div);
   }
 }
 
 App.undo = () => {
-  console.log('undo');
   if (!App.history.isEmpty() && !App.history.atBeginning()) {
     let action = App.history.getAction();
-    // if (action.frameIndex !== App.position) App.go(action.frameIndex);
     if (action.undoState) App.setState(action.undoState);
     App.history.back();
   }
-  App.updateHistoryPanel();
+  updateHistoryPanel();
 }
 
 App.redo = () => {
-  console.log('redo');
   if (!App.history.isEmpty() && !App.history.atEnd()) {
     App.history.forward();
     let action = App.history.getAction();
-    // if (action.frameIndex !== App.position) App.go(action.frameIndex);
     if (action.state) App.setState(action.state);
   }
-  App.updateHistoryPanel();
+  updateHistoryPanel();
 }
 
 App.addPaperAction = (type, undoState) => {
@@ -507,8 +612,7 @@ App.addPaperAction = (type, undoState) => {
     frameIndex: App.position
   })
   App.history.add(action);
-  App.updateHistoryPanel();
-  // console.log(App.history.marker, App.history.items);
+  updateHistoryPanel();
 }
 
 App.createStroke = (points, color, fill) => {
@@ -518,7 +622,7 @@ App.createStroke = (points, color, fill) => {
   stroke.setFill(fill);
   App.frame.addStroke(stroke);
   App.addPaperAction(PaperActionType.NEW_STROKE, undoState);
-  App.updateFrameListThumbnail(App.position);
+  updateFrameListThumbnail(App.position);
   App.render();
 }
 
@@ -529,22 +633,6 @@ App.setStrokeFill = (fill) => {
       element.fill = fill;
     }
   }
-}
-
-function reposition() {
-  App.width = window.innerWidth;
-  App.height = window.innerHeight - App.ui.frameList.el.offsetHeight - App.ui.frameListMap.el.offsetHeight;
-
-  App.paper.resize(App.width, App.height);
-
-  App.ui.settings.el.style.left = (((App.width / 2) - (App.ui.settings.el.offsetWidth/2)) >> 0) + 'px';
-  App.ui.tools.el.style.top = (((App.height / 2) - (App.ui.tools.el.offsetHeight/2)) >> 0) + 'px';
-  App.ui.colors.el.style.top = (((App.height / 2) - (App.ui.colors.el.offsetHeight/2)) >> 0) + 'px';
-  App.ui.controls.el.style.left = (((App.width / 2) - (App.ui.controls.el.offsetWidth/2)) >> 0) + 'px';
-  App.ui.controls.el.style.bottom = (App.ui.frameList.el.offsetHeight + App.ui.frameListMap.el.offsetHeight - 8) + 'px';
-
-  App.updateFrameListMap();
-  App.render();
 }
 
 App.setModal = function(value) {
@@ -577,7 +665,57 @@ App.release = (captor) => {
   }
 }
 
-function saveAnimatedGIF(filename) {
+App.new = () => {
+  App.fps = 6;
+
+  App.sequence = new Sequence();
+  App.selection = new Selection();
+
+  App.position = -1;
+  App.thumbnails = [];
+  App.fileSaved = false;
+
+  App.setDocumentName('untitled');
+
+  App.ui.frameList.render({ cmd: 'removeAll' });
+
+  App.setStrokeColor(App.colors.stroke);
+  App.setFillColor(null);
+
+  App.setTool('pencil');
+  newFrame();
+}
+
+App.saveNow = (filename) => {
+  let data = { frames: [] };
+
+  for (var i = 0; i < App.sequence.frames.length; i++) {
+    let frame = App.sequence.frames[i];
+    data.frames[i] = { strokes: [] };
+
+    for (var j = 0; j < frame.strokes.length; j++) {
+      let stroke = frame.strokes[j];
+      data.frames[i].strokes[j] = { points: '' };
+
+      let pointList = [];
+
+      for (var k = 0; k < stroke.points.length; k++) {
+        let point = stroke.points[k];
+        // data.frames[i].strokes[j].points += (point.x.toFixed(3)) + ' ' + (point.y.toFixed(3)) + ' ';
+        // data.frames[i].strokes[j].points += point.x + ' ' + point.y + ' ';
+        let x = point.x - (k > 0 ? stroke.points[k-1].x : 0);
+        let y = point.y - (k > 0 ? stroke.points[k-1].y : 0);
+        pointList.push(x.toFixed(3), y.toFixed(3));
+      }
+      data.frames[i].strokes[j].points = pointList.toString(); //data.frames[i].strokes[j].points.trim();
+    }
+  }
+
+  let output = JSON.stringify(data, null, 2);
+  fs.writeFileSync(filename, output);
+}
+
+App.exportGifNow = (filename) => {
   let canvas = document.createElement('canvas');
   canvas.width = App.paper.width;
   canvas.height = App.paper.height;
@@ -589,7 +727,7 @@ function saveAnimatedGIF(filename) {
   encoder.createReadStream().pipe(fs.createWriteStream(filename));
   encoder.start();
   encoder.setRepeat(0);
-  encoder.setDelay(1000/12);
+  encoder.setDelay(1000/App.fps);
 
   let displayList = new DisplayList();
 
@@ -613,20 +751,37 @@ function saveAnimatedGIF(filename) {
 }
 
 function fadeComponent(component) {
-  if (component.fadeTimerId != null && component.fadeTimerId != undefined) {
-    clearTimeout(component.fadeTimerId);
+  component.fadeCooldown = 2;
+
+  if (!component.fadeTimerId) {
+    component.el.style.transition = 'opacity .5s';
+    component.el.style.pointerEvents = 'none';
+    component.el.style.opacity = 0;
+
+    component.fadeTimerId = setInterval(() => {
+      if (component.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY) && App.captureTarget instanceof Tool) {
+      } else {
+        component.fadeCooldown--;
+        if (component.fadeCooldown == 0) {
+          clearInterval(component.fadeTimerId);
+          component.fadeTimerId = null;
+          component.el.style.opacity = 1;
+          component.el.style.pointerEvents = 'auto';
+        }
+      }
+    }, 500);
   }
-  component.fadeTimerId = setTimeout(() => {
-    if (component.getBounds().containsPoint(App.cursorX, App.cursorY, 8) && App.captureTarget instanceof Tool) {
-      fadeComponent(component);
-    } else {
-      component.el.style.opacity = 1;
-      component.el.style.pointerEvents = 'auto';
-      component.fadeTimerId = null;
-    }
-  }, 100);
-  component.el.style.pointerEvents = 'none';
-  component.el.style.opacity = 0;
+}
+
+function reposition() {
+  App.width = window.innerWidth;
+  App.height = window.innerHeight;
+
+  App.paper.resize(App.width, App.height);
+  App.ui.controlsTray.el.style.left = (((App.width / 2) - (App.ui.controlsTray.el.offsetWidth / 2)) >> 0) + 'px';
+
+  // updateFrameListMap();
+  App.render();
 }
 
 function defaultEventHandler(event) {
@@ -687,12 +842,18 @@ function onMouseMove(event) {
     App.paper.panCameraBy(-event.movementX / App.paper.scale, -event.movementY / App.paper.scale);
   } else {
     if (App.captureTarget instanceof Tool) {
-      if (App.ui.settings.getBounds().containsPoint(App.cursorX, App.cursorY, 8)) {
-        fadeComponent(App.ui.settings);
-      } else if (App.ui.controls.getBounds().containsPoint(App.cursorX, App.cursorY, 8)) {
-        fadeComponent(App.ui.controls);
-      } else if (App.ui.tools.getBounds().containsPoint(App.cursorX, App.cursorY, 8)) {
-        fadeComponent(App.ui.tools);
+      if (App.ui.settingsTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.settingsTray);
+      } else if (App.ui.controlsTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.controlsTray);
+      } else if (App.ui.toolsTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.toolsTray);
+      } else if (App.ui.frameListTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.frameListTray);
+      } else if (App.ui.colorsTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.colorsTray);
+      } else if (App.ui.playbackOptionsTray.getBounds().grow(8).containsPoint(App.cursorX, App.cursorY)) {
+        fadeComponent(App.ui.playbackOptionsTray);
       }
     }
     mouseEventHandler(event);
@@ -715,8 +876,6 @@ function onWheel(event) {
 function onKeyDown(event) {
   App.keys[event.key] = true;
 
-  // !event.repeat ? console.log(event.key) : 0;
-
   if (this.mode === 'pan') {
 
   } else {
@@ -724,7 +883,10 @@ function onKeyDown(event) {
       App.captureTarget.handleEvent(event);
 
     } else {
-      if (event.key == 'b' && !event.repeat) {
+      if (event.key == 's' && event.ctrlKey && !event.repeat) {
+        App.save();
+      }
+      else if (event.key == 'b' && !event.repeat) {
         App.setTool('pencil');
       }
       else if (event.key == 'p' && !event.repeat) {
@@ -737,7 +899,7 @@ function onKeyDown(event) {
         App.setTool('pointer');
       }
       else if (event.key == 'u' && !event.repeat) {
-        App.ui.history.hidden = !App.ui.history.hidden;
+        toggleHistoryPanel();
       }
       else if (event.key == 'Z' && !event.repeat) {
         if (event.ctrlKey) App.redo();
@@ -747,6 +909,9 @@ function onKeyDown(event) {
           App.undo();
         else
           App.setTool('zoom');
+      }
+      else if (event.key == 'a' && !event.repeat) {
+        App.selectAll();
       }
       else if (event.key === 'd' && !event.repeat) {
         App.settings['dots'] = !App.settings['dots'];
@@ -762,13 +927,19 @@ function onKeyDown(event) {
         App.go(App.position - 1);
       }
       else if (event.key === 'n' && !event.repeat) {
-        App.newFrame();
+        newFrame();
+      }
+      else if (event.key === 'N' && !event.repeat) {
+        App.duplicateFrame();
       }
       else if (event.key === ' ' && !event.repeat) {
         panOn();
       }
       else if (event.key === 'Backspace' && event.ctrlKey && !event.repeat) {
         App.removeFrame();
+      }
+      else if ((event.key === 'Delete' || event.key === 'Backspace') && !event.repeat) {
+        App.deleteSelected();
       }
       else if (event.key === 't' && !event.repeat) {
         App.toggleTheme();
@@ -810,9 +981,8 @@ function onResize() {
     window.resizeTimeoutId = setTimeout(function() {
       reposition();
       window.resizeTimeoutId = 0;
-    }, 66);
+    }, 1000/30);
   }
-  // if (App.tray) App.hideTray();
 }
 
 function onFocus(event) {
@@ -824,6 +994,7 @@ function onFocus(event) {
 function onBlur(event) {
   if (App.captureTarget) App.release(App.captureTarget);
   App.paper.handleEvent(event);
+  hideOverlay();
 }
 
 function onVisibilityChange(event) {
@@ -863,11 +1034,19 @@ function initEventListeners() {
   document.addEventListener('visibilitychange', onVisibilityChange);
 }
 
+ipcRenderer.on('new', (event) => {
+  App.new();
+});
+
+ipcRenderer.on('save', (event, filename) => {
+  App.saveNow(filename);
+});
+
 ipcRenderer.on('export', (event, filename) => {
   let extension = filename.substring(filename.lastIndexOf('.') + 1);
 
   if (extension === 'gif') {
-    saveAnimatedGIF(filename);
+    App.exportGifNow(filename);
 
   } else {
     // let data = '1234567890';
@@ -894,14 +1073,15 @@ function ready() {
   window.App = App;
 
   App.name = 'Matey';
-  App.setDocumentName('untitled.matey');
 
   App.width = window.innerWidth;
   App.height = window.innerHeight;
 
   App.unit = 1;
-  App.paperWidth = 640;
-  App.paperHeight = 400;
+  App.paperWidth = 640 * App.unit;
+  App.paperHeight = 400 * App.unit;
+  App.thumbnailWidth = 112 * App.unit;
+  App.thumbnailHeight = 70 * App.unit;
   App.settings = [];
   App.ui = [],
   App.mouseX = 0;
@@ -918,39 +1098,31 @@ function ready() {
   App.mode = null;
   App.tool = null;
   App.tools = [];
-  App.position = 0;
-  App.frame = null;
-  App.fps = 12;
+  App.position = -1;
+  App.fps = 6;
   App.captureTarget = null;
   App.modal = false;
-  App.theme = 'light';
+  App.theme = 'default';
   App.thumbnails = [];
 
-  App.history = new History();
-  App.sequence = new Sequence();
-  App.selection = new Selection();
+  App.menus = [];
 
   document.body.style.fontSize = (10 * App.unit) + 'px';
 
   App.ui.main = new Container({ el: document.getElementById('main') });
   App.ui.content = new Container({ el: document.getElementById('content') });
   App.ui.modal = document.getElementById('modal');
-  App.ui.overlay = new Container({ el: document.getElementById('overlay') });
+  App.ui.overlay = new Overlay();
 
   App.ui.overlay.el.onmousedown = (event) => {
-    // App.ui.overlay.hide();
-    // if (event.target === App.ui.overlay.el) {
-      // App.ui.overlay.hide();
-      App.hideOverlay();
-    // }
-    // console.log(event.target);
+    if (event.target == App.ui.overlay.el)
+      hideOverlay();
   }
 
-
-  App.ui.tools = new Tools();
-  App.ui.tools.on('tool-change', (params) => {
-    App.setTool(params.tool);
-  });
+  // App.ui.tools = new Tools();
+  // App.ui.tools.on('tool-change', (params) => {
+  //   App.setTool(params.tool);
+  // });
 
   App.paper = new Paper({ el: document.getElementById('paper'), width: App.paperWidth, height: App.paperHeight });
   App.paper.on('zoom', (params) => {
@@ -962,94 +1134,143 @@ function ready() {
     App.setMode(params.mode);
   });
 
-  App.ui.colors = new Colors();
-  // App.ui.colors.on('color-change', (params) => {
-    // App.setStrokeColor(params.color);
+  // App.ui.colors = new Colors();
+  // App.ui.colors.getByName('stroke').on('down', (component) => {
+  //   App.showColorWheel((color) => {
+  //     App.setStrokeColor(color);
+  //   });
   // });
-  // App.ui.colors.on('fill-change', (params) => {
-    // App.setFillColor(params.color);
+  // App.ui.colors.getByName('fill').on('down', (component) => {
+  //   App.showColorWheel((color) => {
+  //     App.setFillColor(color);
+  //   });
   // });
 
-  App.ui.colors.getByName('stroke').on('down', (component) => {
-    App.showColorWheel((color) => {
-      App.setStrokeColor(color);
-    });
-  });
-  App.ui.colors.getByName('fill').on('down', (component) => {
-    App.showColorWheel((color) => {
-      App.setFillColor(color);
-    });
-  });
-
-  // App.ui.colors.setColor(App.getStrokeColor());
-  // App.ui.colors.setFill(App.getFillColor());
-
-  App.ui.frameList = new FrameList();
-  App.ui.frameList.setThumbnailSize(128 * App.unit, 80 * App.unit);
+  App.ui.frameList = new FrameList({ el: document.getElementById('frame-list') });
+  App.ui.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);
   App.ui.frameList.on('select', (params) => {
     App.go(params.index);
   });
   App.ui.frameList.on('new-frame', (params) => {
-    App.newFrame();
+    newFrame();
   });
   App.ui.frameList.on('scroll', () => {
-    App.updateFrameListMap();
+    updateFrameListMap();
   });
 
-  App.ui.frameListMap = new FrameListMap({ el: document.getElementById('frame-list-map'), name: 'frame-list-map' });
+  // App.ui.frameListMap = new FrameListMap({ el: document.getElementById('frame-list-map'), name: 'frame-list-map' });
 
-  App.ui.controls = new Controls();
-  App.ui.controls.on('first', (state) => {
-    App.first();
-  });
-  App.ui.controls.on('last', (state) => {
-    App.last();
-  });
-  App.ui.controls.on('onion', (state) => {
-    App.onion = state;
-    App.render();
-  });
-  App.ui.controls.on('frame-change', (value) => {
-    if (value > 0 && value <= App.sequence.size()) {
-      App.go(value - 1);
-    } else {
-      App.ui.controls.setFrame(App.position + 1, App.sequence.size());
-    }
-  });
+  // App.ui.controls = new Controls();
+  // App.ui.controls.on('first', (state) => {
+  //   App.first();
+  // });
+  // App.ui.controls.on('last', (state) => {
+  //   App.last();
+  // });
+  // App.ui.controls.on('onion', (state) => {
+  //   App.onion = state;
+  //   App.render();
+  // });
+  // App.ui.controls.on('frame-change', (value) => {
+  //   if (value > 0 && value <= App.sequence.size()) {
+  //     App.go(value - 1);
+  //   } else {
+  //     App.ui.controls.setFrame(App.position + 1, App.sequence.size());
+  //   }
+  // });
+  //
+  // App.ui.controls.setFps(App.fps);
 
-  App.ui.controls.setFps(App.fps);
+  // App.ui.settings = new Settings();
+  // App.ui.settings.getByName('settings').on('down', (component) => {
+  // });
+  // App.ui.settings.getByName('export').on('click', (component) => {
+  //   App.export();
+  // });
+  //
+  // App.ui.settingsTray = new SettingsTray();
+  // App.ui.settingsTray.on('show', () => {
+  //   App.ui.settings.updateComponent({ id: 'settings', value: true });
+  // });
+  // App.ui.settingsTray.on('hide', () => {
+  //   App.ui.settings.updateComponent({ id: 'settings', value: false });
+  // });
 
-  App.ui.settings = new Settings();
-  App.ui.settings.getByName('settings').on('down', (component) => {
-    // let tray = App.ui.settingsTray;
-    // if (App.tray === tray) {
-    //   App.hideTray();
-    // } else {
-    //   App.showTray(tray, 0, 0);
-    // }
-  });
-  App.ui.settings.getByName('export').on('click', (component) => {
-    App.export();
-  });
-
-  App.ui.settingsTray = new SettingsTray();
-  App.ui.settingsTray.on('show', () => {
-    App.ui.settings.updateComponent({ id: 'settings', value: true });
-  });
-  App.ui.settingsTray.on('hide', () => {
-    App.ui.settings.updateComponent({ id: 'settings', value: false });
-  });
-
-  App.ui.history = document.getElementById('history');
+  App.ui.history = new Container({ el: document.getElementById('history') });
+  App.ui.main.add(App.ui.history);
+  App.ui.history.hide();
+  // App.ui.history
   // App.ui.history.style.visibility = 'visible';
 
-  App.setStrokeColor(App.colors.stroke);
-  App.setFillColor(null);
+  App.ui.toolsTray = new ToolsTray({ el: document.getElementById('tools-tray') });
+  App.ui.toolsTray.on('tool-change', (params) => {
+    App.setTool(params.tool);
+  });
+  App.ui.colorsTray = new ColorsTray({ el: document.getElementById('colors-tray') });
+  App.ui.colorsTray.getByName('stroke').on('down', (component) => {
+    showColorWheel(component.el, (color) => {
+      App.setStrokeColor(color);
+    });
+  });
+  App.ui.colorsTray.getByName('fill').on('down', (component) => {
+    showColorWheel(component.el, (color) => {
+      App.setFillColor(color);
+    });
+  });
+  App.ui.controlsTray = new ControlsTray({ el: document.getElementById('controls-tray') });
+  App.ui.controlsTray.on('play', (component) => {
+    if (App.playing) {
+      App.stop();
+    } else {
+      App.play();
+    }
+    component.setState(App.playing);
+  });
+
+  let menu = new Menu();
+  menu.addItem({ title: 'New...', shortcut: 'Ctrl+N', icon: 'new-small', click: () => { App.new(); }});
+  menu.addItem({ title: 'Save', shortcut: 'Ctrl+S', click: () => { App.save(); } });
+  menu.addItem({ title: 'Save As', shortcut: 'Shift+Ctrl+S' });
+  menu.addItem({ title: 'Export GIF', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGif() } });
+  App.menus.settings = menu;
+
+  App.ui.settingsTray = new SettingsTray({ el: document.getElementById('settings-tray') });
+  App.ui.settingsTray.on('settings', (component) => {
+    let bounds = component.el.getBoundingClientRect();
+    showMenu(App.menus.settings, bounds.left, bounds.top + component.el.offsetHeight + 10 * App.unit);
+  });
+  App.ui.settingsTray.on('export', () => {
+    ipcRenderer.send('export');
+  });
+  App.ui.frameListTray = new FrameListTray({ el: document.getElementById('frame-list-tray') });
+  App.ui.frameListTray.on('first', () => {
+    App.first();
+  });
+  App.ui.frameListTray.on('new', () => {
+    newFrame();
+  });
+  App.ui.frameListTray.on('duplicate', () => {
+    App.duplicateFrame();
+  });
+  App.ui.frameListTray.on('last', () => {
+    App.last();
+  });
+
+  App.ui.playbackOptionsTray = new PlaybackOptionsTray({ el: document.getElementById('playback-options-tray') });
+  App.ui.playbackOptionsTray.on('onion', (component) => {
+    App.onion = !App.onion;
+    component.setState(App.onion);
+    App.render();
+  });
+  App.ui.playbackOptionsTray.on('loop', (component) => {
+    App.loop = !App.loop;
+    component.setState(App.loop);
+    App.render();
+  });
+
+  App.new();
 
   App.ui.main.show();
-
-  App.setTool('pencil');
-  App.newFrame();
 
   initEventListeners();
   reposition();

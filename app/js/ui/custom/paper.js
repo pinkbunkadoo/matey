@@ -244,7 +244,15 @@ class Paper extends Base {
 
       this.constructPath(ctx, points, params.transform);
 
+      if (params.opacity !== undefined) {
+        ctx.globalAlpha = params.opacity;
+      }
       ctx.fill();
+
+      if (params.operation !== undefined) {
+        ctx.globalCompositeOperation = params.operation;
+      }
+
       ctx.stroke();
 
       ctx.restore();
@@ -254,7 +262,12 @@ class Paper extends Base {
   renderDisplayItem(ctx, item, transform=null) {
     let points = item.points;
     if (points.length) {
-      this.renderPath(ctx, points, { color: item.color, fill: item.fill, thickness: item.thickness, transform: transform });
+      this.renderPath(ctx, points, {
+        color: item.color, fill: item.fill,
+        thickness: item.thickness, opacity: item.opacity,
+        transform: transform || item.transform,
+        operation: item.operation
+      });
     }
   }
 

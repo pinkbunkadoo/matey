@@ -5,8 +5,8 @@ class Label extends Base {
     params.el = params.el || document.createElement('label');
     super(params);
 
-    if (params.text) {
-      this.set(params.text);
+    if (params.title) {
+      this.set(params.title);
     }
     if (params.forElement) {
       this.el.forElement = params.forElement;

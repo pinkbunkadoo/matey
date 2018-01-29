@@ -1,5 +1,6 @@
 const Util = require('../util');
 const Point = require('../geom/point');
+const Transform = require('../transform');
 const Stroke = require('../stroke');
 const Tool = require('./tool');
 
@@ -52,19 +53,30 @@ class PencilTool extends Tool {
 
   render(ctx) {
     if (this.drawing) {
-      ctx.beginPath();
-      for (var i = 0; i < this.points.length; i++) {
-        var point = this.points[i];
-        var x = point.x, y = point.y;
-        if (i == 0)
-          ctx.moveTo(x, y);
-        else
-          ctx.lineTo(x, y);
-      }
-      let color = App.getStrokeColor();
-      ctx.lineWidth = App.lineWidth;
-      ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
-      ctx.stroke();
+      App.paper.renderPath(
+        ctx,
+        this.points,
+        {
+          color: App.getStrokeColor(),
+          fill: App.getFillColor(),
+          thickness: App.lineWidth,
+          transform: new Transform()
+        }
+      );
+
+      // ctx.beginPath();
+      // for (var i = 0; i < this.points.length; i++) {
+      //   var point = this.points[i];
+      //   var x = point.x, y = point.y;
+      //   if (i == 0)
+      //     ctx.moveTo(x, y);
+      //   else
+      //     ctx.lineTo(x, y);
+      // }
+      // let color = App.getStrokeColor();
+      // ctx.lineWidth = App.lineWidth;
+      // ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
+      // ctx.stroke();
     }
   }
 

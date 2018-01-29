@@ -12,7 +12,6 @@ const FrameListItem = require('./frame_list_item');
 
 class FrameList extends Container {
   constructor(params={}) {
-    params.el = params.el || document.getElementById('frame-list');
     super(params);
 
     this.grab = false;
@@ -27,17 +26,17 @@ class FrameList extends Container {
     this.container = new Container();
     this.container.el = document.getElementById('frame-list-container');
 
-    this.frameListNew = new Container();
-    this.frameListNew.addClass('frame-list-new');
+    // this.frameListNew = new Container();
+    // this.frameListNew.addClass('frame-list-new');
 
-    let icon = new Icon({ resource: 'plus' });
-    icon.el.style.width = (32 * App.unit) + 'px';
-    icon.el.style.height = (32 * App.unit) + 'px';
-    icon.el.style.pointerEvents = 'none';
-    this.frameListNew.add(icon);
+    // let icon = new Icon({ resource: 'plus' });
+    // icon.el.style.width = (32 * App.unit) + 'px';
+    // icon.el.style.height = (32 * App.unit) + 'px';
+    // icon.el.style.pointerEvents = 'none';
+    // this.frameListNew.add(icon);
 
-    this.items.push(this.frameListNew);
-    this.container.add(this.frameListNew);
+    // this.items.push(this.frameListNew);
+    // this.container.add(this.frameListNew);
 
     this.add(this.container);
 
@@ -55,7 +54,7 @@ class FrameList extends Container {
   }
 
   addFrame() {
-    this.insertFrame(this.items.length-1);
+    this.insertFrame(this.items.length);
   }
 
   insertFrame(index) {
@@ -75,7 +74,8 @@ class FrameList extends Container {
   }
 
   removeAll() {
-    this.clear();
+    // this.clear();
+    this.container.removeAll();
     this.items = [];
     this.selection = null;
   }
@@ -91,33 +91,32 @@ class FrameList extends Container {
     }
 
     this.selection = this.items[index];
-    this.selection.addClass('selected');
+    if (this.selection) {
+      this.selection.addClass('selected');
+      this.selection.select();
 
-    this.selection.select();
+      let item = this.selection;
+      let width = this.container.el.scrollWidth;
+      let margin = 0; //8;
 
-    let item = this.selection;
-    let width = this.container.el.scrollWidth;
-    let margin = 0; //8;
+      if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
+        this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth + margin;
 
-    if (item.el.offsetLeft + item.el.offsetWidth > this.el.scrollLeft + this.el.offsetWidth) {
-      this.el.scrollLeft = item.el.offsetLeft - this.el.offsetWidth + item.el.offsetWidth + margin;
+      } else if (item.el.offsetLeft < this.el.scrollLeft) {
+        this.el.scrollLeft = item.el.offsetLeft - margin;
+      }
 
-    } else if (item.el.offsetLeft < this.el.scrollLeft) {
-      this.el.scrollLeft = item.el.offsetLeft - margin;
-    }
-
-    if (index === this.items.length - 2) {
-      this.el.scrollLeft = this.frameListNew.el.offsetLeft;
-    } else if (index === 0) {
-      this.el.scrollLeft = 0;
+      if (index === this.items.length - 2) {
+        // this.el.scrollLeft = this.frameListNew.el.offsetLeft;
+      } else if (index === 0) {
+        this.el.scrollLeft = 0;
+      }
     }
   }
 
   setThumbnailSize(width, height) {
     this.thumbnailWidth = width;
     this.thumbnailHeight = height;
-    // this.frameListNew.el.style.width = this.thumbnailWidth + 'px';
-    // this.frameListNew.el.style.height = this.thumbnailHeight + 'px';
   }
 
   render(params) {
@@ -138,17 +137,11 @@ class FrameList extends Container {
     }
     else if (params.cmd === 'updateThumbnail') {
       let frameListItem = this.items[params.index];
-      // let ctx = frameListItem.canvas.getContext('2d');
-      // ctx.drawImage(params.canvas, 0, 0);
       let image = new Image();
       image.src = params.canvas.toDataURL();
       frameListItem.setImage(image);
     }
     if (this.selection) {
-      // this.nodule.el.style.left = (this.selection.offsetLeft / this.container.offsetWidth) + 'px';
-      // this.nodule.el.style.width = (this.selection.offsetWidth / this.container.scrollWidth) + 'px';
-      // let width = (this.selection.el.offsetWidth / this.container.el.scrollWidth);
-      // console.log(this.el.scrollWidth);
     }
   }
 
@@ -178,16 +171,15 @@ class FrameList extends Container {
       if (Math.abs(this.velocity) > 1) this.startMomentumTimer();
       this.endCapture();
     } else {
-      // console.log('up');
       if (event.target !== this.el) {
-        if (event.target === this.frameListNew.el) {
-          this.emit('new-frame');
-        } else {
+        // if (event.target === this.frameListNew.el) {
+          // this.emit('new-frame');
+        // } else {
           let index = event.target.dataset.index;
           if (index !== undefined) {
             this.emit('select', { index: index - 1 });
           }
-        }
+        // }
       }
     }
     window.removeEventListener('mouseup', this);
@@ -233,7 +225,7 @@ class FrameList extends Container {
     } else {
       if (event.buttons & 1) {
         this.dragAmount += event.movementX;
-        if (Math.abs(this.dragAmount) > 3) {
+        if (Math.abs(this.dragAmount) > 4) {
           // console.log('grab');
           this.grab = true;
           this.beginCapture();

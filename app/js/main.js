@@ -103,6 +103,27 @@ function createWindow () {
   })
 }
 
+function showSaveDialog(path) {
+  if (mainWindow) {
+    dialog.showSaveDialog(mainWindow, {
+      title: "Save As...",
+      defaultPath: path,
+      buttonLabel: "Save",
+      filters: [
+        { name: 'Matey sequence', extensions: [ 'matey' ] }
+      ]
+      },
+      filename => {
+        console.log('savedone');
+        if (filename) {
+          console.log(filename);
+          mainWindow.send('save', filename);
+        }
+        return true
+      })
+  }
+}
+
 function showExportDialog() {
   if (mainWindow) {
     dialog.showSaveDialog(mainWindow, {
@@ -116,8 +137,8 @@ function showExportDialog() {
       ]
       },
       filename => {
-        console.log(filename);
         if (filename) {
+          console.log(filename);
           mainWindow.send('export', filename);
         }
       })
@@ -149,7 +170,10 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+ipcMain.on('save', (event, arg) => {
+  showSaveDialog(arg)
+})
+
 ipcMain.on('export', (event, arg) => {
-  console.log('export')
   showExportDialog()
 })

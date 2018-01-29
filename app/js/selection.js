@@ -50,6 +50,11 @@ class Selection {
     }
     this.items = [];
   }
+
+  get itemCount() {
+    return this.items.length;
+  }
+
 }
 
 module.exports = Selection;

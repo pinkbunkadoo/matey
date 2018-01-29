@@ -68,7 +68,6 @@ class LineTool extends Tool {
   }
 
   render(ctx) {
-
     if (this.drawing) {
       ctx.beginPath();
       let color = App.getStrokeColor();

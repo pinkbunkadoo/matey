@@ -32,6 +32,7 @@ class Tools extends Panel {
     // this.fillSwatch = new ColorSwatch({ el: document.getElementById('tools-fill'), name: 'fill', color: null });
     // this.colorsContainer.add(this.colorSwatch);
     // this.colorsContainer.add(this.fillSwatch);
+    // console.log(this.el.id, this.el.hidden);
   }
 
   onToolSelect(name) {

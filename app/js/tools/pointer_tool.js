@@ -238,10 +238,8 @@ class PointerTool extends Tool {
 
   onKeyDown(event) {
     var shiftAmount = event.shiftKey ? 10 : 1;
-    if ((event.key === 'Delete' || event.key === 'Backspace') && !event.repeat) {
-      App.deleteSelected();
 
-    } else if (event.key === ']') {
+    if (event.key === ']') {
       App.bringForward();
 
     } else if (event.key === '[') {

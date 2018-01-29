@@ -6,7 +6,7 @@ class ColorWheel extends Container {
   constructor(params={}) {
     super(params);
 
-    this.addClass('color-wheel');
+    this.addClass('overlay');
 
     this.entries1 = [
       Color.fromHexString('#f63b52'),
@@ -43,6 +43,9 @@ class ColorWheel extends Container {
     let width = 320 * App.unit;
     let height = 320 * App.unit;
 
+    this.container = new Container();
+    this.container.addClass('color-wheel');
+
     this.canvas = document.createElement('canvas');
     this.canvas.width = width;
     this.canvas.height = height;
@@ -53,13 +56,13 @@ class ColorWheel extends Container {
     this.innerRadius2 = this.outerRadius2 - width / 8;
     this.nullRadius = (width / 2) * 0.2;
 
-    this.el.appendChild(this.canvas);
+    this.container.el.appendChild(this.canvas);
+    this.add(this.container);
 
     this.el.addEventListener('mousedown', this);
     this.el.addEventListener('mousemove', this);
 
     this.callback = params.callback ? params.callback : null;
-
     this.draw();
   }
 
@@ -106,8 +109,6 @@ class ColorWheel extends Container {
       ctx.closePath();
       ctx.stroke();
       ctx.fill();
-      // ctx.fill();
-      // ctx.fill();
 
       px = x;
       py = y;
@@ -130,32 +131,34 @@ class ColorWheel extends Container {
 
     // centre null circle
 
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'gray';
+    // ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    // ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(w2, h2, this.nullRadius, 0, Math.PI * 2, false);
     ctx.fill();
-    ctx.stroke();
+    // ctx.stroke();
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-    ctx.font = '10px sans-serif';
-    ctx.textBaseline = 'middle';
-    let text = 'None';
-    let tm = ctx.measureText(text);
-    ctx.fillText(text, w2 - tm.width/2, h2);
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    // ctx.font = '10px sans-serif';
+    // ctx.textBaseline = 'middle';
+    // let text = 'None';
+    // let tm = ctx.measureText(text);
+    // ctx.fillText(text, w2 - tm.width/2, h2);
 
     // ctx.strokeStyle = ctx.fillStyle = 'rgb(80, 80, 80)';
     // ctx.lineWidth = 6;
     // ctx.beginPath();
     // ctx.arc(w2, h2, w2 * 0.06, 0, Math.PI * 2, false);
     // ctx.fill();
-    //
-    // ctx.lineWidth = 4;
-    // ctx.beginPath();
-    // ctx.moveTo(w2 - w2 / 10, h2 + h2 / 10);
-    // ctx.lineTo(w2 + w2 / 10, h2 - h2 / 10);
-    // ctx.stroke();
+
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 8 * App.unit;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.beginPath();
+    ctx.moveTo(w2 - w2 / 10, h2 - h2 / 10);
+    ctx.lineTo(w2 + w2 / 10, h2 + h2 / 10);
+    ctx.stroke();
 
   }
 
@@ -183,26 +186,55 @@ class ColorWheel extends Container {
     this.callback = callback;
   }
 
+  show(x, y) {
+    document.body.appendChild(this.el);
+    this.container.setStyle({
+      left: x + 'px',
+      top: y + 'px'
+    });
+    window.addEventListener('resize', this);
+    window.addEventListener('blur', this);
+  }
+
+  hide() {
+    document.body.removeChild(this.el);
+    window.removeEventListener('resize', this);
+    window.removeEventListener('blur', this);
+  }
+
   onMouseDown(event) {
     let color = this.colorFromPoint(event.offsetX, event.offsetY);
-    if (color !== undefined) {
-      // this.emit('color', color);
-      if (this.callback) this.callback(color);
-    }
+    if (color !== undefined) if (this.callback) this.callback(color);
+    this.hide();
   }
 
   onMouseMove(event) {
     let color = this.colorFromPoint(event.offsetX, event.offsetY);
-    // console.log(index);
+  }
+
+  onResize(event) {
+    this.hide();
+  }
+
+  onBlur(event) {
+    this.hide();
   }
 
   handleEvent(event) {
-    if (event.type === 'mousedown') {
+    if (event.type == 'mousedown') {
       this.onMouseDown(event);
-    } else if (event.type === 'mousemove') {
+    }
+    else if (event.type == 'mousemove') {
       this.onMouseMove(event);
     }
+    else if (event.type == 'resize') {
+      this.onResize(event);
+    }
+    else if (event.type == 'blur') {
+      this.onBlur(event);
+    }
   }
+
 }
 
 module.exports = ColorWheel;

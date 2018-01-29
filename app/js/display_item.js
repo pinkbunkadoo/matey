@@ -11,10 +11,12 @@ class DisplayItem {
         }
       }
     }
-    this.color = params.color !== undefined ? params.color.copy() : null;
-    this.fill = params.fill !== undefined ? params.fill.copy() : null;
+    this.color = params.color ? params.color.copy() : null;
+    this.fill = params.fill ? params.fill.copy() : null;
     this.thickness = params.thickness !== undefined ? params.thickness : 1;
-    this.transform = params.transform !== undefined ? params.transform.copy() : null;
+    this.opacity = params.opacity !== undefined ? params.opacity : 1;
+    this.operation = params.operation !== undefined ? params.operation : 'source-over';
+    this.transform = params.transform ? params.transform.copy() : null;
   }
 
 }

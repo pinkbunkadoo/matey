@@ -2,6 +2,7 @@ const Base = require('./base');
 const Container = require('./container');
 const Color = require('../color');
 const Icon = require('./icon');
+const Svg = require('../svg');
 
 class ColorSwatch extends Container {
   constructor(params={}) {
@@ -9,65 +10,101 @@ class ColorSwatch extends Container {
 
     this.addClass('color-swatch');
 
-    this.border = new Icon({ resource: 'swatch-border', color: Color.fromHexString('#404040') });
-    this.border.addClass('color-swatch-layer');
-    this.add(this.border);
+    this.type = params.type || 'stroke';
 
-    this.swatch = new Icon({ resource: params.resource? params.resource : 'fill' });
-    this.swatch.addClass('color-swatch-layer');
-    this.add(this.swatch);
+    this.width = 3.2;
+    this.height = 3.2;
+    this.padding = .4;
 
-    this.slash = new Icon({ resource: 'slash', color: Color.fromHexString('#0096ff') });
-    this.slash.addClass('color-swatch-layer');
-    this.add(this.slash);
+    let w = this.width + this.padding * 2;
+    let h = this.height + this.padding * 2;
 
-    this.border.el.style.transition = 'opacity .6s';
-    this.slash.el.style.transition = 'opacity .6s';
+    this.el.style.width = w + 'em';
+    this.el.style.height = h + 'em';
 
-    // this.el.addEventListener('click', this);
-    // this.el.addEventListener('mousedown', this);
-    // this.el.addEventListener('dblclick', this);
+    this.svg = Svg.createElement({ type: 'svg', attributes: {
+      'xmlns:xlink': 'http://www.w3.org/1999/xlink', width: this.width + 'em', height: this.height + 'em' }});
+    this.svg.classList.add('svg-icon');
+
+    let svg, mask;
+
+    // console.log(this.type);
+
+    svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em' }});
+    svg.id = this.type + '-background';
+    svg.classList.add('color-swatch-background');
+    this.svg.appendChild(svg);
+
+    // normal display
+
+    mask = Svg.createElement({ type: 'mask' });
+    svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2.5) + 'em', fill: 'white' }});
+    mask.appendChild(svg);
+    if (this.type == 'stroke') {
+      svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 4) + 'em', fill: 'black' }});
+      mask.appendChild(svg);
+    }
+    mask.id = this.type + '-icon-mask';
+    this.svg.appendChild(mask);
+
+    svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em', mask: 'url(#' + this.type + '-icon-mask)' }});
+    svg.id = this.type + '-icon';
+    svg.style.pointerEvents = 'none';
+    this.svg.appendChild(svg);
+
+    // no color display
+
+    mask = Svg.createElement({ type: 'mask' });
+    svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2.5) + 'em', fill: 'white' }});
+    mask.appendChild(svg);
+    if (this.type == 'stroke') {
+      svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 4) + 'em', fill: 'black' }});
+      mask.appendChild(svg);
+    }
+    svg = Svg.createElement({ type: 'rect', attributes: { x: 0, y: (h / 2 - 0.3) + 'em', width: (w) + 'em', height: .6 + 'em', fill: 'black' }});
+    svg.style.transformOrigin = w / 2 + 'em ' + h / 2 + 'em';
+    svg.style.transform = 'rotate(45deg)';
+    mask.appendChild(svg);
+
+    mask.id = this.type + '-nothing-mask';
+    this.svg.appendChild(mask);
+
+    svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em', mask: 'url(#' + this.type + '-nothing-mask)' }});
+    svg.id = this.type + '-nothing';
+    svg.style.pointerEvents = 'none';
+    svg.classList.add('color-swatch-foreground');
+    this.svg.appendChild(svg);
+
+    this.el.appendChild(this.svg);
+
+    this.el.addEventListener('mousedown', () => {
+      this.emit('down', this);
+    });
 
     this.setColor(params.color);
   }
 
   getColor() {
-    return this.swatch.getColor();
+    // return this.swatch.getColor();
   }
 
   setColor(color) {
-    this.swatch.setColor(color);
+    let iconEl = this.svg.querySelector('#' + this.type+ '-icon');
+    let nothingEl = this.svg.querySelector('#' + this.type + '-nothing');
+    // iconEl.style.transition = 'opacity .4s';
+    // nothingEl.style.transition = 'opacity .4s';
     if (color) {
-      // this.slash.hide();
-      // this.border.show();
-      this.slash.el.style.opacity = 0;
-      this.border.el.style.opacity = 1;
+      iconEl.style.fill = color.toHexString();
+      iconEl.style.opacity = 1;
+      nothingEl.style.opacity = 0;
+      // iconEl.style.visibility = 'visible';
+      // nothingEl.style.visibility = 'hidden';
     } else {
-      // this.slash.show();
-      // this.border.hide();
-      this.slash.el.style.opacity = 1;
-      this.border.el.style.opacity = 0;
+      iconEl.style.opacity = 0;
+      nothingEl.style.opacity = 1;
+      // iconEl.style.visibility = 'hidden';
+      // nothingEl.style.visibility = 'visible';
     }
-
-  }
-
-  onMouseDown(event) {
-    // this.emit('down', this);
-  }
-
-  onMouseUp(event) {
-  }
-
-  onClick() {
-    // this.emit('click', this);
-  }
-
-  onDblClick(event) {
-    // if (this.color) {
-    //   this.setColor(null);
-    // } else {
-    //   this.setColor(this.initialColor);
-    // }
   }
 
   onCopy(event) {
@@ -83,26 +120,6 @@ class ColorSwatch extends Container {
     this.emit('color-change', this.color);
   }
 
-  handleEvent(event) {
-    if (event.type === 'click') {
-      this.onClick(event);
-    }
-    else if (event.type === 'mousedown') {
-      this.onMouseDown(event);
-    }
-    else if (event.type === 'mouseup') {
-      this.onMouseUp(event);
-    }
-    else if (event.type === 'dblclick') {
-      this.onDblClick(event);
-    }
-    else if (event.type === 'copy') {
-      this.onCopy(event);
-    }
-    else if (event.type === 'paste') {
-      this.onPaste(event);
-    }
-  }
 }
 
 module.exports = ColorSwatch;

@@ -1,25 +1,22 @@
 const Label = require('../label');
 const Checkbox = require('../checkbox');
-const Tray = require('../tray');
+// const Tray = require('../tray');
 const Container = require('../container');
 const Icon = require('../icon');
 const Button = require('../button');
 
-class SettingsTray extends Tray {
+class SettingsTray extends Container {
   constructor(params={}) {
     super(params);
 
-    this.label = new Label({ id: 'temp', text: 'This is the label text.' });
-    this.container.add(this.label);
-
-    this.button = new Button({ id: 'button', text: 'Button', width: 'auto', height: 'auto' });
-    this.container.add(this.button);
-
-    // this.container.el.style.width = '100px';
-    // this.container.el.style.height = '100px';
-
-    this.checkbox = new Checkbox();
-    this.container.add(this.checkbox);
+    // this.label = new Label({ id: 'temp', text: 'This is the label text.' });
+    // this.container.add(this.label);
+    //
+    // this.button = new Button({ id: 'button', text: 'Button', width: 'auto', height: 'auto' });
+    // this.container.add(this.button);
+    //
+    // this.checkbox = new Checkbox();
+    // this.container.add(this.checkbox);
   }
 
   onMouseDown(event) {

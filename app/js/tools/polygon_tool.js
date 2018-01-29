@@ -99,11 +99,13 @@ class PolygonTool extends Tool {
 
     if (this.drawing && this.points.length) {
       ctx.lineWidth = App.lineWidth;
-      ctx.strokeStyle = App.colors.stroke.toHexString();
+      // ctx.strokeStyle = App.colors.stroke.toHexString();
+
+      let color = App.getStrokeColor();
+      ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
 
       if (this.points.length >= 1) {
         // console.log('poly.render');
-
         ctx.beginPath();
 
         for (var i = 0; i < this.points.length; i++) {
@@ -116,7 +118,6 @@ class PolygonTool extends Tool {
         }
 
         ctx.lineTo(this.mx, this.my);
-
         ctx.stroke();
         // console.log(this.points.length);
       }

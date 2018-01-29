@@ -19,6 +19,8 @@ class FrameListItem extends Container {
 
     this.numberContainer = new Container();
     this.numberContainer.addClass('frame-list-item-number');
+    this.numberContainer.el.style.width = this.width + 'px';
+    this.numberContainer.el.style.height = this.height + 'px';
     this.number = new Label({ text: '' });
     this.numberContainer.add(this.number);
     this.add(this.numberContainer);
@@ -31,7 +33,7 @@ class FrameListItem extends Container {
     this.imageContainer = new Container();
     this.imageContainer.el.style.width = this.width + 'px';
     this.imageContainer.el.style.height = this.height + 'px';
-    this.imageContainer.el.style.background = 'yellow';
+    // this.imageContainer.el.style.background = 'yellow';
     this.imageContainer.el.style.pointerEvents = 'none';
     this.add(this.imageContainer);
 
@@ -45,25 +47,17 @@ class FrameListItem extends Container {
   }
 
   select() {
-    // this.numberContainer.el.style.background = 'dodgerblue';
-    // this.numberContainer.el.style.color = 'white';
-    // this.numberContainer.el.style.border = '0px solid dodgerblue'
     this.numberContainer.addClass('selected');
     this.addClass('selected');
-    // this.highlight.el.style.opacity = 1;
   }
 
-
   deselect() {
-    // this.numberContainer.el.style.background = 'rgba(0,0,0,0)';
-    // this.numberContainer.el.style.color = 'gray';
-    // this.numberContainer.el.style.border = '0px solid rgba(0,0,0,0)'
     this.numberContainer.removeClass('selected');
     this.removeClass('selected');
-    // this.highlight.el.style.opacity = 1;
   }
 
   setImage(image) {
+    // console.log('setTimage', this.el.dataset.index);
     // this.imageContainer.clear();
     // this.imageContainer.add(image);
     if (this.imageContainer.el.firstChild)

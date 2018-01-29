@@ -14,7 +14,9 @@ class Sequence {
   }
 
   add() {
-    this.insert(new Frame(), this.frames.length);
+    this.frames.push(new Frame());
+    // this.insert(new Frame(), this.frames.length);
+    return this.frames[this.frames.length - 1];
   }
 
   insert(frame, position=0) {
@@ -25,9 +27,10 @@ class Sequence {
         this.frames.push(frame);
       }
     }
+    return this.frames[this.frames.length - 1];
   }
 
-  size() {
+  get size() {
     return this.frames.length;
   }
 
