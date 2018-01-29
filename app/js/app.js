@@ -712,7 +712,12 @@ App.saveNow = (filename) => {
   }
 
   let output = JSON.stringify(data, null, 2);
-  fs.writeFileSync(filename, output);
+  fs.writeFile(filename, output, (err) => {
+    if (err) throw err;
+    console.log('File has been saved!');
+  });
+
+  App.setCursor('pointer');
 }
 
 App.exportGifNow = (filename) => {
