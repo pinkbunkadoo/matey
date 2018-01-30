@@ -750,9 +750,6 @@ App.saveNow = (filename) => {
     if (err) throw err;
     console.log('File has been saved!');
   });
-
-  let overlay = document.getElementById('overlay');
-  if (overlay) document.body.removeChild(overlay);
 }
 
 App.exportGif = () => {
@@ -793,9 +790,6 @@ App.exportGifNow = (filename) => {
   }
 
   encoder.finish();
-
-  let overlay = document.getElementById('overlay');
-  if (overlay) document.body.removeChild(overlay);
 }
 
 function fadeComponent(component) {
@@ -1035,6 +1029,10 @@ function onResize() {
 
 function onFocus(event) {
   if (App.captureTarget) App.release(App.captureTarget);
+
+  let overlay = document.getElementById('overlay');
+  if (overlay) document.body.removeChild(overlay);
+
   App.paper.handleEvent(event);
   App.render();
 }
