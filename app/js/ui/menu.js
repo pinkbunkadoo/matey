@@ -27,7 +27,7 @@ class Menu extends Overlay {
   }
 
   show(x, y) {
-    document.body.appendChild(this.el);
+    super.show();
 
     let menu = this.container;
     if (x + menu.el.offsetWidth > window.innerWidth) {
@@ -44,7 +44,7 @@ class Menu extends Overlay {
   }
 
   hide() {
-    document.body.removeChild(this.el);
+    super.hide();
     window.removeEventListener('resize', this);
     window.removeEventListener('blur', this);
   }

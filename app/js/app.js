@@ -19,9 +19,7 @@ const PaperActionType = require('./actions/paper_action_type');
 const Base = require('./ui/base');
 const Container = require('./ui/container');
 const Paper = require('./ui/custom/paper');
-const Tools = require('./ui/custom/tools');
 const ToolsTray = require('./ui/custom/tools_tray');
-const Colors = require('./ui/custom/colors');
 const ColorsTray = require('./ui/custom/colors_tray');
 const Controls = require('./ui/custom/controls');
 const ControlsTray = require('./ui/custom/controls_tray');
@@ -48,7 +46,7 @@ let App = {
     stroke: new Color(85, 85, 85),
     selection: new Color(255, 96, 16),
     // selection: new Color(128, 128, 128),
-    onion: new Color(160, 240, 160),
+    onion: new Color(180, 240, 192),
     // onion: new Color(0, 0, 255),
     paper: new Color(255, 255, 255),
     workspace: new Color(128, 128, 128)
@@ -678,6 +676,7 @@ App.new = () => {
 
   App.path = app.getPath('documents');
   App.setDocumentName('untitled');
+  App.neverBeenSaved = true;
   App.changed = false;
 
   App.ui.frameList.render({ cmd: 'removeAll' });
@@ -690,6 +689,7 @@ App.new = () => {
 }
 
 App.open = () => {
+  App.ui.overlay.show();
   ipcRenderer.send('open');
 }
 
@@ -704,19 +704,25 @@ App.openNow = (filepath) => {
 }
 
 App.save = () => {
+  // if (App.neverBeenSaved)
   let filepath = path.join(App.path, App.documentName + App.extension);
-  try {
-    fs.accessSync(filepath, fs.constants.F_OK | fs.constants.W_OK);
-    App.saveNow(filepath);
-  } catch (err) {
-    console.log('File is not available or read only.');
-    // ipcRenderer.send('save', App.documentName);
+  if (App.neverBeenSaved) {
     App.saveAs();
+  } else {
+    try {
+      fs.accessSync(filepath, fs.constants.F_OK | fs.constants.W_OK);
+      App.saveNow(filepath);
+      return;
+    } catch (err) {
+      console.log('File is not available or read only.');
+      // ipcRenderer.send('save', App.documentName);
+    }
   }
 }
 
 App.saveAs = () => {
-  document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
+  App.ui.overlay.show();
+  // document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
   ipcRenderer.send('save', App.documentName);
 }
 
@@ -749,11 +755,13 @@ App.saveNow = (filename) => {
   fs.writeFile(filename, output, (err) => {
     if (err) throw err;
     console.log('File has been saved!');
+    App.neverBeenSaved = false;
   });
 }
 
 App.exportGif = () => {
-  document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
+  // document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
+  App.ui.overlay.show();
   ipcRenderer.send('export', App.documentName);
 }
 
@@ -1030,8 +1038,10 @@ function onResize() {
 function onFocus(event) {
   if (App.captureTarget) App.release(App.captureTarget);
 
-  let overlay = document.getElementById('overlay');
-  if (overlay) document.body.removeChild(overlay);
+  // let overlay = document.getElementById('overlay');
+  // if (overlay) document.body.removeChild(overlay);
+  if (App.ui.overlay.isVisible())
+    App.ui.overlay.hide();
 
   App.paper.handleEvent(event);
   App.render();
@@ -1162,17 +1172,9 @@ function ready() {
   App.ui.main = new Container({ el: document.getElementById('main') });
   App.ui.content = new Container({ el: document.getElementById('content') });
   App.ui.modal = document.getElementById('modal');
-  // App.ui.overlay = new Overlay();
-
-  // App.ui.overlay.el.onmousedown = (event) => {
-  //   if (event.target == App.ui.overlay.el)
-  //     hideOverlay();
-  // }
-
-  // App.ui.tools = new Tools();
-  // App.ui.tools.on('tool-change', (params) => {
-  //   App.setTool(params.tool);
-  // });
+  App.ui.overlay = new Overlay();
+  // document.body.appendChild(App.ui.overlay.getDOMElement());
+  // App.ui.overlay.hide();
 
   App.paper = new Paper({ el: document.getElementById('paper'), width: App.paperWidth, height: App.paperHeight });
   App.paper.on('zoom', (params) => {
@@ -1183,18 +1185,6 @@ function ready() {
   App.paper.on('change-mode', (params) => {
     App.setMode(params.mode);
   });
-
-  // App.ui.colors = new Colors();
-  // App.ui.colors.getByName('stroke').on('down', (component) => {
-  //   App.showColorWheel((color) => {
-  //     App.setStrokeColor(color);
-  //   });
-  // });
-  // App.ui.colors.getByName('fill').on('down', (component) => {
-  //   App.showColorWheel((color) => {
-  //     App.setFillColor(color);
-  //   });
-  // });
 
   App.ui.frameList = new FrameList({ el: document.getElementById('frame-list') });
   App.ui.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);

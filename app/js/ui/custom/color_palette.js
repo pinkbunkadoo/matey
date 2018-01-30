@@ -70,10 +70,16 @@ class ColorPalette extends Overlay {
       left: params.x + 'px',
       top: params.y + 'px'
     })
+    window.addEventListener('resize', this);
+    window.addEventListener('blur', this);
+
   }
 
   hide() {
     super.hide();
+    window.removeEventListener('resize', this);
+    window.removeEventListener('blur', this);
+
   }
 
   onClick(event) {
