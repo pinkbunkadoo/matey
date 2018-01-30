@@ -77,6 +77,10 @@ function createWindow () {
 
   mainWindow.setMenuBarVisibility(false)
 
+  mainWindow.on('close', () => {
+    app.quit()
+  })
+
   // Open the DevTools.
   // mainWindow.webContents.openDevTools({ mode: 'right' })
 
