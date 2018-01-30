@@ -58,7 +58,7 @@ function createWindow () {
   // })
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({ width: 1600, height: 768, show: false })
+  mainWindow = new BrowserWindow({ width: 1280, height: 768, show: false })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -78,7 +78,7 @@ function createWindow () {
   mainWindow.setMenuBarVisibility(false)
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools({ mode: 'right' })
+  // mainWindow.webContents.openDevTools({ mode: 'right' })
 
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
