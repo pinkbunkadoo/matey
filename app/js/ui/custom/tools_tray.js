@@ -14,7 +14,7 @@ class ToolsTray extends Tray {
     this.buttons = [];
     this.tool = null;
 
-    this.collapser = new TrayButton({ el: document.getElementById('tools-tray-lock'), name: 'collapser', width: 1.6, height: 1.6, padding: .5 })
+    this.collapser = new TrayButton({ el: document.getElementById('tools-tray-lock'), name: 'collapser', width: 1.2, height: 1.2, padding: .6 })
     this.collapser.on('pressed', () => {
       this.toggleRollout();
     });
@@ -28,7 +28,7 @@ class ToolsTray extends Tray {
       }
     }
 
-    this.toolButton = new TrayButton({ el: document.getElementById('tools-tray-tool'), width: 6.4, height: 6.4, padding: 3.2 });
+    this.toolButton = new TrayButton({ el: document.getElementById('tools-tray-tool'), width: 6.4, height: 6.4, padding: 3 });
     this.toolButton.on('pressed', () => {
       this.toggleRollout();
     });

@@ -50,7 +50,7 @@ class PointerTool extends Tool {
 
     for (var i = 0; i < App.selection.items.length; i++) {
       let item = App.selection.items[i];
-      let displayItem = new DisplayItem({ points: item.points, color: new Color(192, 192, 192), thickness: 1.2 });
+      let displayItem = new DisplayItem({ points: item.points, color: new Color(160, 160, 160), thickness: App.lineWidth, operation: 'multiply' });
       this.list.add(displayItem);
     }
     // console.log(this.items.length);
@@ -84,7 +84,7 @@ class PointerTool extends Tool {
     if (this.mode == 'select') {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 0.5;
       ctx.globalCompositeOperation = 'difference';
       ctx.strokeStyle = 'gray';
       ctx.setLineDash([ 2, 4 ]);

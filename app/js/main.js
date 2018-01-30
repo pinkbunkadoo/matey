@@ -1,10 +1,5 @@
-// const electron = require('electron')
-// Module to control application life.
+
 const {ipcMain, app, globalShortcut, BrowserWindow, Menu, dialog} = require('electron')
-// Module to create native browser window.
-// const BrowserWindow = electron.BrowserWindow
-// const Menu = electron.Menu
-// const GIFEncoder = require('gifencoder');
 
 const path = require('path')
 const url = require('url')
@@ -23,7 +18,6 @@ function createWindow () {
           label: 'Export',
           accelerator: 'CommandOrControl+E',
           click: () => {
-            // console.log('menu-export')
             showExportDialog()
           }
         },
@@ -32,8 +26,6 @@ function createWindow () {
           accelerator: 'CommandOrControl+Q',
           role: 'quit',
           click: () => {
-            // console.log('menu-export')
-            // showExportDialog()
           }
         }
       ]
@@ -46,7 +38,6 @@ function createWindow () {
           role: 'reload',
           accelerator: 'CommandOrControl+R',
           click: () => {
-            // console.log('menu-refresh');
             mainWindow.reload()
           }
         },
@@ -67,7 +58,7 @@ function createWindow () {
   // })
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({ width: 1024, height: 768, show: false })
+  mainWindow = new BrowserWindow({ width: 1600, height: 768, show: false })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -82,19 +73,13 @@ function createWindow () {
 
   menu = Menu.buildFromTemplate(template)
 
-  // mainWindow.menu = null;
   Menu.setApplicationMenu(menu)
-  // Menu.setApplicationMenu(null)
-
-  // mainWindow.webContents.setVisualZoomLevelLimits(0, 0)
-  // mainWindow.webContents.setLayoutZoomLevelLimits(0, 0)
 
   mainWindow.setMenuBarVisibility(false)
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools({ mode: 'bottom' })
+  mainWindow.webContents.openDevTools({ mode: 'right' })
 
-  // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
@@ -103,37 +88,54 @@ function createWindow () {
   })
 }
 
-function showSaveDialog(path) {
+function showOpenDialog(filepath) {
   if (mainWindow) {
-    dialog.showSaveDialog(mainWindow, {
-      title: "Save As...",
-      defaultPath: path,
-      buttonLabel: "Save",
-      filters: [
-        { name: 'Matey sequence', extensions: [ 'matey' ] }
-      ]
+    dialog.showOpenDialog(mainWindow, {
+        title: "Open",
+        defaultPath: filepath,
+        buttonLabel: "Open",
+        filters: [ { name: 'Matey sequence', extensions: [ 'matey' ] } ],
+        properties: [ 'openFile' ]
       },
       filename => {
-        console.log('savedone');
+        if (filename instanceof Array) {
+          mainWindow.send('open', filename[0]);
+        }
+        return true
+      }
+    )
+  }
+}
+
+function showSaveDialog(filepath) {
+  if (mainWindow) {
+    dialog.showSaveDialog(mainWindow, {
+        title: "Save As",
+        defaultPath: filepath,
+        buttonLabel: "Save",
+        filters: [
+          { name: 'Matey sequence', extensions: [ 'matey' ] }
+        ]
+      },
+      filename => {
         if (filename) {
           console.log(filename);
           mainWindow.send('save', filename);
         }
         return true
-      })
+      }
+    )
   }
 }
 
-function showExportDialog() {
+function showExportDialog(filepath) {
   if (mainWindow) {
     dialog.showSaveDialog(mainWindow, {
-      title: "Export GIF...",
-      // message: "Hello Mr. Export",
+      title: "Export GIF",
       buttonLabel: "Export",
+      defaultPath: filepath,
       filters: [
         { name: 'Animated GIF', extensions: [ 'gif' ] }
-        // { name: 'SVG (SMIL)', extensions: [ 'svg' ] },
-        // { name: 'PNG Sequence', extensions: [ 'png' ] }
       ]
       },
       filename => {
@@ -170,10 +172,14 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+ipcMain.on('open', (event, arg) => {
+  showOpenDialog(arg)
+})
+
 ipcMain.on('save', (event, arg) => {
   showSaveDialog(arg)
 })
 
 ipcMain.on('export', (event, arg) => {
-  showExportDialog()
+  showExportDialog(arg)
 })

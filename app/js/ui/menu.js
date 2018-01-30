@@ -2,11 +2,9 @@ const Container = require('./container');
 const Overlay = require('./overlay');
 const MenuItem = require('./menu_item');
 
-class Menu extends Container {
+class Menu extends Overlay {
   constructor() {
     super();
-
-    this.addClass('overlay');
 
     this.items = [];
 

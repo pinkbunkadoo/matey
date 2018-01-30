@@ -42,6 +42,12 @@ class TrayButton extends Container {
         mask.id = this.name + '-mask';
         this.svg.appendChild(mask);
 
+        // let filter = Svg.createElement({ type: 'filter' });
+        // filter.id = this.name + '-filter';
+        // let fe = Svg.createElement({ type: 'feGaussianBlur', attributes: { in: 'SourceGraphic', stdDeviation: '1' } });
+        // filter.appendChild(fe);
+        // this.svg.appendChild(filter);
+
         svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em', mask: 'url(#' + this.name + '-mask)' }});
         svg.classList.add('tray-button-background');
         this.svg.appendChild(svg);

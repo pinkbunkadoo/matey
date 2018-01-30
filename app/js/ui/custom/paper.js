@@ -71,8 +71,11 @@ class Paper extends Base {
   }
 
   setCursor(name) {
-    this.el.style.cursor = App.cursors[name];
-    this.cursor = name;
+    if (name === undefined) {
+      this.el.style.cursor = App.cursors[this.tool.cursor];
+    } else {
+      this.el.style.cursor = App.cursors[name];
+    }
   }
 
   center() {
@@ -188,22 +191,6 @@ class Paper extends Base {
     return this.canvas.getContext('2d');
   }
 
-  clear() {
-    var ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = App.colors.workspace.toHexString();
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.save();
-    var p1 = this.worldToScreen(0, 0);
-    ctx.fillStyle = App.colors.paper.toHexString();
-    ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
-    ctx.restore();
-  }
-
-  clearOverlay() {
-    let ctx = this.overlayCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
-  }
-
   constructPath(ctx, points, transform) {
     if (points.length) {
       ctx.beginPath();
@@ -228,12 +215,12 @@ class Paper extends Base {
 
       ctx.lineWidth = params.thickness ? params.thickness * scale : App.lineWidth * scale;
       ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
-      ctx.strokeStyle = params.color ? params.color.toHexString() : 'black'; //App.colors.STROKE_NULL.toHexString();
+      ctx.strokeStyle = params.color ? params.color.toHexString() : 'black';
 
       if (!params.color) {
         if (!params.fill) {
           ctx.setLineDash([3, 4]);
-          ctx.lineWidth = 0.5;
+          ctx.lineWidth = App.lineWidth * scale * 0.5;
         } else {
           ctx.strokeStyle = 'transparent';
         }
@@ -249,9 +236,10 @@ class Paper extends Base {
       }
       ctx.fill();
 
-      if (params.operation !== undefined) {
+      if (params.operation !== undefined)
         ctx.globalCompositeOperation = params.operation;
-      }
+      else
+        ctx.globalCompositeOperation = 'source-over';
 
       ctx.stroke();
 
@@ -278,13 +266,33 @@ class Paper extends Base {
     }
   }
 
+  clear() {
+    var ctx = this.canvas.getContext('2d');
+    ctx.fillStyle = App.colors.workspace.toHexString();
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.save();
+    var p1 = this.worldToScreen(0, 0);
+    ctx.fillStyle = App.colors.paper.toHexString();
+    ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
+    ctx.restore();
+  }
+
+  clearOverlay() {
+    let ctx = this.overlayCanvas.getContext('2d');
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+  }
+
   render() {
     this.clearOverlay();
-    if (this.tool) this.tool.render(this.overlayCanvas.getContext('2d'));
+    // if (this.tool) this.tool.render(this.overlayCanvas.getContext('2d'));
     this.clear();
-    let ctx = this.canvas.getContext('2d');
+    let ctx = this.overlayCanvas.getContext('2d')
+    // let ctx = this.canvas.getContext('2d');
     ctx.save();
     this.renderDisplayList(ctx, this.displayList);
+    if (this.tool) this.tool.render(ctx);
+    // ctx.globalCompositeOperation = 'difference';
+    ctx = this.canvas.getContext('2d');
     ctx.drawImage(this.overlayCanvas, 0, 0);
     ctx.restore();
   }

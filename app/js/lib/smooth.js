@@ -3,7 +3,7 @@ const Point = require('../geom/point.js');
 function Smooth() {
 }
 
-Smooth.AVERAGE = 5;
+Smooth.AVERAGE = 3; // 5 default
 
 // McMaster Smoothing Algorithm
 

@@ -31,21 +31,25 @@ const FrameListTray = require('./ui/custom/frame_list_tray');
 const FrameListMap = require('./ui/custom/frame_list_map');
 const SettingsTray = require('./ui/custom/settings_tray');
 const ColorWheel = require('./ui/custom/color_wheel');
+const ColorPalette = require('./ui/custom/color_palette');
 const PlaybackOptionsTray = require('./ui/custom/playback_options_tray');
 const Overlay = require('./ui/overlay');
 const Menu = require('./ui/menu');
 
 const { ipcRenderer } = require('electron');
+const { app } = require('electron').remote;
 const fs = require('fs');
+const path = require('path');
 const GIFEncoder = require('gifencoder');
 
 let App = {
+  extension: '.matey',
   colors: {
     stroke: new Color(85, 85, 85),
-    // selection: new Color(255, 64, 10),
-    // selection: new Color(64, 64, 64),
-    selection: new Color(0, 64, 255),
+    selection: new Color(32, 180, 255),
+    // selection: new Color(128, 128, 128),
     onion: new Color(160, 240, 160),
+    // onion: new Color(0, 0, 255),
     paper: new Color(255, 255, 255),
     workspace: new Color(128, 128, 128)
   },
@@ -80,9 +84,9 @@ App.render = (frameIndex) => {
       let frame = App.sequence.frames[App.position - 1];
       for (let i = 0; i < frame.strokes.length; i++) {
         let stroke = frame.strokes[i];
-        let thickness = stroke.selected ? App.lineWidth*2 : App.lineWidth;
-        let color = App.colors.onion; //stroke.selected ? App.COLOR_SELECTION : stroke.color;
-        let item = new DisplayItem({ points: stroke.points, color: color, fill: null, thickness: thickness });
+        // let thickness = stroke.selected ? App.lineWidth * 2 : App.lineWidth;
+        let color = App.colors.onion;
+        let item = new DisplayItem({ points: stroke.points, color: color, fill: null, thickness: App.lineWidth });
         App.paper.displayList.add(item);
       }
     }
@@ -98,7 +102,7 @@ App.render = (frameIndex) => {
     let stroke = App.frame.strokes[i];
     if (stroke.selected) {
       let item = new DisplayItem({ points: stroke.points, color: App.colors.selection,
-        fill: stroke.fill, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'difference' });
+        fill: null, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'multiply' });
       App.paper.displayList.add(item);
     }
   }
@@ -429,10 +433,10 @@ App.previous = () => {
 // }
 
 function hideOverlay() {
-  for (var i = 0; i < App.ui.overlay.children.length; i++) {
-    App.ui.overlay.remove(App.ui.overlay.children[i]);
-  }
-  App.ui.overlay.hide();
+  // for (var i = 0; i < App.ui.overlay.children.length; i++) {
+  //   App.ui.overlay.remove(App.ui.overlay.children[i]);
+  // }
+  // App.ui.overlay.hide();
 }
 
 function showColorWheel(el, callback) {
@@ -445,8 +449,14 @@ function showColorWheel(el, callback) {
 
 function hideColorWheel(colorWheel) {
   colorWheel.hide();
-  // if (App.ui.colorWheel) App.ui.colorWheel.hide();
-  // App.ui.overlay.removeAll();
+}
+
+function showColorPalette(el, callback) {
+  let colorPalette = new ColorPalette({ callback: callback });
+  let bounds = el.getBoundingClientRect();
+  let x = (bounds.left + bounds.width / 2);
+  let y = (bounds.top + bounds.height + 16 * App.unit);
+  colorPalette.show({ x: x, y: y });
 }
 
 function showMenu(menu, x, y) {
@@ -551,14 +561,6 @@ App.stop = () => {
   window.cancelAnimationFrame(App.animationFrameId);
   App.ui.controlsTray.setPlaying(false);
   App.go(App.animationFrameIndex);
-}
-
-App.exportGif = () => {
-  ipcRenderer.send('export', App.documentName);
-}
-
-App.save = () => {
-  ipcRenderer.send('save', App.documentName);
 }
 
 App.setState = (state) => {
@@ -673,9 +675,10 @@ App.new = () => {
 
   App.position = -1;
   App.thumbnails = [];
-  App.fileSaved = false;
 
+  App.path = app.getPath('documents');
   App.setDocumentName('untitled');
+  App.changed = false;
 
   App.ui.frameList.render({ cmd: 'removeAll' });
 
@@ -684,6 +687,37 @@ App.new = () => {
 
   App.setTool('pencil');
   newFrame();
+}
+
+App.open = () => {
+  ipcRenderer.send('open');
+}
+
+App.openNow = (filepath) => {
+  try {
+    fs.readFile(filepath, 'utf8', function(err, data) {
+      console.log('open', filepath);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+App.save = () => {
+  let filepath = path.join(App.path, App.documentName + App.extension);
+  try {
+    fs.accessSync(filepath, fs.constants.F_OK | fs.constants.W_OK);
+    App.saveNow(filepath);
+  } catch (err) {
+    console.log('File is not available or read only.');
+    // ipcRenderer.send('save', App.documentName);
+    App.saveAs();
+  }
+}
+
+App.saveAs = () => {
+  document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
+  ipcRenderer.send('save', App.documentName);
 }
 
 App.saveNow = (filename) => {
@@ -717,7 +751,13 @@ App.saveNow = (filename) => {
     console.log('File has been saved!');
   });
 
-  App.setCursor('pointer');
+  let overlay = document.getElementById('overlay');
+  if (overlay) document.body.removeChild(overlay);
+}
+
+App.exportGif = () => {
+  document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
+  ipcRenderer.send('export', App.documentName);
 }
 
 App.exportGifNow = (filename) => {
@@ -753,6 +793,9 @@ App.exportGifNow = (filename) => {
   }
 
   encoder.finish();
+
+  let overlay = document.getElementById('overlay');
+  if (overlay) document.body.removeChild(overlay);
 }
 
 function fadeComponent(component) {
@@ -1043,6 +1086,10 @@ ipcRenderer.on('new', (event) => {
   App.new();
 });
 
+ipcRenderer.on('open', (event, filename) => {
+  App.openNow(filename);
+});
+
 ipcRenderer.on('save', (event, filename) => {
   App.saveNow(filename);
 });
@@ -1117,12 +1164,12 @@ function ready() {
   App.ui.main = new Container({ el: document.getElementById('main') });
   App.ui.content = new Container({ el: document.getElementById('content') });
   App.ui.modal = document.getElementById('modal');
-  App.ui.overlay = new Overlay();
+  // App.ui.overlay = new Overlay();
 
-  App.ui.overlay.el.onmousedown = (event) => {
-    if (event.target == App.ui.overlay.el)
-      hideOverlay();
-  }
+  // App.ui.overlay.el.onmousedown = (event) => {
+  //   if (event.target == App.ui.overlay.el)
+  //     hideOverlay();
+  // }
 
   // App.ui.tools = new Tools();
   // App.ui.tools.on('tool-change', (params) => {
@@ -1213,12 +1260,12 @@ function ready() {
   });
   App.ui.colorsTray = new ColorsTray({ el: document.getElementById('colors-tray') });
   App.ui.colorsTray.getByName('stroke').on('down', (component) => {
-    showColorWheel(component.el, (color) => {
+    showColorPalette(component.el, (color) => {
       App.setStrokeColor(color);
     });
   });
   App.ui.colorsTray.getByName('fill').on('down', (component) => {
-    showColorWheel(component.el, (color) => {
+    showColorPalette(component.el, (color) => {
       App.setFillColor(color);
     });
   });
@@ -1233,10 +1280,11 @@ function ready() {
   });
 
   let menu = new Menu();
-  menu.addItem({ title: 'New...', shortcut: 'Ctrl+N', icon: 'new-small', click: () => { App.new(); }});
-  menu.addItem({ title: 'Save', shortcut: 'Ctrl+S', click: () => { App.save(); } });
-  menu.addItem({ title: 'Save As', shortcut: 'Shift+Ctrl+S' });
-  menu.addItem({ title: 'Export GIF', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGif() } });
+  menu.addItem({ title: 'New...', shortcut: 'Ctrl+N', icon: 'new-small', click: () => { App.new() }});
+  menu.addItem({ title: 'Open...', shortcut: 'Ctrl+O', click: () => { App.open() }});
+  menu.addItem({ title: 'Save', shortcut: 'Ctrl+S', click: () => { App.save() } });
+  menu.addItem({ title: 'Save As...', shortcut: 'Shift+Ctrl+S', click: () => { App.saveAs() } });
+  menu.addItem({ title: 'Export GIF...', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGif() } });
   App.menus.settings = menu;
 
   App.ui.settingsTray = new SettingsTray({ el: document.getElementById('settings-tray') });
@@ -1244,9 +1292,9 @@ function ready() {
     let bounds = component.el.getBoundingClientRect();
     showMenu(App.menus.settings, bounds.left, bounds.top + component.el.offsetHeight + 10 * App.unit);
   });
-  App.ui.settingsTray.on('export', () => {
-    ipcRenderer.send('export');
-  });
+  // App.ui.settingsTray.on('export', () => {
+  //   ipcRenderer.send('export');
+  // });
   App.ui.frameListTray = new FrameListTray({ el: document.getElementById('frame-list-tray') });
   App.ui.frameListTray.on('first', () => {
     App.first();

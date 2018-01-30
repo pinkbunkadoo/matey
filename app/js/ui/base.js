@@ -7,12 +7,15 @@ class Base extends EventEmitter {
 
     if (params.el) {
       this.el = params.el;
+      this.id = this.el.id || params.id;
     } else {
       this.el = document.createElement('div');
+      this.el.id = params.id;
     }
 
-    this.addClass('ui');
     this.name = params.name;
+
+    this.addClass('ui');
   }
 
   addClass(className) {

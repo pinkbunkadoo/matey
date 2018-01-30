@@ -1,8 +1,9 @@
 const Util = require('../../util');
 const Color = require('../../color');
 const Container = require('../container');
+const Overlay = require('../overlay');
 
-class ColorWheel extends Container {
+class ColorWheel extends Overlay {
   constructor(params={}) {
     super(params);
 
@@ -54,7 +55,7 @@ class ColorWheel extends Container {
     this.innerRadius1 = this.outerRadius1 - width / 8;
     this.outerRadius2 = this.innerRadius1 + 1;
     this.innerRadius2 = this.outerRadius2 - width / 8;
-    this.nullRadius = (width / 2) * 0.2;
+    this.nullRadius = (width / 2) * 0.25;
 
     this.container.el.appendChild(this.canvas);
     this.add(this.container);
@@ -131,7 +132,7 @@ class ColorWheel extends Container {
 
     // centre null circle
 
-    ctx.fillStyle = 'gray';
+    ctx.fillStyle = 'white';
     // ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
     // ctx.lineWidth = 1;
     ctx.beginPath();
@@ -154,7 +155,7 @@ class ColorWheel extends Container {
 
     ctx.lineCap = 'round';
     ctx.lineWidth = 8 * App.unit;
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.strokeStyle = 'gray';
     ctx.beginPath();
     ctx.moveTo(w2 - w2 / 10, h2 - h2 / 10);
     ctx.lineTo(w2 + w2 / 10, h2 + h2 / 10);

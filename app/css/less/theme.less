@@ -179,7 +179,6 @@ button {
 }
 
 .tray-button-background {
-  // fill: transparent;
   fill: @tray-button-color;
   transition: fill .2s;
   &:hover {
@@ -213,6 +212,33 @@ button {
   justify-content: center;
   border-radius: 1em 16em 16em 16em;
   background-color: rgba(32, 32, 32, 0.8);
+  // background-color: rgba(255, 255, 255, 0.8);
+
+}
+
+.color-palette {
+  display: grid;
+  // grid-gap: .1em;
+  grid-template-columns: repeat(8, 1fr);
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: @menu-background-color;
+  // background: gray;
+  // border-radius: .3em;
+  // padding: .1em;
+  // border: .2em solid gray;
+  box-shadow: .2em .3em 1.6em rgba(0, 0, 0, 0.4);
+}
+
+.color-palette-swatch {
+  width: 3em;
+  height: 3em;
+  min-width: 3em;
+  min-height: 3em;
+  // border: .1em solid white;
+  // border-radius: .2em;
+  // margin: .1em;
 }
 
 // .color-palette {
@@ -338,7 +364,7 @@ button {
   justify-content: center;
   width: 100vw;
   height: 7em;
-  box-sizing:border-box;
+  box-sizing: border-box;
 }
 
 #frame-list {
@@ -346,33 +372,29 @@ button {
   box-sizing: border-box;
   overflow: hidden;
   z-index: 5;
-  background: rgba(0, 0, 0, 0.2);
 }
 
 #frame-list-container {
   display: flex;
   position: relative;
   flex-direction: row;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 
 .frame-list-item {
   flex-direction: column;
-  // overflow: hidden;
-  // box-sizing: content-box;
+  &.selected {
+    border-top-color: @selected-color;
+  }
 }
 
 .frame-list-item-number {
   position: absolute;
   pointer-events: none;
-  padding: .4em;
+  padding: .6em;
   box-sizing: border-box;
-  border: .3em solid transparent;
-  // top:-.4em;
+  border-top: .4em solid transparent;
   &.selected {
-    border: .3em solid @selected-color;
-    // background: rgba(64, 192, 255, 0.2);
+    border-color: @selected-color;
   }
   color: @frame-text-color;
 }
@@ -380,22 +402,24 @@ button {
 #frame-list-new {
   align-items: center;
   justify-content: center;
-  padding-left: 2.0em;
-  padding-right: 2.0em;
+  padding: 0 2em 0 2em;
+  // height: 7em;
   height: 100%;
-  background: transparent;
+  background:  @tray-button-color;
   transition: background-color 0.2s;
   fill: @background-color;
   &:hover {
-    background-color: @text-color;
+    background-color: lighten(@tray-button-color, 5%);
   }
 }
 
 #frame-list-spacer {
   display: flex;
+  align-items: center;
   flex: auto;
   height: 100%;
-  background: rgba(0, 0, 0, 0.2);
+  // background: rgba(0, 0, 0, 0.2);
+  background: fadeout(@tray-button-color, 20%);
 }
 
 .frame-list-butt {
@@ -446,6 +470,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: .2em;
 }
 
 .color-swatch-background {
@@ -528,6 +553,8 @@ button {
   border-radius: .4em;
   color: @menu-text-color;
   background: @menu-background-color;
+
+  box-shadow: .2em .3em 1.6em rgba(0, 0, 0, 0.4);
 }
 
 .menu-item {
@@ -537,7 +564,8 @@ button {
   height: 4em;
   min-height: 4em;
   &:hover {
-    background-color: lighten(@menu-background-color, 15%);
+    // background-color: darken(@menu-background-color, 10%);
+    background-color: rgba(255, 255, 255, 0.1);
   }
   fill: darken(@menu-text-color, 20%);
   white-space: nowrap;
@@ -562,15 +590,18 @@ button {
 .cartouche {
   display: flex;
   align-items: center;
-  justify-content: center;
+  // justify-content: center;
   padding: .9em;
+  // border: 1px solid red;
 }
 
 #tools-tray {
   display: flex;
-  align-items: center;
+  // align-items: center;
   flex-direction: column;
   position: fixed;
+  left: 0em;
+  top: 0em;
 }
 
 #tools-tray-tool {
@@ -579,6 +610,7 @@ button {
 #tools-rollout {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  // align-items: center;
 }
 
 #colors-tray {
