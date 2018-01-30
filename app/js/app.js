@@ -46,7 +46,7 @@ let App = {
   extension: '.matey',
   colors: {
     stroke: new Color(85, 85, 85),
-    selection: new Color(32, 180, 255),
+    selection: new Color(255, 96, 16),
     // selection: new Color(128, 128, 128),
     onion: new Color(160, 240, 160),
     // onion: new Color(0, 0, 255),
@@ -102,7 +102,7 @@ App.render = (frameIndex) => {
     let stroke = App.frame.strokes[i];
     if (stroke.selected) {
       let item = new DisplayItem({ points: stroke.points, color: App.colors.selection,
-        fill: null, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'multiply' });
+        fill: null, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'difference' });
       App.paper.displayList.add(item);
     }
   }
@@ -1022,7 +1022,7 @@ function onResize() {
   if (!window.resizeTimeoutId) {
     window.resizeTimeoutId = setTimeout(function() {
       reposition();
-      window.resizeTimeoutId = 0;
+      window.resizeTimeoutId = null;
     }, 1000/30);
   }
 }

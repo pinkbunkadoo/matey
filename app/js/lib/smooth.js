@@ -3,7 +3,7 @@ const Point = require('../geom/point.js');
 function Smooth() {
 }
 
-Smooth.AVERAGE = 3; // 5 default
+Smooth.AVERAGE = 5; // 5 default
 
 // McMaster Smoothing Algorithm
 
@@ -36,7 +36,7 @@ Smooth.mcmaster = function(points) {
 
 //http://jsfiddle.net/xup4T/
 
-Smooth.LIMIT = 4; // original value 4
+Smooth.LIMIT = 6; // original value 4
 
 Smooth.exp = function (ps) {
 	if (ps.length > Smooth.LIMIT) {

@@ -215,10 +215,10 @@ class Paper extends Base {
 
       ctx.lineWidth = params.thickness ? params.thickness * scale : App.lineWidth * scale;
       ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
-      ctx.strokeStyle = params.color ? params.color.toHexString() : 'black';
+      ctx.strokeStyle = params.color ? params.color.toHexString() : 'gray';
 
       if (!params.color) {
-        if (!params.fill) {
+        if (!params.fill || points.length == 2) {
           ctx.setLineDash([3, 4]);
           ctx.lineWidth = App.lineWidth * scale * 0.5;
         } else {

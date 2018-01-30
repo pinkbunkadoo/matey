@@ -1,6 +1,8 @@
 const Util = require('../util');
 const Point = require('../geom/point');
 const Vector = require('../geom/vector');
+const DisplayItem = require('../display_item');
+const Transform = require('../transform');
 const Stroke = require('../stroke');
 const Tool = require('./tool');
 
@@ -71,7 +73,6 @@ class PolygonTool extends Tool {
 
       if (this.points.length > 1) {
         App.createStroke(this.points, App.getStrokeColor(), App.getFillColor());
-        // this.emit('stroke', { points: this.points });
       } else {
         App.render();
       }
@@ -94,33 +95,51 @@ class PolygonTool extends Tool {
   }
 
   render(ctx) {
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    // ctx.lineCap = 'round';
+    // ctx.lineJoin = 'round';
 
     if (this.drawing && this.points.length) {
-      ctx.lineWidth = App.lineWidth;
-      // ctx.strokeStyle = App.colors.stroke.toHexString();
+      // console.log('render');
+      let transform = new Transform();
 
-      let color = App.getStrokeColor();
-      ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
-
-      if (this.points.length >= 1) {
-        // console.log('poly.render');
-        ctx.beginPath();
-
-        for (var i = 0; i < this.points.length; i++) {
-          let p = this.points[i];
-          let x = p.x, y = p.y;
-          if (i == 0)
-            ctx.moveTo(x, y);
-          else
-            ctx.lineTo(x, y);
+      App.paper.renderPath(ctx, this.points, {
+          color: App.getStrokeColor(),
+          fill: App.getFillColor(),
+          thickness: App.lineWidth,
+          transform: transform
         }
+      );
 
-        ctx.lineTo(this.mx, this.my);
-        ctx.stroke();
-        // console.log(this.points.length);
-      }
+      App.paper.renderPath(ctx, [ this.points[this.points.length - 1], new Point(this.mx, this.my) ], {
+          color: null,
+          fill: null,
+          thickness: App.lineWidth,
+          transform: transform
+        }
+      );
+
+      // ctx.lineWidth = App.lineWidth;
+      //
+      // let color = App.getStrokeColor();
+      // ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
+      //
+      // if (this.points.length >= 1) {
+      //   // console.log('poly.render');
+      //   ctx.beginPath();
+      //
+      //   for (var i = 0; i < this.points.length; i++) {
+      //     let p = this.points[i];
+      //     let x = p.x, y = p.y;
+      //     if (i == 0)
+      //       ctx.moveTo(x, y);
+      //     else
+      //       ctx.lineTo(x, y);
+      //   }
+      //
+      //   ctx.lineTo(this.mx, this.my);
+      //   ctx.stroke();
+      //   // console.log(this.points.length);
+      // }
     }
   }
 
@@ -140,6 +159,7 @@ class PolygonTool extends Tool {
         this.beginPath(mx, my);
         // this.emit('change');
       }
+      App.render();
     //   if (this.points.length == 0) {
     //     this.beginStroke();
     //   } else {

@@ -176,7 +176,7 @@ button.text {
   position: absolute;
   left: 0;
   top: 0;
-  background: rgba(16, 16, 16, 0.9);
+  background: rgba(16, 16, 16, 0.8);
   box-shadow: 0.2em 0.3em 1.6em rgba(0, 0, 0, 0.4);
 }
 .color-palette-swatch {
@@ -343,7 +343,7 @@ button.text {
   z-index: 10;
   border-radius: .4em;
   color: #c0c0c0;
-  background: rgba(16, 16, 16, 0.9);
+  background: rgba(16, 16, 16, 0.8);
   box-shadow: 0.2em 0.3em 1.6em rgba(0, 0, 0, 0.4);
 }
 .menu-item {

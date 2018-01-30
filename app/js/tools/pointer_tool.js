@@ -50,7 +50,7 @@ class PointerTool extends Tool {
 
     for (var i = 0; i < App.selection.items.length; i++) {
       let item = App.selection.items[i];
-      let displayItem = new DisplayItem({ points: item.points, color: new Color(160, 160, 160), thickness: App.lineWidth, operation: 'multiply' });
+      let displayItem = new DisplayItem({ points: item.points, color: new Color(64, 64, 64), thickness: App.lineWidth, operation: 'difference' });
       this.list.add(displayItem);
     }
     // console.log(this.items.length);
