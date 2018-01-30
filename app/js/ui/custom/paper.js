@@ -286,13 +286,13 @@ class Paper extends Base {
     this.clearOverlay();
     // if (this.tool) this.tool.render(this.overlayCanvas.getContext('2d'));
     this.clear();
-    let ctx = this.overlayCanvas.getContext('2d')
-    // let ctx = this.canvas.getContext('2d');
+    // let ctx = this.overlayCanvas.getContext('2d')
+    let ctx = this.canvas.getContext('2d');
     ctx.save();
     this.renderDisplayList(ctx, this.displayList);
     if (this.tool) this.tool.render(ctx);
     // ctx.globalCompositeOperation = 'difference';
-    ctx = this.canvas.getContext('2d');
+    // ctx = this.canvas.getContext('2d');
     ctx.drawImage(this.overlayCanvas, 0, 0);
     ctx.restore();
   }
