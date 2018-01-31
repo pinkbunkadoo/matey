@@ -8,13 +8,12 @@ Pen strokes are vector based, allowing for a reduced memory footprint and file
 size, as well as the ability to manipulate them after they have been put to
 paper.
 
-As it stands you are able export your animation as an animated GIF - more
-formats are coming.
+Animations can be exported as animated GIF - more formats are coming.
 
 ## Important
 
 Please keep in mind that Matey is a work in progress and as such, some features
-are not yet functional. There will also be bugs. Lots of them.
+are not yet functional. There will also be bugs - probably lots of them.
 
 ## Installation
 
@@ -36,15 +35,21 @@ electron .
 
 | shortcut | description |
 | ------------- |:-------------:|
-| N      | create a new frame |
+| N      | Create a new frame |
+| Shift + N      | Dupicate current frame |
 | B      | Pen tool |
 | L      | Line tool |
 | P      | Polygon tool |
 | Q      | Pointer tool |
 | H      | Hand tool |
 | Z      | Zoom tool |
+| ,      | Previous frame |
+| .      | Next frame |
+| [      | Bring selected strokes forward |
+| ]      | Push selected strokes back |
+| Delete, Backspace | Delete selected strokes |
 | Space + Drag | Pan the canvas |
-| Ctrl + Backspace | delete current frame |
+| Ctrl + Backspace | Delete current frame |
 | Ctrl + Z | Undo last action |
 | Ctrl + Shift + Z | Redo last action |
 
