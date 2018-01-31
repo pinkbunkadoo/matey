@@ -15,6 +15,20 @@ class Color {
     return new Color(this.r, this.g, this.b, this.a);
   }
 
+  toHexString() {
+    var r = this.r, g = this.g, b = this.b, a = this.a;
+    r = (r > 0xf ? r.toString(16) : '0' + r.toString(16));
+    g = (g > 0xf ? g.toString(16) : '0' + g.toString(16));
+    b = (b > 0xf ? b.toString(16) : '0' + b.toString(16));
+    // a = (a > 0xf ? a.toString(16) : '0' + a.toString(16));
+    // return '#' + r + g + b + a;
+    return '#' + r + g + b;
+  }
+
+  static fromObject(obj={}) {
+    return new Color(obj.r, obj.g, obj.b, obj.a);
+  }
+
   static inverse(color) {
     return new Color(255 - color.r, 255 - color.g, 255 - color.b);
   }
@@ -39,15 +53,6 @@ class Color {
     return new Color(r, g, b, a);
   }
 
-  toHexString() {
-    var r = this.r, g = this.g, b = this.b, a = this.a;
-    r = (r > 0xf ? r.toString(16) : '0' + r.toString(16));
-    g = (g > 0xf ? g.toString(16) : '0' + g.toString(16));
-    b = (b > 0xf ? b.toString(16) : '0' + b.toString(16));
-    // a = (a > 0xf ? a.toString(16) : '0' + a.toString(16));
-    // return '#' + r + g + b + a;
-    return '#' + r + g + b;
-  }
 }
 
 module.exports = Color;

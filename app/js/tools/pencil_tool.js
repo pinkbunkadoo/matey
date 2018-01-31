@@ -1,11 +1,11 @@
+const Smooth = require('../lib/smooth');
+const simplify = require('../lib/simplify');
 const Util = require('../util');
 const Point = require('../geom/point');
 const Transform = require('../transform');
 const Stroke = require('../stroke');
 const Tool = require('./tool');
-
-const Smooth = require('../lib/smooth');
-const simplify = require('../lib/simplify');
+const DisplayItem = require('../display_item');
 
 class PencilTool extends Tool {
   constructor() {
@@ -28,16 +28,11 @@ class PencilTool extends Tool {
 
   addPoint(x, y) {
     this.points.push(new Point(x, y));
-    // console.log(x, y);
   }
 
   beginStroke(mx, my) {
-    // console.log('begin');
     App.capture(this);
-    // console.log('beginStroke');
     this.drawing = true;
-    // var mx = event.clientX - App.paper.el.offsetLeft;
-    // var my = event.clientY - App.paper.el.offsetTop;
     this.addPoint(mx, my);
   }
 
@@ -45,10 +40,9 @@ class PencilTool extends Tool {
     App.release(this);
     this.drawing = false;
     if (this.points.length > 2) {
-      // console.log(this.points.length);
       // this.points = Smooth.mcmaster(this.points);
+
       this.points = simplify(this.points, 0.4, true);
-      // console.log(this.points.length);
       App.createStroke(this.points, App.getStrokeColor(), App.getFillColor());
     }
     this.points = [];
@@ -56,30 +50,26 @@ class PencilTool extends Tool {
 
   render(ctx) {
     if (this.drawing) {
-      App.paper.renderPath(
-        ctx,
-        this.points,
-        {
-          color: App.getStrokeColor(),
-          fill: App.getFillColor(),
-          thickness: App.lineWidth,
-          transform: new Transform()
-        }
-      );
+      let color = App.getStrokeColor();
+      let fill = App.getFillColor();
+      let displayItem = new DisplayItem({
+        points: this.points,
+        color: color,
+        fill: fill,
+        thickness: App.lineWidth,
+        transform: new Transform(0, 0),
+        dashed: (color === null && fill === null)
+      });
+      App.paper.addDisplayItem(displayItem);
 
-      // ctx.beginPath();
-      // for (var i = 0; i < this.points.length; i++) {
-      //   var point = this.points[i];
-      //   var x = point.x, y = point.y;
-      //   if (i == 0)
-      //     ctx.moveTo(x, y);
-      //   else
-      //     ctx.lineTo(x, y);
-      // }
-      // let color = App.getStrokeColor();
-      // ctx.lineWidth = App.lineWidth;
-      // ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
-      // ctx.stroke();
+      // App.paper.renderPath(ctx, this.points,
+      //   {
+      //     color: App.getStrokeColor(),
+      //     fill: App.getFillColor(),
+      //     thickness: App.lineWidth,
+      //     transform: new Transform()
+      //   }
+      // );
     }
   }
 

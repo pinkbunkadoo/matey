@@ -1,4 +1,6 @@
 const Util = require('../util');
+const Transform = require('../transform');
+const DisplayItem = require('../display_item');
 const Point = require('../geom/point');
 const Vector = require('../geom/vector');
 const Stroke = require('../stroke');
@@ -69,18 +71,31 @@ class LineTool extends Tool {
 
   render(ctx) {
     if (this.drawing) {
-      ctx.beginPath();
+      // ctx.beginPath();
+      // let color = App.getStrokeColor();
+      // ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
+      // for (let i = 0; i < this.points.length; i++) {
+      //   let point = this.points[i];
+      //   let x = point.x, y = point.y;
+      //   if (i == 0)
+      //     ctx.moveTo(x, y);
+      //   else
+      //     ctx.lineTo(x, y);
+      // }
+      // ctx.stroke();
+      let transform = new Transform();
       let color = App.getStrokeColor();
-      ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
-      for (let i = 0; i < this.points.length; i++) {
-        let point = this.points[i];
-        let x = point.x, y = point.y;
-        if (i == 0)
-          ctx.moveTo(x, y);
-        else
-          ctx.lineTo(x, y);
-      }
-      ctx.stroke();
+      let fill = App.getFillColor();
+
+      App.paper.addDisplayItem(new DisplayItem({
+        points: this.points,
+        color: color ? color : App.colors.stroke,
+        fill: null,
+        thickness: App.lineWidth,
+        transform: transform,
+        dashed: (color == null)
+      }));
+
     }
   }
 

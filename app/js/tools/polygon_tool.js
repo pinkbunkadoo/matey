@@ -33,7 +33,6 @@ class PolygonTool extends Tool {
   addPoint(x, y) {
     x = Math.round(x), y = Math.round(y);
     this.points.push(new Point(x, y));
-    // console.log(this.points.length);
   }
 
   beginPath(x, y) {
@@ -44,30 +43,9 @@ class PolygonTool extends Tool {
 
     App.capture(this);
 
-    // console.log('poly-begin');
-
-    // console.log('beginStroke');
-
-    // window.addEventListener('mouseup', this);
-    // App.paper.canvas.addEventListener('mousemove', this);
-    // // window.addEventListener('mousemove', this);
-    // window.addEventListener('mousedown', this);
-    // window.addEventListener('blur', this);
-
-    // window.addEventListener('pointerlockchange', (event) => {
-    //   console.log('pointerlockchange');
-    // });
-    // window.addEventListener('pointerlockerror', (event) => {
-    //   console.log('pointerlockerror');
-    // });
-    //
-    // App.paper.canvas.requestPointerLock = App.paper.canvas.requestPointerLock || App.paper.canvas.mozRequestPointerLock;
-    // App.paper.canvas.requestPointerLock();
   }
 
   endPath() {
-    // console.log('endpath');
-
     if (this.drawing) {
       this.drawing = false;
 
@@ -80,66 +58,48 @@ class PolygonTool extends Tool {
       this.points = [];
       App.release(this);
     }
-
-    // window.removeEventListener('mouseup', this);
-    // // window.removeEventListener('mousemove', this);
-    // window.removeEventListener('mousedown', this);
-    // App.paper.canvas.removeEventListener('mousemove', this);
-    // window.removeEventListener('blur', this);
-    //
-    // document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-    // // Attempt to unlock
-    // document.exitPointerLock();
-
-    // console.log('poly-end');
   }
 
   render(ctx) {
-    // ctx.lineCap = 'round';
-    // ctx.lineJoin = 'round';
-
     if (this.drawing && this.points.length) {
-      // console.log('render');
       let transform = new Transform();
+      let color = App.getStrokeColor();
+      let fill = App.getFillColor();
 
-      App.paper.renderPath(ctx, this.points, {
-          color: App.getStrokeColor(),
-          fill: App.getFillColor(),
-          thickness: App.lineWidth,
-          transform: transform
-        }
-      );
+      App.paper.addDisplayItem(new DisplayItem({
+        points: this.points,
+        color: color,
+        fill: fill,
+        thickness: App.lineWidth,
+        transform: transform,
+        dashed: (color === null && (fill === null || this.points.length == 2))
+      }));
 
-      App.paper.renderPath(ctx, [ this.points[this.points.length - 1], new Point(this.mx, this.my) ], {
-          color: null,
-          fill: null,
-          thickness: App.lineWidth,
-          transform: transform
-        }
-      );
+      App.paper.addDisplayItem(new DisplayItem({
+        points: [ this.points[this.points.length - 1], new Point(this.mx, this.my) ],
+        color: color ? color : App.colors.stroke,
+        fill: null,
+        thickness: App.lineWidth,
+        transform: transform,
+        dashed: true
+      }));
 
-      // ctx.lineWidth = App.lineWidth;
-      //
-      // let color = App.getStrokeColor();
-      // ctx.strokeStyle = color ? color.toHexString() : App.colors.stroke.toHexString();
-      //
-      // if (this.points.length >= 1) {
-      //   // console.log('poly.render');
-      //   ctx.beginPath();
-      //
-      //   for (var i = 0; i < this.points.length; i++) {
-      //     let p = this.points[i];
-      //     let x = p.x, y = p.y;
-      //     if (i == 0)
-      //       ctx.moveTo(x, y);
-      //     else
-      //       ctx.lineTo(x, y);
+      // App.paper.renderPath(ctx, this.points, {
+      //     color: App.getStrokeColor(),
+      //     fill: App.getFillColor(),
+      //     thickness: App.lineWidth,
+      //     transform: transform
       //   }
+      // );
       //
-      //   ctx.lineTo(this.mx, this.my);
-      //   ctx.stroke();
-      //   // console.log(this.points.length);
-      // }
+      // App.paper.renderPath(ctx, [ this.points[this.points.length - 1], new Point(this.mx, this.my) ], {
+      //     color: null,
+      //     fill: null,
+      //     thickness: App.lineWidth,
+      //     transform: transform
+      //   }
+      // );
+
     }
   }
 

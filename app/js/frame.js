@@ -4,8 +4,8 @@ const Selection = require('./selection');
 const Stroke = require('./stroke');
 
 class Frame {
-  constructor() {
-    this.strokes = [];
+  constructor(strokes=[]) {
+    this.strokes = strokes;
     this.history = new History();
   }
 

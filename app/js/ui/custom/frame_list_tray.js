@@ -3,6 +3,7 @@ const Color = require('../../color');
 const ColorSwatch = require('../color_swatch');
 const Icon = require('../icon');
 const Tray = require('../tray');
+const FrameList = require('./frame_list');
 const TrayButton = require('../tray_button');
 const Spacer = require('../spacer');
 const Divider = require('../divider');
@@ -10,6 +11,22 @@ const Divider = require('../divider');
 class FrameListTray extends Tray {
   constructor(params={}) {
     super(params);
+
+    this.frameList = new FrameList({ el: document.getElementById('frame-list'), name: 'frameList' });
+    this.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);
+    this.frameList.on('select', (params) => {
+      this.emit('select', params.index)
+    });
+    this.add(this.frameList);
+
+    // this.frameList.on('new-frame', (params) => {
+    //   this.emit('new-frame');
+    //   // Aopp.newFrame();
+    // });
+    // this.frameList.on('scroll', () => {
+    //   this.emit('scroll');
+    //   // updateFrameListMap();
+    // });
 
     this.first = new Container({ el: document.getElementById('frame-list-first') });
     this.last = new Container({ el: document.getElementById('frame-list-last') });

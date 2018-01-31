@@ -3,8 +3,8 @@ const Overlay = require('./overlay');
 const MenuItem = require('./menu_item');
 
 class Menu extends Overlay {
-  constructor() {
-    super();
+  constructor(params={}) {
+    super(params);
 
     this.items = [];
 

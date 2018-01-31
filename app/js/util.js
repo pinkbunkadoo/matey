@@ -70,7 +70,7 @@ Util.calculatePolygonBounds = function(points) {
   var miny = Number.POSITIVE_INFINITY;
   var maxx = Number.NEGATIVE_INFINITY;
   var maxy = Number.NEGATIVE_INFINITY;
-  var bounds = null;
+  var bounds = { x: minx, y: miny, width: maxx - minx, height: maxy - miny };
   if (points.length > 0) {
     for (var i = 0; i < points.length; i++) {
       var p = points[i];
@@ -79,7 +79,7 @@ Util.calculatePolygonBounds = function(points) {
       maxx = (p.x > maxx ? p.x : maxx);
       maxy = (p.y > maxy ? p.y : maxy);
     }
-    bounds = {x: minx, y: miny, width: maxx - minx, height: maxy - miny };
+    bounds = { x: minx, y: miny, width: maxx - minx, height: maxy - miny };
   }
   return bounds;
 }

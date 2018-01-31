@@ -105,7 +105,7 @@ function showOpenDialog(filepath) {
         if (filename instanceof Array) {
           mainWindow.send('open', filename[0]);
         }
-        return true
+        // return true
       }
     )
   }
@@ -123,10 +123,10 @@ function showSaveDialog(filepath) {
       },
       filename => {
         if (filename) {
-          console.log(filename);
+          // console.log(filename);
           mainWindow.send('save', filename);
         }
-        return true
+        // return true
       }
     )
   }
@@ -144,7 +144,7 @@ function showExportDialog(filepath) {
       },
       filename => {
         if (filename) {
-          console.log(filename);
+          // console.log(filename);
           mainWindow.send('export', filename);
         }
       })

@@ -5,18 +5,21 @@ class Overlay extends Container {
     super(params);
     this.addClass('overlay');
     this.setVisible(false);
+    this.el.style.cursor = 'default';
   }
 
   show() {
     super.show();
-    document.body.appendChild(this.el);
+    if (!document.body.contains(this.el)) document.body.appendChild(this.el);
+    // console.log('overlay.show');
     // window.addEventListener('resize', this);
     // window.addEventListener('blur', this);
   }
 
   hide() {
     super.hide();
-    document.body.removeChild(this.el);
+    if (document.body.contains(this.el)) document.body.removeChild(this.el);
+    // console.log('overlay.hide');
     // window.removeEventListener('resize', this);
     // window.removeEventListener('blur', this);
   }

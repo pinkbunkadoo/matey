@@ -1,9 +1,12 @@
 const Point = require('../../geom/point');
 const Transform = require('../../transform');
+const Surface = require('../../surface');
+const Renderer = require('../../renderer');
 const DisplayList = require('../../display_list');
+const Stroke = require('../../stroke');
+
 const Base = require('../base');
 const Tools = require('../../tools/');
-const Stroke = require('../../stroke');
 
 class Paper extends Base {
   constructor(params={}) {
@@ -12,22 +15,9 @@ class Paper extends Base {
     this.canvasWidth = this.el.offsetWidth;
     this.canvasHeight = this.el.offsetHeight;
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.canvasWidth;
-    this.canvas.height = this.canvasHeight;
-    this.el.appendChild(this.canvas);
-
-    this.overlayCanvas = document.createElement('canvas');
-    this.overlayCanvas.width = this.canvasWidth;
-    this.overlayCanvas.height = this.canvasHeight;
-
     this.scale = 1.0;
     this.width = params.width || 320;
     this.height = params.height || 200;
-
-    this.bitmap = document.createElement('canvas');
-    this.bitmap.width = this.width;
-    this.bitmap.height = this.height;
 
     this.tx = 0;
     this.ty = 0;
@@ -48,21 +38,21 @@ class Paper extends Base {
     this.tools.hand = new Tools.Hand();
     this.tools.zoom = new Tools.Zoom();
 
-    this.displayList = new DisplayList();
     this.mouseDown = false;
 
     this.cursorX = 0;
     this.cursorY = 0;
+
+    this.surface = new Surface({ width: this.canvasWidth, height: this.canvasHeight });
+    this.renderer = new Renderer();
+
+    this.el.appendChild(this.surface.canvas);
   }
 
   resize(width, height) {
+    this.surface.resize(width, height);
     this.canvasWidth = width;
     this.canvasHeight = height;
-    this.canvas.width = this.canvasWidth;
-    this.canvas.height = this.canvasHeight;
-
-    this.overlayCanvas.width = this.canvasWidth;
-    this.overlayCanvas.height = this.canvasHeight;
   }
 
   setCameraPosition(x, y) {
@@ -135,8 +125,10 @@ class Paper extends Base {
   }
 
   screenToWorld(x, y) {
-    var widthHalf = (this.canvas.width / 2) >> 0;
-    var heightHalf = (this.canvas.height / 2) >> 0;
+    // var widthHalf = (this.canvasWidth / 2) >> 0;
+    // var heightHalf = (this.canvasHeight / 2) >> 0;
+    var widthHalf = (this.canvasWidth / 2);
+    var heightHalf = (this.canvasHeight / 2);
 
     var px = x - widthHalf;
     var py = y - heightHalf;
@@ -152,8 +144,8 @@ class Paper extends Base {
 
   getWorldToScreenTransform() {
     return new Transform(
-      (this.canvas.width / 2) - this.tx * this.scale,
-      (this.canvas.height / 2) - this.ty * this.scale,
+      (this.canvasWidth / 2) - this.tx * this.scale,
+      (this.canvasHeight / 2) - this.ty * this.scale,
       this.scale
     );
   }
@@ -165,8 +157,10 @@ class Paper extends Base {
     var sx = (tx * this.scale);
     var sy = (ty * this.scale);
 
-    var widthHalf = (this.canvas.width / 2) >> 0;
-    var heightHalf = (this.canvas.height / 2) >> 0;
+    // var widthHalf = (this.canvasWidth / 2) >> 0;
+    // var heightHalf = (this.canvasHeight / 2) >> 0;
+    var widthHalf = (this.canvasWidth / 2);
+    var heightHalf = (this.canvasHeight / 2);
 
     return new Point(sx + widthHalf, sy + heightHalf);
   }
@@ -187,122 +181,51 @@ class Paper extends Base {
     }
   }
 
-  getContext() {
-    return this.canvas.getContext('2d');
+  // clear() {
+  //   var ctx = this.canvas.getContext('2d');
+  //   ctx.fillStyle = App.colors.workspace.toHexString();
+  //   ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  //   ctx.save();
+  //   var p1 = this.worldToScreen(0, 0);
+  //   ctx.fillStyle = App.colors.paper.toHexString();
+  //   ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
+  //   ctx.restore();
+  // }
+
+  addDisplayItem(item) {
+    this.renderer.displayList.add(item);
   }
 
-  constructPath(ctx, points, transform) {
-    if (points.length) {
-      ctx.beginPath();
-      for (let i = 0; i < points.length; i++) {
-        let point = points[i], p;
-        if (transform) {
-          p = transform.apply(point);
-        } else {
-          p = this.worldToScreen(point.x, point.y);
-        }
-        i == 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
-      }
-    }
-  }
-
-  renderPath(ctx, points, params) {
-    if (points.length) {
-      let transform = params.transform;
-      let scale = transform ? transform.scale : 1;
-
-      ctx.save();
-
-      ctx.lineWidth = params.thickness ? params.thickness * scale : App.lineWidth * scale;
-      ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
-      ctx.strokeStyle = params.color ? params.color.toHexString() : 'gray';
-
-      if (!params.color) {
-        if (!params.fill || points.length == 2) {
-          ctx.setLineDash([3, 4]);
-          ctx.lineWidth = App.lineWidth * scale * 0.5;
-        } else {
-          ctx.strokeStyle = 'transparent';
-        }
-      }
-
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      this.constructPath(ctx, points, params.transform);
-
-      if (params.opacity !== undefined) {
-        ctx.globalAlpha = params.opacity;
-      }
-      ctx.fill();
-
-      if (params.operation !== undefined)
-        ctx.globalCompositeOperation = params.operation;
-      else
-        ctx.globalCompositeOperation = 'source-over';
-
-      ctx.stroke();
-
-      ctx.restore();
-    }
-  }
-
-  renderDisplayItem(ctx, item, transform=null) {
-    let points = item.points;
-    if (points.length) {
-      this.renderPath(ctx, points, {
-        color: item.color, fill: item.fill,
-        thickness: item.thickness, opacity: item.opacity,
-        transform: transform || item.transform,
-        operation: item.operation
-      });
-    }
-  }
-
-  renderDisplayList(ctx, displayList, transform) {
-    for (let i = 0; i < displayList.items.length; i++) {
-      let item = displayList.items[i];
-      this.renderDisplayItem(ctx, item, transform);
-    }
-  }
-
-  clear() {
-    var ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = App.colors.workspace.toHexString();
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.save();
-    var p1 = this.worldToScreen(0, 0);
-    ctx.fillStyle = App.colors.paper.toHexString();
-    ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
-    ctx.restore();
-  }
-
-  clearOverlay() {
-    let ctx = this.overlayCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+  clearDisplayList() {
+    this.renderer.displayList.clear();
   }
 
   render() {
-    this.clearOverlay();
-    // if (this.tool) this.tool.render(this.overlayCanvas.getContext('2d'));
-    this.clear();
-    // let ctx = this.overlayCanvas.getContext('2d')
-    let ctx = this.canvas.getContext('2d');
-    ctx.save();
-    this.renderDisplayList(ctx, this.displayList);
-    if (this.tool) this.tool.render(ctx);
-    // ctx.globalCompositeOperation = 'difference';
-    // ctx = this.canvas.getContext('2d');
-    ctx.drawImage(this.overlayCanvas, 0, 0);
-    ctx.restore();
-  }
+    this.surface.clear();
 
-  renderDisplayListToCanvas(canvas, displayList, transform=null) {
-    let ctx = canvas.getContext('2d');
-    for (let i = 0; i < displayList.items.length; i++) {
-      let item = displayList.items[i];
-      this.renderDisplayItem(ctx, item, transform);
+    let ctx = this.surface.getContext();
+    ctx.save();
+    ctx.fillStyle = App.colors.workspace.toHexString();
+    ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    let p1 = this.worldToScreen(0, 0);
+    ctx.fillStyle = App.colors.paper.toHexString();
+    ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
+    ctx.restore();
+
+    if (this.tool) {
+      ctx.save();
+      this.tool.render(ctx);
+      ctx.restore();
     }
+
+    let transform = this.getWorldToScreenTransform();
+    this.renderer.renderToSurface(this.surface, transform);
+
+    // let ctx = this.canvas.getContext('2d');
+    // ctx.save();
+    // this.renderDisplayList(ctx, this.displayList);
+    // ctx.drawImage(this.overlayCanvas, 0, 0);
+    // ctx.restore();
   }
 
   updateCursor() {

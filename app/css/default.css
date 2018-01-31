@@ -172,7 +172,7 @@ button.text {
 }
 .color-palette {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   position: absolute;
   left: 0;
   top: 0;

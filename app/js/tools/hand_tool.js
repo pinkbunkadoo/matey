@@ -1,5 +1,5 @@
 const Util = require('../util');
-const Geom = require('../geom/');
+// const Geom = require('../geom/');
 const Tool = require('./tool');
 
 class HandTool extends Tool {

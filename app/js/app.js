@@ -1,8 +1,11 @@
-const Geom = require('./geom/');
-const Transform = require('./transform');
+
+
 const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
+const Transform = require('./transform');
+const Renderer = require('./renderer');
+const Surface = require('./surface');
 const DisplayList = require('./display_list');
 const DisplayItem = require('./display_item');
 const Selection = require('./selection');
@@ -10,6 +13,7 @@ const Sequence = require('./sequence');
 const Tool = require('./tools/tool');
 const History = require('./history');
 const Frame = require('./frame');
+const FileHelper = require('./file_helper');
 
 const SequenceAction = require('./actions/sequence_action');
 const SequenceActionType = require('./actions/sequence_action_type');
@@ -21,12 +25,11 @@ const Container = require('./ui/container');
 const Paper = require('./ui/custom/paper');
 const ToolsTray = require('./ui/custom/tools_tray');
 const ColorsTray = require('./ui/custom/colors_tray');
-const Controls = require('./ui/custom/controls');
+// const Controls = require('./ui/custom/controls');
 const ControlsTray = require('./ui/custom/controls_tray');
-const Settings = require('./ui/custom/settings');
-const FrameList = require('./ui/custom/frame_list');
+// const FrameList = require('./ui/custom/frame_list');
 const FrameListTray = require('./ui/custom/frame_list_tray');
-const FrameListMap = require('./ui/custom/frame_list_map');
+// const FrameListMap = require('./ui/custom/frame_list_map');
 const SettingsTray = require('./ui/custom/settings_tray');
 const ColorWheel = require('./ui/custom/color_wheel');
 const ColorPalette = require('./ui/custom/color_palette');
@@ -38,7 +41,7 @@ const { ipcRenderer } = require('electron');
 const { app } = require('electron').remote;
 const fs = require('fs');
 const path = require('path');
-const GIFEncoder = require('gifencoder');
+// const GIFEncoder = require('gifencoder');
 
 let App = {
   extension: '.matey',
@@ -75,25 +78,27 @@ App.setDocumentName = (name) => {
 }
 
 App.render = (frameIndex) => {
-  App.paper.displayList.clear();
+  App.paper.clearDisplayList();
 
   if (App.onion) {
     if (App.position > 0) {
       let frame = App.sequence.frames[App.position - 1];
       for (let i = 0; i < frame.strokes.length; i++) {
         let stroke = frame.strokes[i];
-        // let thickness = stroke.selected ? App.lineWidth * 2 : App.lineWidth;
         let color = App.colors.onion;
         let item = new DisplayItem({ points: stroke.points, color: color, fill: null, thickness: App.lineWidth });
-        App.paper.displayList.add(item);
+        App.paper.addDisplayItem(item);
       }
     }
   }
 
   for (let i = 0; i < App.frame.strokes.length; i++) {
     let stroke = App.frame.strokes[i];
-    let item = new DisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth })
-    App.paper.displayList.add(item);
+    App.paper.addDisplayItem(new DisplayItem({
+      points: stroke.points, color: stroke.color, fill: stroke.fill,
+      thickness: App.lineWidth,
+      dashed: (stroke.fill === null && stroke.color === null)
+    }));
   }
 
   for (let i = 0; i < App.frame.strokes.length; i++) {
@@ -101,7 +106,7 @@ App.render = (frameIndex) => {
     if (stroke.selected) {
       let item = new DisplayItem({ points: stroke.points, color: App.colors.selection,
         fill: null, thickness: App.lineWidth * 4, opacity: 0.5, operation: 'difference' });
-      App.paper.displayList.add(item);
+      App.paper.addDisplayItem(item);
     }
   }
 
@@ -334,10 +339,10 @@ App.updateFrameLabel = () => {
 }
 
 function updateFrameListMap() {
-  // let width = App.ui.frameList.el.offsetWidth;
-  // let total = App.ui.frameList.container.el.scrollWidth;
+  // let width = App.frameList.el.offsetWidth;
+  // let total = App.frameList.container.el.scrollWidth;
   // let size = total > width ? ((width / total) * width) >> 0 : width;
-  // let offset = Math.ceil((App.ui.frameList.el.scrollLeft / App.ui.frameList.el.scrollWidth) * width);
+  // let offset = Math.ceil((App.frameList.el.scrollLeft / App.frameList.el.scrollWidth) * width);
   // App.ui.frameListMap.render({ cmd: 'update', size: size, offset: offset });
 }
 
@@ -346,23 +351,21 @@ function updateFrameListThumbnail(index) {
   let height = App.thumbnailHeight;
   let frame = App.sequence.getFrame(index);
   let scale = (width) / App.paperWidth;
-  let canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  let displayList = new DisplayList();
-  let transform = new Transform(0, 0, scale);
 
-  let ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  let renderer = new Renderer();
+  let transform = new Transform(0, 0, scale);
+  let surface = new Surface({ width: width, height: height });
 
   for (var i = 0; i < frame.strokes.length; i++) {
     let stroke = frame.strokes[i];
-    displayList.add({points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth * 2});
+    renderer.displayList.add(new DisplayItem({
+      points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth * 2
+    }));
   }
-  App.paper.renderDisplayListToCanvas(canvas, displayList, transform);
 
-  App.ui.frameList.render({ cmd: 'updateThumbnail', canvas: canvas, index: index });
+  surface.fill(App.colors.paper);
+  renderer.renderToSurface(surface, transform);
+  App.frameList.render({ cmd: 'updateThumbnail', canvas: surface.canvas, index: index });
 }
 
 App.go = (index) => {
@@ -374,7 +377,7 @@ App.go = (index) => {
     App.history = App.frame.history;
     App.selection.clear();
 
-    App.ui.frameList.render({ cmd: 'select', index: App.position });
+    App.frameList.render({ cmd: 'select', index: App.position });
 
     updateFrameListMap();
     App.updateFrameLabel();
@@ -430,11 +433,12 @@ App.previous = () => {
 //   }
 // }
 
+function showOverlay() {
+  App.ui.overlay.show();
+}
+
 function hideOverlay() {
-  // for (var i = 0; i < App.ui.overlay.children.length; i++) {
-  //   App.ui.overlay.remove(App.ui.overlay.children[i]);
-  // }
-  // App.ui.overlay.hide();
+  App.ui.overlay.hide();
 }
 
 function showColorWheel(el, callback) {
@@ -470,27 +474,27 @@ function toggleHistoryPanel() {
 }
 
 
-function newFrame() {
-  insertFrame(new Frame(), App.position + 1);
+App.newFrame = () => {
+  App.insertFrame(new Frame(), App.position + 1);
 }
 
-function insertFrame(frame, position) {
+App.insertFrame = (frame, position) => {
   App.sequence.insert(frame, position);
-  App.ui.frameList.render({ cmd: 'frameInsert', index: position });
+  App.frameList.render({ cmd: 'frameInsert', index: position });
   App.go(position);
-  updateFrameListMap();
+  // updateFrameListMap();
   updateFrameListThumbnail(App.position);
-  App.updateFrameLabel();
+  // App.updateFrameLabel();
 }
 
 App.duplicateFrame = () => {
-  insertFrame(App.frame.copy(), App.position + 1);
+  App.insertFrame(App.frame.copy(), App.position + 1);
 }
 
 App.removeFrame = () => {
   if (App.sequence.size > 1) {
     App.sequence.remove(App.position);
-    App.ui.frameList.render({ cmd: 'frameRemove', index: App.position });
+    App.frameList.render({ cmd: 'frameRemove', index: App.position });
     if (App.position >= App.sequence.size) {
       App.go(App.sequence.size - 1);
     } else {
@@ -506,13 +510,13 @@ App.toggleTheme = () => {
 }
 
 App.renderAnimationFrame = () => {
-  App.paper.displayList.clear();
+  App.paper.clearDisplayList();
   let frame = App.sequence.getFrame(App.animationFrameIndex);
   for (let i = 0; i < frame.strokes.length; i++) {
     let stroke = frame.strokes[i];
     let thickness = stroke.selected ? App.lineWidth * 2 : App.lineWidth;
     let color = stroke.selected ? App.colors.selection : stroke.color;
-    App.paper.displayList.add({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
+    App.paper.addDisplayItem({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
   App.paper.render();
 }
@@ -549,7 +553,7 @@ App.play = () => {
   App.previousAnimationTime = App.animationTime;
   App.animationFrameTime = 0;
   App.animationFrameIndex = App.position;
-  App.ui.frameList.render({ cmd: 'select' });
+  App.frameList.render({ cmd: 'select' });
   App.renderAnimationFrame();
   App.animationFrameId = requestAnimationFrame(App.step);
 }
@@ -665,7 +669,17 @@ App.release = (captor) => {
   }
 }
 
-App.new = () => {
+App.setSequence = (sequence) => {
+  App.sequence = sequence;
+  for (var i = 0; i < sequence.frames.length; i++) {
+    let frame = sequence.frames[i];
+    App.frameList.render({ cmd: 'frameInsert', index: i });
+    updateFrameListThumbnail(i);
+  }
+  App.go(0);
+}
+
+App.reset = () => {
   App.fps = 6;
 
   App.sequence = new Sequence();
@@ -679,125 +693,69 @@ App.new = () => {
   App.neverBeenSaved = true;
   App.changed = false;
 
-  App.ui.frameList.render({ cmd: 'removeAll' });
+  App.frameList.render({ cmd: 'removeAll' });
 
   App.setStrokeColor(App.colors.stroke);
   App.setFillColor(null);
-
   App.setTool('pencil');
-  newFrame();
+}
+
+App.new = () => {
+  App.reset();
+  App.newFrame();
 }
 
 App.open = () => {
-  App.ui.overlay.show();
   ipcRenderer.send('open');
 }
 
 App.openNow = (filepath) => {
-  try {
-    fs.readFile(filepath, 'utf8', function(err, data) {
-      console.log('open', filepath);
-    });
-  } catch (err) {
-    console.log(err);
-  }
+  FileHelper.loadSequenceFromFile(filepath, (sequence) => {
+    App.reset();
+    App.setDocumentName(path.basename(filepath, App.extension));
+    App.path = path.dirname(filepath);
+    App.neverBeenSaved = false;
+    App.setSequence(sequence);
+    // console.log(sequence);
+  });
 }
 
 App.save = () => {
-  // if (App.neverBeenSaved)
   let filepath = path.join(App.path, App.documentName + App.extension);
   if (App.neverBeenSaved) {
-    App.saveAs();
+    App.saveAs(filepath);
   } else {
     try {
-      fs.accessSync(filepath, fs.constants.F_OK | fs.constants.W_OK);
+      fs.accessSync(filepath, fs.constants.F_OK);
       App.saveNow(filepath);
       return;
     } catch (err) {
-      console.log('File is not available or read only.');
-      // ipcRenderer.send('save', App.documentName);
+      console.log('File is not available or does not exist.');
+      App.saveAs(filepath);
     }
   }
 }
 
-App.saveAs = () => {
-  App.ui.overlay.show();
-  // document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
-  ipcRenderer.send('save', App.documentName);
+App.saveAs = (filepath) => {
+  filepath = filepath || path.join(App.path, App.documentName + App.extension);
+  ipcRenderer.send('save', filepath);
 }
 
-App.saveNow = (filename) => {
-  let data = { frames: [] };
-
-  for (var i = 0; i < App.sequence.frames.length; i++) {
-    let frame = App.sequence.frames[i];
-    data.frames[i] = { strokes: [] };
-
-    for (var j = 0; j < frame.strokes.length; j++) {
-      let stroke = frame.strokes[j];
-      data.frames[i].strokes[j] = { points: '' };
-
-      let pointList = [];
-
-      for (var k = 0; k < stroke.points.length; k++) {
-        let point = stroke.points[k];
-        // data.frames[i].strokes[j].points += (point.x.toFixed(3)) + ' ' + (point.y.toFixed(3)) + ' ';
-        // data.frames[i].strokes[j].points += point.x + ' ' + point.y + ' ';
-        let x = point.x - (k > 0 ? stroke.points[k-1].x : 0);
-        let y = point.y - (k > 0 ? stroke.points[k-1].y : 0);
-        pointList.push(x.toFixed(3), y.toFixed(3));
-      }
-      data.frames[i].strokes[j].points = pointList.toString(); //data.frames[i].strokes[j].points.trim();
-    }
-  }
-
-  let output = JSON.stringify(data, null, 2);
-  fs.writeFile(filename, output, (err) => {
-    if (err) throw err;
-    console.log('File has been saved!');
+App.saveNow = (filepath) => {
+  FileHelper.saveSequence(filepath, App.sequence, () => {
     App.neverBeenSaved = false;
+    App.setDocumentName(path.basename(filepath, App.extension));
   });
 }
 
 App.exportGif = () => {
-  // document.body.appendChild((new Overlay({ id: 'overlay' })).getDOMElement());
-  App.ui.overlay.show();
   ipcRenderer.send('export', App.documentName);
 }
 
-App.exportGifNow = (filename) => {
-  let canvas = document.createElement('canvas');
-  canvas.width = App.paper.width;
-  canvas.height = App.paper.height;
+App.exportGifNow = (filepath) => {
+  FileHelper.exportGIF(filepath, App.sequence, () => {
 
-  let ctx = canvas.getContext('2d');
-  let transform = new Transform(0, 0);
-
-  const encoder = new GIFEncoder(App.paper.width, App.paper.height);
-  encoder.createReadStream().pipe(fs.createWriteStream(filename));
-  encoder.start();
-  encoder.setRepeat(0);
-  encoder.setDelay(1000/App.fps);
-
-  let displayList = new DisplayList();
-
-  for (let i = 0; i < App.sequence.frames.length; i++) {
-    let frame = App.sequence.frames[i];
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    displayList.clear();
-
-    for (let i = 0; i < frame.strokes.length; i++) {
-      let stroke = frame.strokes[i];
-      displayList.add({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth });
-    }
-
-    App.paper.renderDisplayListToCanvas(canvas, displayList, transform);
-    encoder.addFrame(ctx);
-  }
-
-  encoder.finish();
+  });
 }
 
 function fadeComponent(component) {
@@ -861,15 +819,9 @@ function onMouseDown(event) {
   App.mouseLeft = event.buttons & 1;
   if (App.mode === 'pan') {
   } else {
-    // if (App.tray) {
-    //   if (!App.tray.getBounds().containsPoint(App.cursorX, App.cursorY)) {
-    //     App.hideTray();
-    //   }
-    // }
     if (App.paper && event.target === App.paper.el) {
       App.paper.handleEvent(event);
     }
-    // mouseEventHandler(event);
   }
 }
 
@@ -977,7 +929,7 @@ function onKeyDown(event) {
         App.go(App.position - 1);
       }
       else if (event.key === 'n' && !event.repeat) {
-        newFrame();
+        App.newFrame();
       }
       else if (event.key === 'N' && !event.repeat) {
         App.duplicateFrame();
@@ -1037,20 +989,18 @@ function onResize() {
 
 function onFocus(event) {
   if (App.captureTarget) App.release(App.captureTarget);
-
-  // let overlay = document.getElementById('overlay');
-  // if (overlay) document.body.removeChild(overlay);
-  if (App.ui.overlay.isVisible())
-    App.ui.overlay.hide();
-
   App.paper.handleEvent(event);
   App.render();
+  // console.log('focus');
+  // hideOverlay();
+  setTimeout(hideOverlay, 100);
 }
 
 function onBlur(event) {
   if (App.captureTarget) App.release(App.captureTarget);
   App.paper.handleEvent(event);
-  hideOverlay();
+  // console.log('blur');
+  showOverlay();
 }
 
 function onVisibilityChange(event) {
@@ -1173,8 +1123,6 @@ function ready() {
   App.ui.content = new Container({ el: document.getElementById('content') });
   App.ui.modal = document.getElementById('modal');
   App.ui.overlay = new Overlay();
-  // document.body.appendChild(App.ui.overlay.getDOMElement());
-  // App.ui.overlay.hide();
 
   App.paper = new Paper({ el: document.getElementById('paper'), width: App.paperWidth, height: App.paperHeight });
   App.paper.on('zoom', (params) => {
@@ -1186,17 +1134,17 @@ function ready() {
     App.setMode(params.mode);
   });
 
-  App.ui.frameList = new FrameList({ el: document.getElementById('frame-list') });
-  App.ui.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);
-  App.ui.frameList.on('select', (params) => {
-    App.go(params.index);
-  });
-  App.ui.frameList.on('new-frame', (params) => {
-    newFrame();
-  });
-  App.ui.frameList.on('scroll', () => {
-    updateFrameListMap();
-  });
+  // App.ui.frameList = new FrameList({ el: document.getElementById('frame-list') });
+  // App.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);
+  // App.frameList.on('select', (params) => {
+  //   App.go(params.index);
+  // });
+  // App.frameList.on('new-frame', (params) => {
+  //   Aopp.newFrame();
+  // });
+  // App.frameList.on('scroll', () => {
+  //   updateFrameListMap();
+  // });
 
   // App.ui.frameListMap = new FrameListMap({ el: document.getElementById('frame-list-map'), name: 'frame-list-map' });
 
@@ -1288,7 +1236,7 @@ function ready() {
     App.first();
   });
   App.ui.frameListTray.on('new', () => {
-    newFrame();
+    App.newFrame();
   });
   App.ui.frameListTray.on('duplicate', () => {
     App.duplicateFrame();
@@ -1296,6 +1244,11 @@ function ready() {
   App.ui.frameListTray.on('last', () => {
     App.last();
   });
+  App.ui.frameListTray.on('select', (index) => {
+    App.go(index);
+  });
+
+  App.frameList = App.ui.frameListTray.getByName('frameList');
 
   App.ui.playbackOptionsTray = new PlaybackOptionsTray({ el: document.getElementById('playback-options-tray') });
   App.ui.playbackOptionsTray.on('onion', (component) => {

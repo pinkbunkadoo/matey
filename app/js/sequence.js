@@ -5,17 +5,14 @@ const Stroke = require('./stroke');
 const Frame = require('./frame');
 const Selection = require('./selection');
 
-// const HistoryState = require('./history_state');
-// const NewAction = require('./actions/new_action');
-
 class Sequence {
   constructor() {
     this.frames = [];
   }
 
-  add() {
-    this.frames.push(new Frame());
-    // this.insert(new Frame(), this.frames.length);
+  add(frame) {
+    frame = frame || new Frame();
+    this.frames.push(frame);
     return this.frames[this.frames.length - 1];
   }
 

@@ -44,16 +44,15 @@ class PointerTool extends Tool {
 
   beginDrag() {
     this.mode = 'drag';
-    this.list = new DisplayList();
+    this.list = [];
     this.transform = new Transform();
     // App.moveSelected(this.dx, this.dy);
 
     for (var i = 0; i < App.selection.items.length; i++) {
       let item = App.selection.items[i];
       let displayItem = new DisplayItem({ points: item.points, color: new Color(64, 64, 64), thickness: App.lineWidth, operation: 'difference' });
-      this.list.add(displayItem);
+      this.list.push(displayItem);
     }
-    // console.log(this.items.length);
   }
 
   endDrag() {
@@ -97,8 +96,12 @@ class PointerTool extends Tool {
       let transform = App.paper.getWorldToScreenTransform();
       transform.x += this.transform.x;
       transform.y += this.transform.y;
-      App.paper.renderDisplayList(ctx, this.list, transform);
+      for (var i = 0; i < this.list.length; i++) {
+        this.list[i].transform = transform;
+        App.paper.addDisplayItem(this.list[i]);
+      }
     }
+
   }
 
   // PointerTool.prototype.getPathBounds(points) {
@@ -205,8 +208,6 @@ class PointerTool extends Tool {
         this.ymin = this.mouseDownY;
         this.ymax = my;
       }
-      // console.log('select', mx, my);
-      // this.emit('change');
       App.render();
 
     } else if (this.mode == 'drag') {

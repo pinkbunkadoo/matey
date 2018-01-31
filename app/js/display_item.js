@@ -17,6 +17,7 @@ class DisplayItem {
     this.opacity = params.opacity !== undefined ? params.opacity : 1;
     this.operation = params.operation !== undefined ? params.operation : 'source-over';
     this.transform = params.transform ? params.transform.copy() : null;
+    this.dashed = params.dashed ? true : false;
   }
 
 }
