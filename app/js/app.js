@@ -48,9 +48,7 @@ let App = {
   colors: {
     stroke: new Color(85, 85, 85),
     selection: new Color(255, 96, 16),
-    // selection: new Color(128, 128, 128),
     onion: new Color(180, 240, 192),
-    // onion: new Color(0, 0, 255),
     paper: new Color(255, 255, 255),
     workspace: new Color(128, 128, 128)
   },
@@ -716,7 +714,6 @@ App.openNow = (filepath) => {
     App.path = path.dirname(filepath);
     App.neverBeenSaved = false;
     App.setSequence(sequence);
-    // console.log(sequence);
   });
 }
 
@@ -753,9 +750,16 @@ App.exportGif = () => {
 }
 
 App.exportGifNow = (filepath) => {
-  FileHelper.exportGIF(filepath, App.sequence, () => {
-
-  });
+  FileHelper.exportGIF(filepath, {
+      sequence: App.sequence,
+      fps: App.fps,
+      width: App.paperWidth,
+      height: App.paperHeight,
+      thickness: App.lineWidth,
+      background: App.colors.paper
+    },
+    () => {}
+  );
 }
 
 function fadeComponent(component) {
@@ -1134,61 +1138,11 @@ function ready() {
     App.setMode(params.mode);
   });
 
-  // App.ui.frameList = new FrameList({ el: document.getElementById('frame-list') });
-  // App.frameList.setThumbnailSize(App.thumbnailWidth, App.thumbnailHeight);
-  // App.frameList.on('select', (params) => {
-  //   App.go(params.index);
-  // });
-  // App.frameList.on('new-frame', (params) => {
-  //   Aopp.newFrame();
-  // });
-  // App.frameList.on('scroll', () => {
-  //   updateFrameListMap();
-  // });
-
   // App.ui.frameListMap = new FrameListMap({ el: document.getElementById('frame-list-map'), name: 'frame-list-map' });
-
-  // App.ui.controls = new Controls();
-  // App.ui.controls.on('first', (state) => {
-  //   App.first();
-  // });
-  // App.ui.controls.on('last', (state) => {
-  //   App.last();
-  // });
-  // App.ui.controls.on('onion', (state) => {
-  //   App.onion = state;
-  //   App.render();
-  // });
-  // App.ui.controls.on('frame-change', (value) => {
-  //   if (value > 0 && value <= App.sequence.size()) {
-  //     App.go(value - 1);
-  //   } else {
-  //     App.ui.controls.setFrame(App.position + 1, App.sequence.size());
-  //   }
-  // });
-  //
-  // App.ui.controls.setFps(App.fps);
-
-  // App.ui.settings = new Settings();
-  // App.ui.settings.getByName('settings').on('down', (component) => {
-  // });
-  // App.ui.settings.getByName('export').on('click', (component) => {
-  //   App.export();
-  // });
-  //
-  // App.ui.settingsTray = new SettingsTray();
-  // App.ui.settingsTray.on('show', () => {
-  //   App.ui.settings.updateComponent({ id: 'settings', value: true });
-  // });
-  // App.ui.settingsTray.on('hide', () => {
-  //   App.ui.settings.updateComponent({ id: 'settings', value: false });
-  // });
 
   App.ui.history = new Container({ el: document.getElementById('history') });
   App.ui.main.add(App.ui.history);
   App.ui.history.hide();
-  // App.ui.history
-  // App.ui.history.style.visibility = 'visible';
 
   App.ui.toolsTray = new ToolsTray({ el: document.getElementById('tools-tray') });
   App.ui.toolsTray.on('tool-change', (params) => {
@@ -1218,8 +1172,10 @@ function ready() {
   let menu = new Menu();
   menu.addItem({ title: 'New...', shortcut: 'Ctrl+N', icon: 'new-small', click: () => { App.new() }});
   menu.addItem({ title: 'Open...', shortcut: 'Ctrl+O', click: () => { App.open() }});
+  menu.addSeparator();
   menu.addItem({ title: 'Save', shortcut: 'Ctrl+S', click: () => { App.save() } });
   menu.addItem({ title: 'Save As...', shortcut: 'Shift+Ctrl+S', click: () => { App.saveAs() } });
+  menu.addSeparator();
   menu.addItem({ title: 'Export GIF...', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGif() } });
   App.menus.settings = menu;
 
@@ -1228,9 +1184,6 @@ function ready() {
     let bounds = component.el.getBoundingClientRect();
     showMenu(App.menus.settings, bounds.left, bounds.top + component.el.offsetHeight + 10 * App.unit);
   });
-  // App.ui.settingsTray.on('export', () => {
-  //   ipcRenderer.send('export');
-  // });
   App.ui.frameListTray = new FrameListTray({ el: document.getElementById('frame-list-tray') });
   App.ui.frameListTray.on('first', () => {
     App.first();

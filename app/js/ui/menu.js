@@ -1,3 +1,4 @@
+const Base = require('./base');
 const Container = require('./container');
 const Overlay = require('./overlay');
 const MenuItem = require('./menu_item');
@@ -24,6 +25,13 @@ class Menu extends Overlay {
     });
     this.items.push(item);
     this.container.add(item);
+  }
+
+  addSeparator(params) {
+    let separator = new Base();
+    separator.addClass('menu-separator');
+    this.items.push(separator);
+    this.container.add(separator);
   }
 
   show(x, y) {

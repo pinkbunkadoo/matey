@@ -15,35 +15,42 @@ const GIFEncoder = require('gifencoder');
 
 class FileHelper {
 
-  static exportGIF(filepath, sequence, callback) {
+  static exportGIF(filepath, params, callback) {
     let surface = new Surface({ width: App.paper.width, height: App.paper.height })
     let renderer = new Renderer();
+    let sequence = params.sequence;
+    let fps = params.fps || 6;
+    let width = params.width || 1;
+    let height = params.height || 1;
+    let thickness = params.thickness || 1.2;
+    let scale = params.scale || 1;
+    let background = params.background || new Color(255, 255, 255);
 
-    let ctx = surface.getContext();
-    let transform = new Transform(0, 0);
+    if (sequence instanceof Sequence) {
+      let ctx = surface.getContext();
+      let transform = new Transform(0, 0, scale);
 
-    const encoder = new GIFEncoder(App.paper.width, App.paper.height);
-    encoder.createReadStream().pipe(fs.createWriteStream(filepath));
-    encoder.start();
-    encoder.setRepeat(0);
-    encoder.setDelay(1000/App.fps);
+      const encoder = new GIFEncoder(width, height);
+      encoder.createReadStream().pipe(fs.createWriteStream(filepath));
+      encoder.start();
+      encoder.setRepeat(0);
+      encoder.setDelay(1000/fps);
 
-    for (let i = 0; i < sequence.frames.length; i++) {
-      let frame = sequence.frames[i];
-      renderer.displayList.clear();
-      surface.fill(App.colors.paper);
+      for (let i = 0; i < sequence.frames.length; i++) {
+        let frame = sequence.frames[i];
+        renderer.displayList.clear();
+        surface.fill(background);
 
-      for (let i = 0; i < frame.strokes.length; i++) {
-        let stroke = frame.strokes[i];
-        renderer.displayList.add(new DisplayItem({
-            points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth
-          }));
+        for (let i = 0; i < frame.strokes.length; i++) {
+          let stroke = frame.strokes[i];
+          renderer.displayList.add(new DisplayItem({ points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: thickness }));
+        }
+        renderer.renderToSurface(surface, transform);
+        encoder.addFrame(ctx);
       }
-      renderer.renderToSurface(surface, transform);
-      encoder.addFrame(ctx);
-    }
 
-    encoder.finish();
+      encoder.finish();
+    }
   }
 
   static saveSequence(filepath, sequence, callback) {
@@ -67,6 +74,7 @@ class FileHelper {
           pointList.push(x.toFixed(3), y.toFixed(3));
         }
         data.frames[i].strokes[j].points = pointList.toString();
+        // colors are stored as CSS hex values
         data.frames[i].strokes[j].fill = stroke.fill ? stroke.fill.toHexString() : null;
         data.frames[i].strokes[j].color = stroke.color ? stroke.color.toHexString() : null;
       }

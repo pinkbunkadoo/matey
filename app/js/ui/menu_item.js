@@ -1,3 +1,4 @@
+const Base = require('./base');
 const Spacer = require('./spacer');
 const Label = require('./label');
 const Container = require('./container');
@@ -11,6 +12,8 @@ class MenuItem extends Container {
     this.shortcut = params.shortcut;
     this.icon = params.icon;
     this.click = params.click;
+
+    this.addClass('menu-item');
 
     if (this.icon) {
       let icon = new Icon({ resource: this.icon });
@@ -30,7 +33,6 @@ class MenuItem extends Container {
     this.shortcutLabel.addClass('menu-item-shortcut');
     this.add(this.shortcutLabel);
 
-    this.addClass('menu-item');
 
     this.el.addEventListener('mousedown', () => {
     });
