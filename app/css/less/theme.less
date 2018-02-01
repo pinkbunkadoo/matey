@@ -30,7 +30,7 @@ input[type=text] {
   border-style: solid;
   background: transparent;
   // border-color: transparent;
-  border-color: @border-color;
+  border-color: darken(@border-color, 10%); //@border-color;
   color: @input-text-color;
   font-size: inherit;
   font-family: inherit;
@@ -652,7 +652,6 @@ button {
   width: 1.4em;
   margin: 0 .4em 0 0;
   text-align: center;
-
 }
 
 #playback-options-fps-container {

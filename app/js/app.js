@@ -70,10 +70,12 @@ App.getOverlayContext = () => {
 App.setDocumentName = (name) => {
   if (name) {
     App.documentName = name;
-    document.title = App.name + ' — ' + App.documentName;
-  } else {
-    document.title = App.name + ' — untitled';
+    document.title = App.name + ' — ' + App.getDocumentName();
   }
+}
+
+App.getDocumentName = () => {
+  return App.documentName || 'untitled';
 }
 
 App.render = (frameIndex) => {
@@ -158,7 +160,7 @@ App.setFps = (fps) => {
   if (fps >= 1 && fps <= 60) {
     App.fps = fps;
     updateFpsField();
-    // console.log(App.fps);
+    App.markAsChanged();
   }
 }
 
@@ -799,7 +801,7 @@ App.saveAs = (filepath) => {
   if (filepath) {
     App.save(filepath);
   } else {
-    filepath = path.join(App.path, App.documentName + App.extension);
+    filepath = path.join(App.path, App.getDocumentName() + App.extension);
     ipcRenderer.send('save-dialog', filepath);
   }
 }
