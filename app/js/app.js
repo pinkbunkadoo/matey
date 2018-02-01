@@ -1,5 +1,3 @@
-
-
 const Util = require('./util');
 const Color = require('./color');
 const Stroke = require('./stroke');
@@ -25,23 +23,22 @@ const Container = require('./ui/container');
 const Paper = require('./ui/custom/paper');
 const ToolsTray = require('./ui/custom/tools_tray');
 const ColorsTray = require('./ui/custom/colors_tray');
-// const Controls = require('./ui/custom/controls');
 const ControlsTray = require('./ui/custom/controls_tray');
-// const FrameList = require('./ui/custom/frame_list');
 const FrameListTray = require('./ui/custom/frame_list_tray');
 // const FrameListMap = require('./ui/custom/frame_list_map');
 const SettingsTray = require('./ui/custom/settings_tray');
+const PlaybackOptionsTray = require('./ui/custom/playback_options_tray');
 const ColorWheel = require('./ui/custom/color_wheel');
 const ColorPalette = require('./ui/custom/color_palette');
-const PlaybackOptionsTray = require('./ui/custom/playback_options_tray');
 const Overlay = require('./ui/overlay');
 const Menu = require('./ui/menu');
 
 const { ipcRenderer } = require('electron');
+const { BrowserWindow } = require('electron').remote;
 const { app } = require('electron').remote;
 const fs = require('fs');
 const path = require('path');
-// const GIFEncoder = require('gifencoder');
+const nativeMenu = require('./native_menu');
 
 let App = {
   extension: '.matey',
@@ -71,8 +68,12 @@ App.getOverlayContext = () => {
 }
 
 App.setDocumentName = (name) => {
-  App.documentName = name;
-  document.title = App.name + ' — ' + App.documentName;
+  if (name) {
+    App.documentName = name;
+    document.title = App.name + ' — ' + App.documentName;
+  } else {
+    document.title = App.name + ' — untitled';
+  }
 }
 
 App.render = (frameIndex) => {
@@ -151,6 +152,14 @@ App.getStrokeColor = () => {
 
 App.getFillColor = () => {
   return App.fillColor;
+}
+
+App.setFps = (fps) => {
+  if (fps >= 1 && fps <= 60) {
+    App.fps = fps;
+    updateFpsField();
+    // console.log(App.fps);
+  }
 }
 
 App.hitTest = (x, y) => {
@@ -263,17 +272,6 @@ App.marqueeSelect = (p1, p2) => {
   App.render();
 }
 
-App.deleteSelected = () => {
-  if (!App.selection.isEmpty()) {
-    let undoState = App.frame.getState();
-    App.frame.strokes = App.frame.strokes.filter(element => !App.selection.items.includes(element));
-    App.selection.clear();
-    App.addPaperAction(PaperActionType.DELETE_STROKE, undoState);
-    updateFrameListThumbnail(App.position);
-    App.render();
-  }
-}
-
 App.setFrameDirty = () => {
   let position = App.position;
   if (!App.thumbnails[position]) {
@@ -285,53 +283,27 @@ App.setFrameDirty = () => {
 
 }
 
-App.bringForward = () => {
-  let undoState = App.frame.getState();
-  App.frame.strokes.forEach((element, index) => {
-    if (App.selection.includes(element)) {
-      element.z = index + 1;
+
+
+function updateHistoryPanel() {
+  App.ui.history.el.innerHTML = '';
+  for (var i = 0; i < App.history.items.length; i++) {
+    let action = App.history.items[i];
+    let div = document.createElement('div');
+    div.innerHTML = action.type + ' ' + (action.undoState ? 'undo' : 'null');
+    if (App.history.marker === i + 1) {
+      div.innerHTML += '<br>x<br>';
     } else {
-      element.z = index - 1;
     }
-  });
-  App.frame.strokes.sort((a, b) => { return a.z - b.z; })
-  App.addPaperAction(PaperActionType.STROKE_ORDER, undoState);
-  App.render();
-}
-
-App.sendBack = () => {
-  let undoState = App.frame.getState();
-  App.frame.strokes.forEach((element, index) => {
-    if (App.selection.includes(element)) {
-      element.z = index - 1;
-    } else {
-      element.z = index + 1;
-    }
-  });
-  App.frame.strokes.sort((a, b) => { return a.z - b.z; })
-  App.addPaperAction(PaperActionType.STROKE_ORDER, undoState);
-  App.render();
-}
-
-App.moveSelected = (dx, dy) => {
-  let undoState = App.frame.getState();
-
-  for (var i = 0; i < App.selection.items.length; i++) {
-    var item = App.selection.items[i];
-    var points = item.points;
-    for (var j = 0; j < points.length; j++) {
-      var p = points[j];
-      p.x = p.x + dx / App.paper.scale;
-      p.y = p.y + dy / App.paper.scale;
-    }
-    item.calculateBounds();
+    App.ui.history.el.appendChild(div);
   }
-  App.addPaperAction(PaperActionType.MOVE, undoState);
-  App.setFrameDirty();
-  App.render();
 }
 
-App.updateFrameLabel = () => {
+function updateFpsField() {
+  App.ui.playbackOptionsTray.getByName('fps').value = App.fps;
+}
+
+function updateFrameLabel() {
   // App.ui.controls.setFrame(App.position + 1, App.sequence.size());
   reposition();
 }
@@ -378,7 +350,7 @@ App.go = (index) => {
     App.frameList.render({ cmd: 'select', index: App.position });
 
     updateFrameListMap();
-    App.updateFrameLabel();
+    updateFrameLabel();
     updateHistoryPanel();
 
     App.render();
@@ -471,36 +443,6 @@ function toggleHistoryPanel() {
   App.ui.history.isVisible() ? App.ui.history.hide() : App.ui.history.show();
 }
 
-
-App.newFrame = () => {
-  App.insertFrame(new Frame(), App.position + 1);
-}
-
-App.insertFrame = (frame, position) => {
-  App.sequence.insert(frame, position);
-  App.frameList.render({ cmd: 'frameInsert', index: position });
-  App.go(position);
-  // updateFrameListMap();
-  updateFrameListThumbnail(App.position);
-  // App.updateFrameLabel();
-}
-
-App.duplicateFrame = () => {
-  App.insertFrame(App.frame.copy(), App.position + 1);
-}
-
-App.removeFrame = () => {
-  if (App.sequence.size > 1) {
-    App.sequence.remove(App.position);
-    App.frameList.render({ cmd: 'frameRemove', index: App.position });
-    if (App.position >= App.sequence.size) {
-      App.go(App.sequence.size - 1);
-    } else {
-      App.go(App.position);
-    }
-  }
-}
-
 App.toggleTheme = () => {
   App.theme = App.theme === 'light' ? 'dark' : 'light';
   document.getElementById('css').href = './css/' + App.theme + '.css';
@@ -574,18 +516,8 @@ App.setState = (state) => {
   }
 }
 
-function updateHistoryPanel() {
-  App.ui.history.el.innerHTML = '';
-  for (var i = 0; i < App.history.items.length; i++) {
-    let action = App.history.items[i];
-    let div = document.createElement('div');
-    div.innerHTML = action.type + ' ' + (action.undoState ? 'undo' : 'null');
-    if (App.history.marker === i + 1) {
-      div.innerHTML += '<br>x<br>';
-    } else {
-    }
-    App.ui.history.el.appendChild(div);
-  }
+App.markAsChanged = () => {
+  App.changed = true;
 }
 
 App.undo = () => {
@@ -593,8 +525,9 @@ App.undo = () => {
     let action = App.history.getAction();
     if (action.undoState) App.setState(action.undoState);
     App.history.back();
+    updateHistoryPanel();
+    App.markAsChanged();
   }
-  updateHistoryPanel();
 }
 
 App.redo = () => {
@@ -602,8 +535,9 @@ App.redo = () => {
     App.history.forward();
     let action = App.history.getAction();
     if (action.state) App.setState(action.state);
+    updateHistoryPanel();
+    App.markAsChanged();
   }
-  updateHistoryPanel();
 }
 
 App.addPaperAction = (type, undoState) => {
@@ -615,17 +549,144 @@ App.addPaperAction = (type, undoState) => {
   })
   App.history.add(action);
   updateHistoryPanel();
+  App.markAsChanged();
 }
 
-App.createStroke = (points, color, fill) => {
+App.doAction = (type, params) => {
+  if (type == 'newFrame') {
+    App.newFrame();
+  } else if (type == 'insertFrame') {
+    App.insertFrame(params);
+  } else if (type == 'duplicateFrame') {
+    App.duplicateFrame();
+  } else if (type == 'removeFrame') {
+    App.removeFrame();
+  } else if (type == 'createStroke') {
+    App.createStroke(params);
+  } else if (type == 'deleteSelected') {
+    App.deleteSelected();
+  } else if (type == 'moveSelected') {
+    App.moveSelected(params);
+  } else if (type == 'bringForward') {
+    App.bringForward();
+  } else if (type == 'sendBack') {
+    App.sendBack();
+  }
+  App.markAsChanged();
+}
+
+App.newFrame = () => {
+  App.insertFrame({ frame: new Frame(), position: App.position + 1 });
+}
+
+// frame, position
+App.insertFrame = (params) => {
+  if (params.frame) {
+    let position = params.position !== undefined ? params.position : App.sequence.size;
+    App.sequence.insert(params.frame, position);
+    App.frameList.render({ cmd: 'frameInsert', index: position });
+    App.go(position);
+    // updateFrameListMap();
+    updateFrameListThumbnail(position);
+    // updateFrameLabel();
+    App.markAsChanged();
+  }
+}
+
+App.duplicateFrame = () => {
+  App.insertFrame({ frame: App.frame.copy(), position: App.position + 1 });
+}
+
+App.removeFrame = () => {
+  if (App.sequence.size > 1) {
+    App.sequence.remove(App.position);
+    App.frameList.render({ cmd: 'frameRemove', index: App.position });
+    if (App.position >= App.sequence.size) {
+      App.go(App.sequence.size - 1);
+    } else {
+      App.go(App.position);
+    }
+    App.markAsChanged();
+  }
+}
+
+App.deleteSelected = () => {
+  if (!App.selection.isEmpty()) {
+    let undoState = App.frame.getState();
+    App.frame.strokes = App.frame.strokes.filter(element => !App.selection.items.includes(element));
+    App.selection.clear();
+    App.addPaperAction(PaperActionType.DELETE_STROKE, undoState);
+    updateFrameListThumbnail(App.position);
+    App.render();
+    App.markAsChanged();
+  }
+}
+
+App.bringForward = () => {
   let undoState = App.frame.getState();
-  let stroke = App.strokeFromPoints(points, true);
-  stroke.setColor(color);
-  stroke.setFill(fill);
-  App.frame.addStroke(stroke);
-  App.addPaperAction(PaperActionType.NEW_STROKE, undoState);
-  updateFrameListThumbnail(App.position);
+  App.frame.strokes.forEach((element, index) => {
+    if (App.selection.includes(element)) {
+      element.z = index + 1;
+    } else {
+      element.z = index - 1;
+    }
+  });
+  App.frame.strokes.sort((a, b) => { return a.z - b.z; })
+  App.addPaperAction(PaperActionType.STROKE_ORDER, undoState);
   App.render();
+  App.markAsChanged();
+}
+
+App.sendBack = () => {
+  let undoState = App.frame.getState();
+  App.frame.strokes.forEach((element, index) => {
+    if (App.selection.includes(element)) {
+      element.z = index - 1;
+    } else {
+      element.z = index + 1;
+    }
+  });
+  App.frame.strokes.sort((a, b) => { return a.z - b.z; })
+  App.addPaperAction(PaperActionType.STROKE_ORDER, undoState);
+  App.render();
+  App.markAsChanged();
+}
+
+// dx, dy
+App.moveSelected = (params) => {
+  let dx = params.dx || 0;
+  let dy = params.dy || 0;
+  let undoState = App.frame.getState();
+
+  for (var i = 0; i < App.selection.items.length; i++) {
+    var item = App.selection.items[i];
+    var points = item.points;
+    for (var j = 0; j < points.length; j++) {
+      var p = points[j];
+      p.x = p.x + dx / App.paper.scale;
+      p.y = p.y + dy / App.paper.scale;
+    }
+    item.calculateBounds();
+  }
+  App.addPaperAction(PaperActionType.MOVE, undoState);
+  App.setFrameDirty();
+  App.render();
+  App.markAsChanged();
+}
+
+// points, color, fill
+App.createStroke = (params={}) => {
+  if (params.points) {
+    let undoState = App.frame.getState();
+    let stroke = App.strokeFromPoints(params.points, true);
+    stroke.setColor(params.color);
+    stroke.setFill(params.fill);
+    App.frame.addStroke(stroke);
+    App.addPaperAction(PaperActionType.NEW_STROKE, undoState);
+    updateFrameListThumbnail(App.position);
+    App.render();
+    App.markAsChanged();
+  }
 }
 
 App.setStrokeFill = (fill) => {
@@ -667,18 +728,8 @@ App.release = (captor) => {
   }
 }
 
-App.setSequence = (sequence) => {
-  App.sequence = sequence;
-  for (var i = 0; i < sequence.frames.length; i++) {
-    let frame = sequence.frames[i];
-    App.frameList.render({ cmd: 'frameInsert', index: i });
-    updateFrameListThumbnail(i);
-  }
-  App.go(0);
-}
-
 App.reset = () => {
-  App.fps = 6;
+  App.setFps(6);
 
   App.sequence = new Sequence();
   App.selection = new Selection();
@@ -687,8 +738,7 @@ App.reset = () => {
   App.thumbnails = [];
 
   App.path = app.getPath('documents');
-  App.setDocumentName('untitled');
-  App.neverBeenSaved = true;
+  App.setDocumentName();
   App.changed = false;
 
   App.frameList.render({ cmd: 'removeAll' });
@@ -703,63 +753,82 @@ App.new = () => {
   App.newFrame();
 }
 
-App.open = () => {
-  ipcRenderer.send('open');
-}
+App.open = (filepath) => {
+  if (filepath) {
+    FileHelper.loadSequenceFromFile(filepath, (sequence) => {
+      App.reset();
+      App.setDocumentName(path.basename(filepath, App.extension));
+      App.path = path.dirname(filepath);
 
-App.openNow = (filepath) => {
-  FileHelper.loadSequenceFromFile(filepath, (sequence) => {
-    App.reset();
-    App.setDocumentName(path.basename(filepath, App.extension));
-    App.path = path.dirname(filepath);
-    App.neverBeenSaved = false;
-    App.setSequence(sequence);
-  });
-}
-
-App.save = () => {
-  let filepath = path.join(App.path, App.documentName + App.extension);
-  if (App.neverBeenSaved) {
-    App.saveAs(filepath);
+      App.sequence = sequence;
+      for (var i = 0; i < sequence.frames.length; i++) {
+        let frame = sequence.frames[i];
+        App.frameList.render({ cmd: 'frameInsert', index: i });
+        updateFrameListThumbnail(i);
+      }
+      App.go(0);
+    });
   } else {
+    ipcRenderer.send('open-dialog', App.path);
+  }
+}
+
+App.save = (filepath) => {
+  if (filepath) {
     try {
-      fs.accessSync(filepath, fs.constants.F_OK);
-      App.saveNow(filepath);
-      return;
+      // fs.accessSync(filepath, fs.constants.F_OK);
+      FileHelper.saveSequence(filepath, App.sequence, () => {
+        App.setDocumentName(path.basename(filepath, App.extension));
+      });
     } catch (err) {
       console.log('File is not available or does not exist.');
-      App.saveAs(filepath);
+    }
+  } else {
+    if (App.documentName) {
+      let filepath = path.join(App.path, App.documentName + App.extension);
+      FileHelper.saveSequence(filepath, App.sequence, () => {
+        App.setDocumentName(path.basename(filepath, App.extension));
+      });
+    } else {
+      ipcRenderer.send('save-dialog', path.join(App.path, 'untitled' + App.extension));
     }
   }
 }
 
 App.saveAs = (filepath) => {
-  filepath = filepath || path.join(App.path, App.documentName + App.extension);
-  ipcRenderer.send('save', filepath);
+  if (filepath) {
+    App.save(filepath);
+  } else {
+    filepath = path.join(App.path, App.documentName + App.extension);
+    ipcRenderer.send('save-dialog', filepath);
+  }
 }
 
-App.saveNow = (filepath) => {
-  FileHelper.saveSequence(filepath, App.sequence, () => {
-    App.neverBeenSaved = false;
-    App.setDocumentName(path.basename(filepath, App.extension));
-  });
+App.exportGIF = (filepath) => {
+  if (filepath) {
+    FileHelper.exportGIF(filepath, {
+        sequence: App.sequence,
+        fps: App.fps,
+        width: App.paperWidth,
+        height: App.paperHeight,
+        thickness: App.lineWidth,
+        background: App.colors.paper
+      },
+      () => {}
+    );
+  } else {
+    ipcRenderer.send('export-dialog', App.documentName);
+  }
 }
 
-App.exportGif = () => {
-  ipcRenderer.send('export', App.documentName);
+App.quit = () => {
+  // if (App.neverBeenSaved || App.changed) {
+  //   ipcRenderer.send('save-changes-dialog', path.join(App.path, App.documentName + App.extension));
+  // }
 }
 
-App.exportGifNow = (filepath) => {
-  FileHelper.exportGIF(filepath, {
-      sequence: App.sequence,
-      fps: App.fps,
-      width: App.paperWidth,
-      height: App.paperHeight,
-      thickness: App.lineWidth,
-      background: App.colors.paper
-    },
-    () => {}
-  );
+App.quitNow = () => {
+  window.close();
 }
 
 function fadeComponent(component) {
@@ -995,20 +1064,16 @@ function onFocus(event) {
   if (App.captureTarget) App.release(App.captureTarget);
   App.paper.handleEvent(event);
   App.render();
-  // console.log('focus');
-  // hideOverlay();
   setTimeout(hideOverlay, 100);
 }
 
 function onBlur(event) {
   if (App.captureTarget) App.release(App.captureTarget);
   App.paper.handleEvent(event);
-  // console.log('blur');
   showOverlay();
 }
 
 function onVisibilityChange(event) {
-
 }
 
 function onPaste(event) {
@@ -1048,38 +1113,49 @@ ipcRenderer.on('new', (event) => {
   App.new();
 });
 
-ipcRenderer.on('open', (event, filename) => {
-  App.openNow(filename);
+ipcRenderer.on('open', (event, filepath) => {
+  App.open(filepath);
 });
 
-ipcRenderer.on('save', (event, filename) => {
-  App.saveNow(filename);
+ipcRenderer.on('save', (event, filepath) => {
+  App.save(filepath);
 });
 
-ipcRenderer.on('export', (event, filename) => {
-  let extension = filename.substring(filename.lastIndexOf('.') + 1);
+ipcRenderer.on('save-as', (event, filepath) => {
+  App.saveAs(filepath);
+});
 
-  if (extension === 'gif') {
-    App.exportGifNow(filename);
+ipcRenderer.on('export', (event, filepath) => {
+  App.exportGIF(filepath);
 
-  } else {
-    // let data = '1234567890';
-    // var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    // svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
-    // svg.setAttribute('width', App.paper.width);
-    // svg.setAttribute('height', App.paper.height);
-    // svg.appendChild(document.createTextNode('\n'));
-    //
-    // let node = document.createElement('polygon');
-    // node.setAttribute('points', '50 160, 55 180, 70 180, 60 190, 65 205, 50 195, 35 205, 40 190, 30 180, 45 180');
-    // node.setAttribute('fill', 'black');
-    // svg.appendChild(node);
-    // svg.appendChild(document.createTextNode('\n'));
-    //
-    // fs.writeFileSync(filename, svg.outerHTML);
-  }
+  // let extension = filename.substring(filename.lastIndexOf('.') + 1);
 
-})
+  // if (extension === 'gif') {
+  //   App.exportGifNow(filename);
+  //
+  // } else {
+  //   // let data = '1234567890';
+  //   // var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  //   // svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
+  //   // svg.setAttribute('width', App.paper.width);
+  //   // svg.setAttribute('height', App.paper.height);
+  //   // svg.appendChild(document.createTextNode('\n'));
+  //   //
+  //   // let node = document.createElement('polygon');
+  //   // node.setAttribute('points', '50 160, 55 180, 70 180, 60 190, 65 205, 50 195, 35 205, 40 190, 30 180, 45 180');
+  //   // node.setAttribute('fill', 'black');
+  //   // svg.appendChild(node);
+  //   // svg.appendChild(document.createTextNode('\n'));
+  //   //
+  //   // fs.writeFileSync(filename, svg.outerHTML);
+  // }
+
+});
+
+ipcRenderer.on('quit', (event) => {
+
+});
+
 
 function ready() {
   console.log('startup');
@@ -1130,7 +1206,7 @@ function ready() {
 
   App.paper = new Paper({ el: document.getElementById('paper'), width: App.paperWidth, height: App.paperHeight });
   App.paper.on('zoom', (params) => {
-    // status.setZoom(params.scale)
+    // status.setZoom(params.scale);
   });
   App.paper.on('pick', (params) => {
   });
@@ -1176,7 +1252,10 @@ function ready() {
   menu.addItem({ title: 'Save', shortcut: 'Ctrl+S', click: () => { App.save() } });
   menu.addItem({ title: 'Save As...', shortcut: 'Shift+Ctrl+S', click: () => { App.saveAs() } });
   menu.addSeparator();
-  menu.addItem({ title: 'Export GIF...', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGif() } });
+  menu.addItem({ title: 'Export GIF...', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGIF() } });
+  menu.addSeparator();
+  menu.addItem({ title: 'Quit', shortcut: 'Ctrl+Q', click: () => { App.quit() } });
+
   App.menus.settings = menu;
 
   App.ui.settingsTray = new SettingsTray({ el: document.getElementById('settings-tray') });
@@ -1214,6 +1293,16 @@ function ready() {
     component.setState(App.loop);
     App.render();
   });
+  App.ui.playbackOptionsTray.on('fps', (component) => {
+    let fps = parseInt(component.value);
+    if (Number.isInteger(fps) && fps >= 1 && fps <= 60) {
+      App.setFps(fps);
+    } else {
+      component.value = App.fps;
+    }
+  });
+
+  nativeMenu.show();
 
   App.new();
 

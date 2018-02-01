@@ -46,7 +46,6 @@ class PointerTool extends Tool {
     this.mode = 'drag';
     this.list = [];
     this.transform = new Transform();
-    // App.moveSelected(this.dx, this.dy);
 
     for (var i = 0; i < App.selection.items.length; i++) {
       let item = App.selection.items[i];
@@ -59,7 +58,7 @@ class PointerTool extends Tool {
     let dx = this.transform.x;
     let dy = this.transform.y;
     this.reset();
-    App.moveSelected(dx, dy);
+    App.moveSelected({ dx: dx, dy: dy });
     // App.setFrameDirty();
   }
 

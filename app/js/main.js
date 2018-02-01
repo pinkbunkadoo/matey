@@ -10,49 +10,6 @@ let mainWindow
 
 function createWindow () {
 
-  const template = [
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'Export',
-          accelerator: 'CommandOrControl+E',
-          click: () => {
-            showExportDialog()
-          }
-        },
-        {
-          label: 'Quit',
-          accelerator: 'CommandOrControl+Q',
-          role: 'quit',
-          click: () => {
-          }
-        }
-      ]
-    },
-    {
-      label: 'View',
-      submenu: [
-        {
-          label: 'Reload',
-          role: 'reload',
-          accelerator: 'CommandOrControl+R',
-          click: () => {
-            mainWindow.reload()
-          }
-        },
-        {
-          label: 'Toggle Developer Tools',
-          // role: 'reload',
-          accelerator: (() => app.platform==='darwin' ? 'CommandOrControl+Alt+I' : 'CommandOrControl+Shift+I')(),
-          click: () => {
-            // console.log('menu-refresh');
-            mainWindow.toggleDevTools()
-          }
-        }
-      ]
-    }
-  ];
   // globalShortcut.register('CommandOrControl+R', () => {
   //   mainWindow.reload()
   // })
@@ -71,18 +28,17 @@ function createWindow () {
     slashes: true
   }))
 
-  menu = Menu.buildFromTemplate(template)
+  // menu = Menu.buildFromTemplate(template)
+  // Menu.setApplicationMenu(menu)
 
-  Menu.setApplicationMenu(menu)
-
-  mainWindow.setMenuBarVisibility(false)
+  // mainWindow.setMenuBarVisibility(false)
 
   mainWindow.on('close', () => {
     app.quit()
   })
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools({ mode: 'right' })
+  mainWindow.webContents.openDevTools({ mode: 'right' })
 
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
@@ -105,7 +61,6 @@ function showOpenDialog(filepath) {
         if (filename instanceof Array) {
           mainWindow.send('open', filename[0]);
         }
-        // return true
       }
     )
   }
@@ -123,10 +78,8 @@ function showSaveDialog(filepath) {
       },
       filename => {
         if (filename) {
-          // console.log(filename);
           mainWindow.send('save', filename);
         }
-        // return true
       }
     )
   }
@@ -144,10 +97,24 @@ function showExportDialog(filepath) {
       },
       filename => {
         if (filename) {
-          // console.log(filename);
           mainWindow.send('export', filename);
         }
       })
+  }
+}
+
+function showSaveChangesDialog(filepath) {
+  if (mainWindow) {
+    dialog.showMessageBox(mainWindow, {
+        type: 'question',
+        buttons: ['Yes', 'No', 'Cancel' ],
+        title: 'Matey',
+        message: 'Save changes to \'' + path.basename(filepath) + '\' before closing?'
+
+    },
+    response => {
+      console.log(response);
+    });
   }
 }
 
@@ -156,8 +123,12 @@ function showExportDialog(filepath) {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow)
 
+app.on('before-quit', () => {
+  console.log('before-quit')
+})
+
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
@@ -165,7 +136,7 @@ app.on('window-all-closed', function () {
   }
 })
 
-app.on('activate', function () {
+app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
@@ -176,14 +147,43 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipcMain.on('open', (event, arg) => {
-  showOpenDialog(arg)
+ipcMain.on('new', (event) => {
+  mainWindow.send('new')
+  // console.log('new', mainWindow.webContents.App.path);
 })
 
-ipcMain.on('save', (event, arg) => {
-  showSaveDialog(arg)
+ipcMain.on('dev-tools', (event) => {
+  mainWindow.webContents.toggleDevTools()
 })
 
-ipcMain.on('export', (event, arg) => {
-  showExportDialog(arg)
+ipcMain.on('open', (event) => {
+  mainWindow.send('open')
+})
+
+ipcMain.on('save', (event) => {
+  mainWindow.send('save')
+})
+
+ipcMain.on('save-as', (event) => {
+  mainWindow.send('save-as')
+})
+
+ipcMain.on('export', (event) => {
+  mainWindow.send('export')
+})
+
+ipcMain.on('save-changes-dialog', (event, filepath) => {
+  showSaveChangesDialog(filepath)
+})
+
+ipcMain.on('save-dialog', (event, filepath) => {
+  showSaveDialog(filepath)
+})
+
+ipcMain.on('open-dialog', (event, filepath) => {
+  showOpenDialog(filepath)
+})
+
+ipcMain.on('export-dialog', (event, filepath) => {
+  showExportDialog(filepath)
 })

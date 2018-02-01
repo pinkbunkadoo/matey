@@ -20,23 +20,22 @@ label {
 input[type=text] {
   margin: 0;
   padding: 0;
-  margin: .1em .2em 0 .2em;
-  padding: 0 .2em 0 .2em;
   outline: none;
   border-width: 0 0 .1em 0;
   border-style: solid;
   background: transparent;
-  border-color: #505050;
-  color: #404040;
+  border-color: #808080;
+  color: #c0c0c0;
   font-size: inherit;
   font-family: inherit;
 }
 input[type=text]:focus {
   text-align: left;
+  border-color: #808080;
 }
 .checkbox {
   background: #cacaca;
-  border: 0.1em solid #505050;
+  border: 0.1em solid #808080;
   border-radius: .3em;
   width: 1em;
   min-width: 1em;
@@ -415,4 +414,17 @@ button.text {
   position: fixed;
   right: 2em;
   bottom: 8em;
+}
+#playback-options-fps {
+  overflow: hidden;
+  font-size: 1.6em;
+  width: 1.4em;
+  margin: 0 .4em 0 0;
+  text-align: center;
+}
+#playback-options-fps-container {
+  padding: .8em 2em .8em 2em;
+  margin: .2em;
+  border-radius: .8em;
+  background: rgba(64, 64, 64, 0.8);
 }

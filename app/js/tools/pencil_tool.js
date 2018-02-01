@@ -43,7 +43,7 @@ class PencilTool extends Tool {
       // this.points = Smooth.mcmaster(this.points);
 
       this.points = simplify(this.points, 0.4, true);
-      App.createStroke(this.points, App.getStrokeColor(), App.getFillColor());
+      App.createStroke({ points: this.points, color: App.getStrokeColor(), fill: App.getFillColor() });
     }
     this.points = [];
   }

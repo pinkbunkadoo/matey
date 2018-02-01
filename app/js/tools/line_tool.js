@@ -58,7 +58,7 @@ class LineTool extends Tool {
         // App.updateFrameListIcon(App.sequence.position);
         // App.sequence.addAction(new LineAction());
         // this.emit('stroke', { points: this.points });
-        App.createStroke(this.points, App.getStrokeColor(), null);
+        App.createStroke({ points: this.points, color: App.getStrokeColor(), fill: null });
       } else {
         App.render();
       }

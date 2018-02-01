@@ -50,7 +50,7 @@ class PolygonTool extends Tool {
       this.drawing = false;
 
       if (this.points.length > 1) {
-        App.createStroke(this.points, App.getStrokeColor(), App.getFillColor());
+        App.createStroke({ points: this.points, color: App.getStrokeColor(), fill: App.getFillColor() });
       } else {
         App.render();
       }
