@@ -73,7 +73,6 @@ class Paper extends Base {
     } else if (this.ty > this.height) {
       this.ty = this.height;
     }
-
   }
 
   setCursor(name) {
@@ -247,6 +246,14 @@ class Paper extends Base {
       this.setCursor(this.tool.cursor);
     }
   }
+
+  // enableInteraction() {
+  //   this.el.pointerEvents = 'auto';
+  // }
+  //
+  // disableInteraction() {
+  //   this.el.pointerEvents = 'none';
+  // }
 
   onFocus(event) {
     if (this.tool) {

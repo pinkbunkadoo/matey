@@ -1,12 +1,12 @@
 const Util = require('./util');
 const Point = require('./geom/point');
-
 const Stroke = require('./stroke');
 const Frame = require('./frame');
 const Selection = require('./selection');
 
 class Sequence {
-  constructor() {
+  constructor(params={}) {
+    this.fps = params.fps || 6;
     this.frames = [];
   }
 

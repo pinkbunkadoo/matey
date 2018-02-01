@@ -63,10 +63,6 @@ let App = {
   zoomLevels: [ 0.25, 0.5, 0.75, 1.0, 1.5, 2, 3, 5 ]
 };
 
-App.getOverlayContext = () => {
-  return App.paper.overlayCanvas.getContext('2d');
-}
-
 App.setDocumentName = (name) => {
   if (name) {
     App.documentName = name;
@@ -158,7 +154,7 @@ App.getFillColor = () => {
 
 App.setFps = (fps) => {
   if (fps >= 1 && fps <= 60) {
-    App.fps = fps;
+    App.sequence.fps = fps;
     updateFpsField();
     App.markAsChanged();
   }
@@ -216,10 +212,11 @@ App.deselect = (stroke) => {
     App.selection.remove(stroke);
   } else {
      if (!App.selection.isEmpty()) {
-      var strokes = App.selection.items.slice(0);
+      // var strokes = App.selection.items.slice(0);
       App.selection.clear();
-      for (var i = 0; i < strokes.length; i++) {
-      }
+      // for (var i = 0; i < strokes.length; i++) {
+      // }
+      App.render();
     }
   }
 }
@@ -300,7 +297,7 @@ function updateHistoryPanel() {
 }
 
 function updateFpsField() {
-  App.ui.playbackOptionsTray.getByName('fps').value = App.fps;
+  App.ui.playbackOptionsTray.getByName('fps').value = App.sequence.fps;
 }
 
 function updateFrameLabel() {
@@ -411,6 +408,33 @@ function hideOverlay() {
   App.ui.overlay.hide();
 }
 
+App.hideInterface = () => {
+  App.ui.frameListTray.hide();
+  App.ui.toolsTray.hide();
+  App.ui.controlsTray.hide();
+  App.ui.playbackOptionsTray.hide();
+  App.ui.colorsTray.hide();
+  App.ui.settingsTray.hide();
+}
+
+App.showInterface = () => {
+  App.ui.frameListTray.show();
+  App.ui.toolsTray.show();
+  App.ui.controlsTray.show();
+  App.ui.playbackOptionsTray.show();
+  App.ui.colorsTray.show();
+  App.ui.settingsTray.show();
+}
+
+App.enableInteraction = () => {
+  document.body.style.pointerEvents = 'auto';
+}
+
+App.disableInteraction = () => {
+  document.body.style.pointerEvents = 'none';
+}
+
+
 function showColorWheel(el, callback) {
   let colorWheel = new ColorWheel({ callback: callback });
   let bounds = el.getBoundingClientRect();
@@ -454,8 +478,8 @@ App.renderAnimationFrame = () => {
   let frame = App.sequence.getFrame(App.animationFrameIndex);
   for (let i = 0; i < frame.strokes.length; i++) {
     let stroke = frame.strokes[i];
-    let thickness = stroke.selected ? App.lineWidth * 2 : App.lineWidth;
-    let color = stroke.selected ? App.colors.selection : stroke.color;
+    let thickness = App.lineWidth;
+    let color = stroke.color;
     App.paper.addDisplayItem({ points: stroke.points, color: color, fill: stroke.fill, thickness: thickness });
   }
   App.paper.render();
@@ -466,12 +490,12 @@ App.step = () => {
   App.animationDeltaTime = App.animationTime - App.previousAnimationTime;
   App.animationFrameTime += App.animationDeltaTime;
 
-  if (App.animationFrameTime > 1000 / App.fps) {
+  if (App.animationFrameTime > 1000 / App.sequence.fps) {
     App.animationFrameIndex++;
     if (App.animationFrameIndex < App.sequence.size) {
       App.renderAnimationFrame();
     }
-    App.animationFrameTime = App.animationFrameTime - (1000 / App.fps);
+    App.animationFrameTime = App.animationFrameTime - (1000 / App.sequence.fps);
   }
 
   if (App.animationFrameIndex == App.sequence.size) {
@@ -496,6 +520,15 @@ App.play = () => {
   App.frameList.render({ cmd: 'select' });
   App.renderAnimationFrame();
   App.animationFrameId = requestAnimationFrame(App.step);
+
+  // let overlay = new Overlay();
+  // overlay.el.onmousedown = () => {
+  //   overlay.hide();
+  //   App.stop();
+  // };
+  // overlay.show();
+  App.hideInterface();
+  App.disableInteraction();
 }
 
 App.stop = () => {
@@ -503,6 +536,8 @@ App.stop = () => {
   window.cancelAnimationFrame(App.animationFrameId);
   App.ui.controlsTray.setPlaying(false);
   App.go(App.animationFrameIndex);
+  App.showInterface();
+  App.enableInteraction();
 }
 
 App.setState = (state) => {
@@ -729,11 +764,10 @@ App.release = (captor) => {
 }
 
 App.reset = () => {
-  App.setFps(6);
-
   App.sequence = new Sequence();
   App.selection = new Selection();
 
+  App.setFps(6);
   App.position = -1;
   App.thumbnails = [];
 
@@ -809,7 +843,6 @@ App.exportGIF = (filepath) => {
   if (filepath) {
     FileHelper.exportGIF(filepath, {
         sequence: App.sequence,
-        fps: App.fps,
         width: App.paperWidth,
         height: App.paperHeight,
         thickness: App.lineWidth,
@@ -887,6 +920,7 @@ function mouseEventHandler(event) {
 }
 
 function onClick(event) {
+  // if (App.playing) App.stop();
 }
 
 function onMouseDown(event) {
@@ -959,7 +993,7 @@ function onKeyDown(event) {
       App.captureTarget.handleEvent(event);
 
     } else {
-      if (!event.repeat) {
+      if (!event.repeat && !App.playing) {
         if (event.key == 's' && event.ctrlKey) {
           App.save();
         }
@@ -1024,8 +1058,15 @@ function onKeyDown(event) {
         else if (event.key === 't') {
           App.toggleTheme();
         }
+        else if (event.key === 'Escape') {
+          if (App.playing) App.stop();
+        }
         else {
           App.paper.handleEvent(event);
+        }
+      } else {
+        if (App.playing) {
+          App.stop();
         }
       }
     }
@@ -1195,7 +1236,6 @@ function ready() {
   App.tool = null;
   App.tools = [];
   App.position = -1;
-  App.fps = 6;
   App.captureTarget = null;
   App.modal = false;
   App.theme = 'default';
@@ -1304,7 +1344,7 @@ function ready() {
     if (Number.isInteger(fps) && fps >= 1 && fps <= 60) {
       App.setFps(fps);
     } else {
-      component.value = App.fps;
+      component.value = App.sequence.fps;
     }
   });
 

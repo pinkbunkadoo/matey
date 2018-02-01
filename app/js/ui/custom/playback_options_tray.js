@@ -7,8 +7,8 @@ class PlaybackOptionsTray extends Tray {
     super(params);
 
     this.buttons = [];
-    this.buttons['loop'] = new TrayButton({ el: document.getElementById('playback-options-loop'), name: 'loop', width: 1.6, height: 1.6, padding: 1 });
-    this.buttons['onion'] = new TrayButton({ el: document.getElementById('playback-options-onion'), name: 'onion', width: 1.6, height: 1.6, padding: 1 });
+    this.buttons['loop'] = new TrayButton({ el: document.getElementById('playback-options-loop'), name: 'loop', width: 1.6, height: 1.6, padding: .8 });
+    this.buttons['onion'] = new TrayButton({ el: document.getElementById('playback-options-onion'), name: 'onion', width: 1.6, height: 1.6, padding: .8 });
     this.buttons['loop'].on('pressed', () => {
       // console.log('loop');
       this.buttons['loop'].toggle();

@@ -24,6 +24,7 @@ class PointerTool extends Tool {
   }
 
   blur() {
+    App.deselect();
   }
 
   nudge(dx, dy) {

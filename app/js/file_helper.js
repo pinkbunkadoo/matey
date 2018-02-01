@@ -16,15 +16,15 @@ const GIFEncoder = require('gifencoder');
 class FileHelper {
 
   static exportGIF(filepath, params, callback) {
-    let surface = new Surface({ width: App.paper.width, height: App.paper.height })
-    let renderer = new Renderer();
     let sequence = params.sequence;
-    let fps = params.fps || 6;
+    let fps = sequence.fps;
     let width = params.width || 1;
     let height = params.height || 1;
     let thickness = params.thickness || 1.2;
     let scale = params.scale || 1;
     let background = params.background || new Color(255, 255, 255);
+    let surface = new Surface({ width: width, height: height })
+    let renderer = new Renderer();
 
     if (sequence instanceof Sequence) {
       let ctx = surface.getContext();
@@ -54,7 +54,10 @@ class FileHelper {
   }
 
   static saveSequence(filepath, sequence, callback) {
-    let data = { frames: [] };
+    let data = {
+      fps: sequence.fps,
+      frames: []
+    };
 
     for (let i = 0; i < sequence.frames.length; i++) {
       let frame = sequence.frames[i];
@@ -94,7 +97,7 @@ class FileHelper {
 
       let obj = JSON.parse(data);
 
-      let sequence = new Sequence();
+      let sequence = new Sequence({ fps: obj.fps || undefined });
 
       if (obj.frames instanceof Array) {
         for (let i = 0; i < obj.frames.length; i++) {
