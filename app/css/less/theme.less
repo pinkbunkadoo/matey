@@ -185,6 +185,9 @@ button {
 .tray-button-background {
   fill: @tray-button-color;
   transition: fill .2s;
+  // stroke: fadeout(@tray-button-color, 50%);
+  stroke: lighten(@tray-button-color, 20%);
+  stroke-width: .14em;
   &:hover {
     fill: lighten(@tray-button-color, 10%);
   }

@@ -285,8 +285,6 @@ App.setFrameDirty = () => {
 
 }
 
-
-
 function updateHistoryPanel() {
   App.ui.history.el.innerHTML = '';
   for (var i = 0; i < App.history.items.length; i++) {
@@ -331,7 +329,7 @@ function updateFrameListThumbnail(index) {
   for (var i = 0; i < frame.strokes.length; i++) {
     let stroke = frame.strokes[i];
     renderer.displayList.add(new DisplayItem({
-      points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth * 2
+      points: stroke.points, color: stroke.color, fill: stroke.fill, thickness: App.lineWidth * 0.2
     }));
   }
 
@@ -748,6 +746,7 @@ App.reset = () => {
   App.setStrokeColor(App.colors.stroke);
   App.setFillColor(null);
   App.setTool('pencil');
+  App.paper.center();
 }
 
 App.new = () => {
@@ -824,14 +823,14 @@ App.exportGIF = (filepath) => {
 }
 
 App.quit = () => {
-  // if (App.neverBeenSaved || App.changed) {
-  //   ipcRenderer.send('save-changes-dialog', path.join(App.path, App.documentName + App.extension));
-  // }
+  if (App.changed || !App.documentName) {
+    ipcRenderer.send('save-changes-dialog', path.join(App.path, App.getDocumentName() + App.extension));
+  }
 }
 
-App.quitNow = () => {
-  window.close();
-}
+// App.quitNow = () => {
+//   window.close();
+// }
 
 function fadeComponent(component) {
   component.fadeCooldown = 2;
@@ -960,69 +959,74 @@ function onKeyDown(event) {
       App.captureTarget.handleEvent(event);
 
     } else {
-      if (event.key == 's' && event.ctrlKey && !event.repeat) {
-        App.save();
-      }
-      else if (event.key == 'b' && !event.repeat) {
-        App.setTool('pencil');
-      }
-      else if (event.key == 'p' && !event.repeat) {
-        App.setTool('polygon');
-      }
-      else if (event.key == 'l' && !event.repeat) {
-        App.setTool('line');
-      }
-      else if (event.key == 'q' && !event.repeat) {
-        App.setTool('pointer');
-      }
-      else if (event.key == 'u' && !event.repeat) {
-        toggleHistoryPanel();
-      }
-      else if (event.key == 'Z' && !event.repeat) {
-        if (event.ctrlKey) App.redo();
-      }
-      else if (event.key == 'z' && !event.repeat) {
-        if (event.ctrlKey)
-          App.undo();
-        else
-          App.setTool('zoom');
-      }
-      else if (event.key == 'a' && !event.repeat) {
-        App.selectAll();
-      }
-      else if (event.key === 'd' && !event.repeat) {
-        App.settings['dots'] = !App.settings['dots'];
-        App.render();
-      }
-      else if (event.key === 'h' && !event.repeat) {
-        App.setTool('hand');
-      }
-      else if (event.key === '.' && !event.repeat) {
-        App.go(App.position + 1);
-      }
-      else if (event.key === ',' && !event.repeat) {
-        App.go(App.position - 1);
-      }
-      else if (event.key === 'n' && !event.repeat) {
-        App.newFrame();
-      }
-      else if (event.key === 'N' && !event.repeat) {
-        App.duplicateFrame();
-      }
-      else if (event.key === ' ' && !event.repeat) {
-        panOn();
-      }
-      else if (event.key === 'Backspace' && event.ctrlKey && !event.repeat) {
-        App.removeFrame();
-      }
-      else if ((event.key === 'Delete' || event.key === 'Backspace') && !event.repeat) {
-        App.deleteSelected();
-      }
-      else if (event.key === 't' && !event.repeat) {
-        App.toggleTheme();
-      }
-      else {
-        App.paper.handleEvent(event);
+      if (!event.repeat) {
+        if (event.key == 's' && event.ctrlKey) {
+          App.save();
+        }
+        else if (event.key == 'c') {
+          App.paper.center();
+        }
+        else if (event.key == 'b') {
+          App.setTool('pencil');
+        }
+        else if (event.key == 'p') {
+          App.setTool('polygon');
+        }
+        else if (event.key == 'l') {
+          App.setTool('line');
+        }
+        else if (event.key == 'q') {
+          App.setTool('pointer');
+        }
+        else if (event.key == 'u') {
+          toggleHistoryPanel();
+        }
+        else if (event.key == 'Z') {
+          if (event.ctrlKey) App.redo();
+        }
+        else if (event.key == 'z') {
+          if (event.ctrlKey)
+            App.undo();
+          else
+            App.setTool('zoom');
+        }
+        else if (event.key == 'a') {
+          App.selectAll();
+        }
+        else if (event.key === 'd') {
+          App.settings['dots'] = !App.settings['dots'];
+          App.render();
+        }
+        else if (event.key === 'h') {
+          App.setTool('hand');
+        }
+        else if (event.key === '.') {
+          App.go(App.position + 1);
+        }
+        else if (event.key === ',') {
+          App.go(App.position - 1);
+        }
+        else if (event.key === 'n') {
+          App.newFrame();
+        }
+        else if (event.key === 'N') {
+          App.duplicateFrame();
+        }
+        else if (event.key === ' ') {
+          panOn();
+        }
+        else if (event.key === 'Backspace' && event.ctrlKey) {
+          App.removeFrame();
+        }
+        else if ((event.key === 'Delete' || event.key === 'Backspace')) {
+          App.deleteSelected();
+        }
+        else if (event.key === 't') {
+          App.toggleTheme();
+        }
+        else {
+          App.paper.handleEvent(event);
+        }
       }
     }
   }
@@ -1155,7 +1159,7 @@ ipcRenderer.on('export', (event, filepath) => {
 });
 
 ipcRenderer.on('quit', (event) => {
-
+  App.quit();
 });
 
 

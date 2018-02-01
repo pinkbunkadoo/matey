@@ -58,6 +58,22 @@ class Paper extends Base {
   setCameraPosition(x, y) {
     this.tx = x;
     this.ty = y;
+
+    let xmax = this.width / 2;
+    let ymax = this.height / 2;
+
+    if (this.tx < 0) {
+      this.tx = 0;
+    } else if (this.tx > this.width) {
+      this.tx = this.width;
+    }
+
+    if (this.ty < 0) {
+      this.ty = 0;
+    } else if (this.ty > this.height) {
+      this.ty = this.height;
+    }
+
   }
 
   setCursor(name) {
@@ -180,17 +196,6 @@ class Paper extends Base {
       console.log('setTool', name, 'doesn\'t exist');
     }
   }
-
-  // clear() {
-  //   var ctx = this.canvas.getContext('2d');
-  //   ctx.fillStyle = App.colors.workspace.toHexString();
-  //   ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  //   ctx.save();
-  //   var p1 = this.worldToScreen(0, 0);
-  //   ctx.fillStyle = App.colors.paper.toHexString();
-  //   ctx.fillRect((p1.x >> 0), (p1.y >> 0), this.width * this.scale, this.height * this.scale);
-  //   ctx.restore();
-  // }
 
   addDisplayItem(item) {
     this.renderer.displayList.add(item);

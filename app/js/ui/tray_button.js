@@ -49,6 +49,7 @@ class TrayButton extends Container {
         // this.svg.appendChild(filter);
 
         svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em', mask: 'url(#' + this.name + '-mask)' }});
+        // svg = Svg.createElement({ type: 'circle', attributes: { cx: (w / 2) + 'em', cy: (h / 2) + 'em', r: (w / 2) + 'em' }});
         svg.classList.add('tray-button-background');
         this.svg.appendChild(svg);
 

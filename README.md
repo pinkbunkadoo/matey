@@ -36,7 +36,8 @@ electron .
 | shortcut | description |
 | ------------- |:-------------:|
 | N      | Create a new frame |
-| Shift + N      | Dupicate current frame |
+| Shift + N      | Duplicate current frame |
+| Ctrl + Backspace | Delete current frame |
 | B      | Pen tool |
 | L      | Line tool |
 | P      | Polygon tool |
@@ -47,9 +48,9 @@ electron .
 | .      | Next frame |
 | [      | Bring selected strokes forward |
 | ]      | Push selected strokes back |
+| C | Reset paper position and zoom scale |
 | Delete, Backspace | Delete selected strokes |
 | Space + Drag | Pan the canvas |
-| Ctrl + Backspace | Delete current frame |
 | Ctrl + Z | Undo last action |
 | Ctrl + Shift + Z | Redo last action |
 

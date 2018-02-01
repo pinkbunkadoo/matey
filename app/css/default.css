@@ -140,6 +140,8 @@ button.text {
 .tray-button-background {
   fill: rgba(64, 64, 64, 0.8);
   transition: fill .2s;
+  stroke: rgba(115, 115, 115, 0.8);
+  stroke-width: .14em;
 }
 .tray-button-background:hover {
   fill: rgba(90, 90, 90, 0.8);

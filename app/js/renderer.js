@@ -27,7 +27,7 @@ class Renderer {
       let ctx = surface.getContext();
       ctx.save();
 
-      ctx.lineWidth = params.thickness ? params.thickness * scale : App.lineWidth * scale;
+      ctx.lineWidth = params.thickness ? params.thickness : App.lineWidth;
       ctx.fillStyle = params.fill ? params.fill.toHexString() : 'transparent';
       ctx.strokeStyle = params.color ? params.color.toHexString() : 'transparent';
 

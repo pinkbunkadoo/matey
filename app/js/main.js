@@ -15,7 +15,13 @@ function createWindow () {
   // })
 
   // Create the browser window.
-  mainWindow = new BrowserWindow({ width: 1280, height: 768, show: false })
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 768,
+    minWidth: 640,
+    minHeight: 480,
+    show: false
+  })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -31,7 +37,7 @@ function createWindow () {
   // menu = Menu.buildFromTemplate(template)
   // Menu.setApplicationMenu(menu)
 
-  // mainWindow.setMenuBarVisibility(false)
+  mainWindow.setMenuBarVisibility(false)
 
   mainWindow.on('close', () => {
     app.quit()
@@ -170,6 +176,10 @@ ipcMain.on('save-as', (event) => {
 
 ipcMain.on('export', (event) => {
   mainWindow.send('export')
+})
+
+ipcMain.on('quit', (event) => {
+  mainWindow.send('quit')
 })
 
 ipcMain.on('save-changes-dialog', (event, filepath) => {
