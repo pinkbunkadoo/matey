@@ -38,7 +38,7 @@ function createWindow () {
   })
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools({ mode: 'right' })
+  // mainWindow.webContents.openDevTools({ mode: 'right' })
 
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
