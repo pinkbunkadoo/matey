@@ -136,6 +136,12 @@
     </g>
   </symbol>
 
+  <symbol id="tail" viewBox="0 0 192 192">
+    <g id="tail">
+      <path fill-rule="evenodd" d="M-1.000 143.000 L95.000 47.000 L191.000 143.000 Z"/>
+    </g>
+  </symbol>
+
   <!-- Menu -->
 
   <symbol id="new-small" viewBox="0 0 128 128">

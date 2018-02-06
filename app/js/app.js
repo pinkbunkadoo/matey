@@ -400,6 +400,8 @@ App.previous = () => {
 //   }
 // }
 
+// console.log(document.body.style);
+
 function showOverlay() {
   App.ui.overlay.show();
 }
@@ -451,7 +453,7 @@ function showColorPalette(el, callback) {
   let colorPalette = new ColorPalette({ callback: callback });
   let bounds = el.getBoundingClientRect();
   let x = (bounds.left + bounds.width / 2);
-  let y = (bounds.top + bounds.height + 16 * App.unit);
+  let y = (bounds.top + bounds.height);
   colorPalette.show({ x: x, y: y });
 }
 
@@ -468,9 +470,9 @@ function toggleHistoryPanel() {
 }
 
 App.toggleTheme = () => {
-  App.theme = App.theme === 'light' ? 'dark' : 'light';
-  document.getElementById('css').href = './css/' + App.theme + '.css';
-  App.render();
+  // App.theme = App.theme === 'light' ? 'dark' : 'light';
+  // document.getElementById('css').href = './css/' + App.theme + '.css';
+  // App.render();
 }
 
 App.renderAnimationFrame = () => {
@@ -520,15 +522,12 @@ App.play = () => {
   App.frameList.render({ cmd: 'select' });
   App.renderAnimationFrame();
   App.animationFrameId = requestAnimationFrame(App.step);
-
-  // let overlay = new Overlay();
-  // overlay.el.onmousedown = () => {
-  //   overlay.hide();
-  //   App.stop();
-  // };
-  // overlay.show();
   App.hideInterface();
-  App.disableInteraction();
+  // App.disableInteraction();
+  showOverlay();
+  App.ui.overlay.el.onmousedown = () => {
+    App.stop();
+  };
 }
 
 App.stop = () => {
@@ -537,7 +536,9 @@ App.stop = () => {
   App.ui.controlsTray.setPlaying(false);
   App.go(App.animationFrameIndex);
   App.showInterface();
-  App.enableInteraction();
+  // App.enableInteraction();
+  hideOverlay();
+  App.ui.overlay.el.onmousedown = null;
 }
 
 App.setState = (state) => {
@@ -737,7 +738,7 @@ App.setModal = function(value) {
   console.log('setModal');
 }
 
-App.capture = (captor, modal=false) => {
+App.capture = (captor) => {
   if (captor) {
     App.captureTarget = captor;
     if (captor instanceof Base) {
@@ -754,7 +755,7 @@ App.release = (captor) => {
       if (captor instanceof Base) {
         captor.el.style.pointerEvents = 'auto';
       }
-      document.body.style.pointerEvents = 'auto';
+      document.body.style.removeProperty('pointer-events');
     } else {
       console.log('App.release', 'mismatch');
     }
@@ -1237,7 +1238,6 @@ function ready() {
   App.tools = [];
   App.position = -1;
   App.captureTarget = null;
-  App.modal = false;
   App.theme = 'default';
   App.thumbnails = [];
 
@@ -1247,7 +1247,6 @@ function ready() {
 
   App.ui.main = new Container({ el: document.getElementById('main') });
   App.ui.content = new Container({ el: document.getElementById('content') });
-  App.ui.modal = document.getElementById('modal');
   App.ui.overlay = new Overlay();
 
   App.paper = new Paper({ el: document.getElementById('paper'), width: App.paperWidth, height: App.paperHeight });

@@ -5,7 +5,7 @@ class Svg {
     for (let name in params.attributes) {
       el.setAttribute(name, params.attributes[name]);
     }
-    el.id = params.id;
+    params.id !== undefined ? el.id = params.id : null;
     return el;
   }
 }

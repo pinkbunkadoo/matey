@@ -71,12 +71,13 @@ class ToolsTray extends Tray {
 
   hideRollout() {
     this.rollout.hide();
-    this.rollout.el.style.height = 0;
+    this.rollout.el.style.height = '0em';
     this.collapser.el.style.transform = 'scale(1, -1)';
     // this.collapser.hide();
   }
 
   showRollout() {
+    // console.log('show');
     this.rollout.show();
     this.rollout.el.style.height = 'auto';
     this.collapser.el.style.transform = 'scale(1, 1)';

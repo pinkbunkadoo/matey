@@ -10,7 +10,7 @@ class Base extends EventEmitter {
       this.id = this.el.id || params.id;
     } else {
       this.el = document.createElement('div');
-      this.el.id = params.id;
+      params.id !== undefined ? this.el.id = params.id : null;
     }
 
     this.name = params.name;
@@ -37,7 +37,14 @@ class Base extends EventEmitter {
   }
 
   setVisible(value) {
-    if (this.el) this.el.style.visibility = value ? 'visible' : 'hidden';
+    if (this.el) {
+      if (value) {
+        // this.el.style.visibility = 'visible';
+        this.el.style.removeProperty('visibility');
+      } else {
+        this.el.style.visibility = 'hidden';
+      }
+    }
   }
 
   getBounds() {
@@ -48,7 +55,7 @@ class Base extends EventEmitter {
   }
 
   isVisible() {
-    if (this.el) return (this.el.style.visibility == 'visible' || this.el.style.visibility == '');
+    if (this.el) return (this.el.style.visibility != 'hidden');
   }
 
   show() {

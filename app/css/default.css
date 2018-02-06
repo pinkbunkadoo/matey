@@ -169,22 +169,28 @@ button.text {
   align-items: center;
   justify-content: center;
   border-radius: 1em 16em 16em 16em;
-  background-color: rgba(32, 32, 32, 0.8);
+  background-color: rgba(32, 32, 32, 0.9);
+}
+.tail {
+  fill: rgba(32, 32, 32, 0.9);
 }
 .color-palette {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  flex-direction: column;
   position: absolute;
   left: 0;
   top: 0;
-  background: rgba(16, 16, 16, 0.8);
   box-shadow: 0.2em 0.3em 1.6em rgba(0, 0, 0, 0.4);
 }
+.color-palette-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
 .color-palette-swatch {
-  width: 3em;
-  height: 3em;
-  min-width: 3em;
-  min-height: 3em;
+  width: 4em;
+  height: 4em;
+  min-width: 4em;
+  min-height: 4em;
 }
 #main {
   display: flex;
@@ -344,7 +350,7 @@ button.text {
   z-index: 10;
   border-radius: .4em;
   color: #c0c0c0;
-  background: rgba(16, 16, 16, 0.8);
+  background: rgba(32, 32, 32, 0.9);
   box-shadow: 0.2em 0.3em 1.6em rgba(0, 0, 0, 0.4);
 }
 .menu-item {
@@ -392,6 +398,7 @@ button.text {
 #tools-rollout {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  overflow: hidden;
 }
 #colors-tray {
   display: flex;

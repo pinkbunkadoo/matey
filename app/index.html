@@ -23,14 +23,14 @@
       </div>
       <div id="playback-options-tray" class="tray">
         <div class="cartouche">
-          <div id="playback-options-fps-container"><input type="text" id="playback-options-fps" maxlength="3"><label for="playback-options-fps">fps</label></div>
           <div id="playback-options-loop" class="tray-button" data-icon="loop"></div>
           <div id="playback-options-onion" class="tray-button" data-icon="onion"></div>
+          <div class="spacer double"></div>
+          <div id="playback-options-fps-container"><input type="text" id="playback-options-fps" maxlength="3"><label for="playback-options-fps">fps</label></div>
         </div>
       </div>
       <!-- <div id="frame-list-map"></div> -->
       <div id="tools-tray" class="tray">
-          <!-- <div class="spacer"></div> -->
         <div class="cartouche" style="flex-direction: column">
           <div id="tools-tray-tool" class="tray-button" data-icon="pencil"></div>
           <div id="tools-rollout">
@@ -55,11 +55,6 @@
         <div class="cartouche">
           <div id="controls-tray-play" class="tray-button" data-icon="play"></div>
         </div>
-        <!-- <div class="spacer"></div>
-        <div class="cartouche">
-          <div id="controls-loop" class="tray-button standard" title="Loop"><svg class="svg-icon"><use xlink:href="./images/icons.svg#loop"></use></svg></div>
-          <div id="controls-onion" class="tray-button standard" title="Onion skinning"><svg class="svg-icon"><use xlink:href="./images/icons.svg#onion"></use></svg></div>
-        </div> -->
       </div>
       <div id="settings-tray" class="tray">
         <div class="cartouche">
@@ -68,7 +63,6 @@
         </div>
       </div>
     </div>
-    <div id="modal"></div>
     <div id="history"></div>
   </body>
   <script>
