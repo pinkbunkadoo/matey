@@ -41,6 +41,16 @@ class MenuItem extends Container {
       if (this.click) this.click();
     });
   }
+
+  // parseShortcut(shortcut) {
+  //   let parts = shortcut.split('+');
+  //   for (var i = 0; i < parts.length; i++) {
+  //     let part = parts[i];
+  //     if (part == 'CommandOrControl') {
+  //       parts[i] =
+  //     }
+  //   }
+  // }
 }
 
 module.exports = MenuItem;

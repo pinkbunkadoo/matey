@@ -20,6 +20,7 @@ function createWindow () {
     height: 768,
     minWidth: 640,
     minHeight: 480,
+    disableAutoHideCursor: true,
     show: false
   })
 

@@ -10,20 +10,19 @@ class Button extends Base {
 
     if (params.id) this.el.id = params.id;
 
-    this.text = params.text;
+    this.title = params.title;
     this.iconResourceName = params.resource;
     this.svg = null;
 
-    if (!this.text) {
+    if (!this.title) {
       if (this.el.firstElementChild instanceof SVGSVGElement) {
         this.svg = this.el.firstElementChild;
       } else {
          if (this.el.textContent) {
-           this.text = this.el.textContent;
+           this.title = this.el.textContent;
          } else {
            if (this.iconResourceName) {
-             console.log(this.iconResourceName)
-
+             // console.log(this.iconResourceName)
              var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
              svg.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink');
              svg.setAttribute('width', '100%');
@@ -35,14 +34,13 @@ class Button extends Base {
              svg.appendChild(svguse);
 
              this.el.appendChild(svg);
-
              this.svg = svg;
            }
          }
       }
     }
 
-    if (this.text) {
+    if (this.title) {
       this.el.innerHTML = '';
       this.textContainer = new Container();
       this.textContainer.setStyle({
@@ -51,7 +49,7 @@ class Button extends Base {
         justifyContent: 'center',
         // border: '1px solid black'
       })
-      this.textContainer.el.innerHTML = this.text;
+      this.textContainer.el.innerHTML = this.title;
       this.textContainer.addClass('text');
       // this.add(this.textContainer);
       this.el.appendChild(this.textContainer.el);

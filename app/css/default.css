@@ -86,8 +86,6 @@ button {
   box-sizing: content-box;
   padding: .6em;
   margin: .1em;
-  width: 2.4em;
-  height: 2.4em;
   outline: none;
   background: transparent;
   border-radius: .3em;
@@ -163,6 +161,17 @@ button.text {
   height: 100vh;
   z-index: 200;
 }
+.dialog {
+  position: absolute;
+  flex-direction: column;
+  padding: 1em;
+  background: rgba(212, 212, 212, 0.9);
+  box-shadow: 0.2em 0.3em 1.6em rgba(0, 0, 0, 0.4);
+}
+.dialog-content {
+  padding: 1em;
+  flex-direction: column;
+}
 .color-wheel {
   position: absolute;
   padding: .2em;
@@ -170,9 +179,6 @@ button.text {
   justify-content: center;
   border-radius: 1em 16em 16em 16em;
   background-color: rgba(32, 32, 32, 0.9);
-}
-.tail {
-  fill: rgba(32, 32, 32, 0.9);
 }
 .color-palette {
   align-items: center;

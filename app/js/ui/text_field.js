@@ -2,10 +2,11 @@ const Base = require('./base');
 
 class TextField extends Base {
   constructor(params={}) {
-    params.el = params.el || document.createElement('input');
+    if (!params.el) {
+        params.el = document.createElement('input');
+        params.el.type = 'text';
+    }
     super(params);
-
-    // this.el.style.width = (params.width || (16 * App.unit) + 'px');
 
     this.el.onchange = (event) => {
       this.el.blur();

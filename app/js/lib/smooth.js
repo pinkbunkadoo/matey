@@ -36,7 +36,7 @@ Smooth.mcmaster = function(points) {
 
 //http://jsfiddle.net/xup4T/
 
-Smooth.LIMIT = 6; // original value 4
+Smooth.LIMIT = 2; // original value 4
 
 Smooth.exp = function (ps) {
 	if (ps.length > Smooth.LIMIT) {

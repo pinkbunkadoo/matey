@@ -105,8 +105,6 @@ button {
   box-sizing: content-box;
   padding: .6em;
   margin: .1em;
-  width: 2.4em;
-  height: 2.4em;
   outline: none;
   background: transparent;
   border-radius: .3em;
@@ -202,6 +200,24 @@ button {
   z-index: 200;
 }
 
+.dialog {
+  position: absolute;
+  flex-direction: column;
+  padding: 1em;
+  background: @dialog-background-color;
+  box-shadow: .2em .3em 1.6em rgba(0, 0, 0, 0.4);
+  // border: 1px solid red;
+}
+
+.dialog-title {
+
+}
+
+.dialog-content {
+  padding: 1em;
+  flex-direction: column;
+}
+
 .color-wheel {
   position: absolute;
   padding: .2em;
@@ -211,9 +227,9 @@ button {
   background-color: @menu-background-color;
 }
 
-.tail {
-  fill: @menu-background-color;
-}
+// .tail {
+//   fill: @menu-background-color;
+// }
 
 .color-palette {
   align-items: center;

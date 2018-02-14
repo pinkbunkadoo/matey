@@ -41,8 +41,8 @@ class PencilTool extends Tool {
     this.drawing = false;
     if (this.points.length > 2) {
       // this.points = Smooth.mcmaster(this.points);
-
       this.points = simplify(this.points, 0.4, true);
+      // this.points = simplify(this.points);
       App.createStroke({ points: this.points, color: App.getStrokeColor(), fill: App.getFillColor() });
     }
     this.points = [];
@@ -95,7 +95,8 @@ class PencilTool extends Tool {
     if (this.drawing) {
       this.addPoint(mx, my);
       // Smooth.exp(this.points);
-      Smooth.simple(this.points);
+      if (this.points.length > 2)
+        Smooth.simple(this.points);
       App.render();
     }
   }

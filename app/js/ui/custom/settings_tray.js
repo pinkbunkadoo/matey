@@ -11,16 +11,16 @@ class SettingsTray extends Tray {
     super(params);
 
     this.buttons = [];
-    // this.buttons['export'] = new TrayButton({ el: document.getElementById('settings-tray-export'), name: 'export' });
+    this.buttons['export'] = new TrayButton({ el: document.getElementById('settings-tray-export'), name: 'export' });
     this.buttons['settings'] = new TrayButton({ el: document.getElementById('settings-tray-settings'), name: 'settings' });
 
     for (name in this.buttons) {
       this.add(this.buttons[name]);
     }
 
-    // this.buttons['export'].on('pressed', () => {
-    //   this.emit('export', this.buttons['export']);
-    // });
+    this.buttons['export'].on('pressed', () => {
+      this.emit('export', this.buttons['export']);
+    });
 
     this.buttons['settings'].on('pressed', () => {
       this.emit('settings', this.buttons['settings']);

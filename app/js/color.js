@@ -46,7 +46,8 @@ class Color {
       } else if (s.length == 6) {
         r = parseInt(s[0] + s[1], 16), g = parseInt(s[2] + s[3], 16), b = parseInt(s[4] + s[5], 16);
       } else if (s.length == 8) {
-        r = parseInt(s[0] + s[1], 16), g = parseInt(s[2] + s[3], 16), b = parseInt(s[4] + s[5], 16), a = parseInt(s[6] + s[7], 16);
+        r = parseInt(s[0] + s[1], 16), g = parseInt(s[2] + s[3], 16), b = parseInt(s[4] + s[5], 16),
+          a = parseInt(s[6] + s[7], 16);
       }
     }
 

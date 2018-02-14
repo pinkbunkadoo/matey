@@ -6,14 +6,14 @@ const template = [
     label: 'File',
     submenu: [
       {
-        label: 'New',
+        label: 'New...',
         accelerator: 'CommandOrControl+N',
         click: () => {
           ipcRenderer.send('new')
         }
       },
       {
-        label: 'Open',
+        label: 'Open...',
         accelerator: 'CommandOrControl+O',
         click: () => {
           ipcRenderer.send('open')
@@ -36,18 +36,36 @@ const template = [
       },
       { type: 'separator' },
       {
-        label: 'Export',
+        label: 'Export GIF...',
         accelerator: 'CommandOrControl+E',
         click: () => {
-          ipcRenderer.send('export')
+          ipcRenderer.send('export-gif')
         }
       },
-      { type: 'separator' },
       {
-        label: 'Quit',
-        accelerator: 'CommandOrControl+Q',
+        label: 'Export SVG...',
+        accelerator: 'Shift+CommandOrControl+E',
         click: () => {
-          ipcRenderer.send('quit')
+          ipcRenderer.send('export-svg')
+        }
+      }
+    ]
+  },
+  {
+    label: 'Edit',
+    submenu: [
+      {
+        label: 'Copy',
+        accelerator: 'CommandOrControl+C',
+        click: () => {
+          ipcRenderer.send('copy')
+        }
+      },
+      {
+        label: 'Paste',
+        accelerator: 'CommandOrControl+V',
+        click: () => {
+          ipcRenderer.send('paste')
         }
       }
     ]
@@ -75,6 +93,34 @@ const template = [
     ]
   }
 ]
+
+if (process.platform === 'darwin') {
+  template.unshift({
+    label: app.getName(),
+    submenu: [
+      {role: 'about'},
+      {type: 'separator'},
+      {role: 'services', submenu: []},
+      {type: 'separator'},
+      {role: 'hide'},
+      {role: 'hideothers'},
+      {role: 'unhide'},
+      {type: 'separator'},
+      {role: 'quit'}
+    ]
+  })
+} else {
+  template[0].submenu.push(
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      accelerator: 'CommandOrControl+Q',
+      click: () => {
+        ipcRenderer.send('quit')
+      }
+    }
+  )
+}
 
 module.exports = {
   show: () => {

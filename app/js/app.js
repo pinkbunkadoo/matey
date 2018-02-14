@@ -32,6 +32,7 @@ const ColorWheel = require('./ui/custom/color_wheel');
 const ColorPalette = require('./ui/custom/color_palette');
 const Overlay = require('./ui/overlay');
 const Menu = require('./ui/menu');
+const SVGExportDialog = require('./ui/dialogs/svg_export_dialog');
 
 const { ipcRenderer } = require('electron');
 const { BrowserWindow } = require('electron').remote;
@@ -40,10 +41,12 @@ const fs = require('fs');
 const path = require('path');
 const nativeMenu = require('./native_menu');
 
+const {clipboard} = require('electron');
+
 let App = {
   extension: '.matey',
   colors: {
-    stroke: new Color(85, 85, 85),
+    stroke: Color.fromHexString('#999999'), //new Color(85, 85, 85),
     selection: new Color(255, 96, 16),
     onion: new Color(180, 240, 192),
     paper: new Color(255, 255, 255),
@@ -856,6 +859,11 @@ App.exportGIF = (filepath) => {
   }
 }
 
+App.exportSVG = (filepath) => {
+  let dialog = new SVGExportDialog();
+  dialog.show();
+}
+
 App.quit = () => {
   if (App.changed || !App.documentName) {
     ipcRenderer.send('save-changes-dialog', path.join(App.path, App.getDocumentName() + App.extension));
@@ -988,14 +996,15 @@ function onKeyDown(event) {
   App.keys[event.key] = true;
 
   if (this.mode === 'pan') {
-
+    // event.preventDefault();
+    // event.stopPropagation();
   } else {
     if (App.captureTarget) {
       App.captureTarget.handleEvent(event);
 
     } else {
       if (!event.repeat && !App.playing) {
-        if (event.key == 's' && event.ctrlKey) {
+        if (event.key == 's' && (event.ctrlKey || event.metaKey)) {
           App.save();
         }
         else if (event.key == 'c') {
@@ -1020,7 +1029,7 @@ function onKeyDown(event) {
           if (event.ctrlKey) App.redo();
         }
         else if (event.key == 'z') {
-          if (event.ctrlKey)
+          if (event.ctrlKey || event.metaKey)
             App.undo();
           else
             App.setTool('zoom');
@@ -1047,10 +1056,7 @@ function onKeyDown(event) {
         else if (event.key === 'N') {
           App.duplicateFrame();
         }
-        else if (event.key === ' ') {
-          panOn();
-        }
-        else if (event.key === 'Backspace' && event.ctrlKey) {
+        else if (event.key === 'Backspace' && (event.ctrlKey || event.metaKey)) {
           App.removeFrame();
         }
         else if ((event.key === 'Delete' || event.key === 'Backspace')) {
@@ -1061,6 +1067,9 @@ function onKeyDown(event) {
         }
         else if (event.key === 'Escape') {
           if (App.playing) App.stop();
+        }
+        else if (event.key === ' ') {
+          panOn();
         }
         else {
           App.paper.handleEvent(event);
@@ -1173,7 +1182,11 @@ ipcRenderer.on('save-as', (event, filepath) => {
   App.saveAs(filepath);
 });
 
-ipcRenderer.on('export', (event, filepath) => {
+ipcRenderer.on('export-svg', (event, filepath) => {
+  App.exportSVG(filepath);
+});
+
+ipcRenderer.on('export-gif', (event, filepath) => {
   App.exportGIF(filepath);
 
   // let extension = filename.substring(filename.lastIndexOf('.') + 1);
@@ -1298,6 +1311,7 @@ function ready() {
   menu.addItem({ title: 'Save As...', shortcut: 'Shift+Ctrl+S', click: () => { App.saveAs() } });
   menu.addSeparator();
   menu.addItem({ title: 'Export GIF...', shortcut: 'Ctrl+E', icon: 'export-small', click: () => { App.exportGIF() } });
+  menu.addItem({ title: 'Export SVG...', shortcut: 'Shift+Ctrl+E', icon: 'export-small', click: () => { App.exportSVG() } });
   menu.addSeparator();
   menu.addItem({ title: 'Quit', shortcut: 'Ctrl+Q', click: () => { App.quit() } });
 
@@ -1307,6 +1321,9 @@ function ready() {
   App.ui.settingsTray.on('settings', (component) => {
     let bounds = component.el.getBoundingClientRect();
     showMenu(App.menus.settings, bounds.left, bounds.top + component.el.offsetHeight + 10 * App.unit);
+  });
+  App.ui.settingsTray.on('export', (component) => {
+    App.exportSVG();
   });
   App.ui.frameListTray = new FrameListTray({ el: document.getElementById('frame-list-tray') });
   App.ui.frameListTray.on('first', () => {
